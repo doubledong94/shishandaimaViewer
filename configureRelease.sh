@@ -1,1 +1,11 @@
-mkdir -p build && mkdir -p build/config && cp config/* build/config/ && mkdir -p build/fonts && cp fonts/* build/fonts/ && mkdir -p build/resource/ && cp resource/* build/resource/ && cmake -DGLFW_INSTALL=OFF -DGLFW_BUILD_WAYLAND=OFF -DANTLR_BUILD_CPP_TESTS=OFF -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=OFF -DTHREEPP_BUILD_EXAMPLES=OFF -DTHREEPP_BUILD_TESTS=OFF -DTHREEPP_EMBEDDED_GLFW_WITH_X11=ON -DVCPKG_MANIFEST_FEATURES=json -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="/home/ydd/github/vcpkg/scripts/buildsystems/vcpkg.cmake" -S . -B build
+mkdir -p build
+mkdir -p build/config
+mkdir -p build/fonts
+mkdir -p build/resource/
+cp config/* build/config/
+cp fonts/* build/fonts/
+cp resource/* build/resource/
+cd external/imgui/
+git checkout origin/features/shadows
+cd ../..
+cmake -DGLFW_INSTALL=OFF -DGLFW_BUILD_WAYLAND=OFF -DANTLR_BUILD_CPP_TESTS=OFF -DBUILD_TESTING=OFF -DINSTALL_DOCUMENTATION=OFF -DTHREEPP_BUILD_EXAMPLES=OFF -DTHREEPP_BUILD_TESTS=OFF -DTHREEPP_EMBEDDED_GLFW_WITH_X11=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$1/scripts/buildsystems/vcpkg.cmake -S . -B build
