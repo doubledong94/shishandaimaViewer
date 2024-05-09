@@ -49,7 +49,7 @@ void FileManager::getAllFiles(const std::string& dir_name, const string& postfix
     closedir(dir);
 }
 
-string baseFolder = "";
+string FileManager::baseFolder = "";
 string baseDataFolder = "";
 
 string FileManager::prologBaseDir = baseDataFolder + "prolog/";

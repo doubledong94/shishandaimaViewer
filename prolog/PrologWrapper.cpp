@@ -8,12 +8,12 @@
 #include "PrologWrapper.h"
 #include "../error/ErrorManager.h"
 
-PlEngine PrologWrapper::e("");
+PlEngine* PrologWrapper::e = NULL;
 
 ofstream debug_prolog_file;
 
 bool PrologWrapper::init() {
-    FileManager::initCurrentDir();
+    e = new PlEngine("");
     bool loaded = true;
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_package2typeKey);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2itUseTypeKeys);

@@ -1,6 +1,6 @@
 class PrologWrapper {
 public:
-    static PlEngine e;
+    static PlEngine *e;
 
     static bool init();
 

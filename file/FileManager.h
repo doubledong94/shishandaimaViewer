@@ -28,6 +28,7 @@ public:
 
     static void initCurrentDir();
 
+    static string baseFolder;
     static string prologBaseDir;
     static string prologAddressableFileDir;
     static string prologUnaddressableFileDir;

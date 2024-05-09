@@ -970,7 +970,10 @@ int app::Application::ApplicationMain() {
 }
 
 int main(int argc, char** argv) {
+    FileManager::initCurrentDir();
     StringRes::singleton = new EnglishStringRes();
+    string swi_env = "SWI_HOME_DIR=" + FileManager::baseFolder + "external/swipl/home";
+    putenv(swi_env.data());
     ErrorManager::init();
     prologLoaded = PrologWrapper::init();
     PrologConstructor::init();
