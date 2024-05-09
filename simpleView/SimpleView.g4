@@ -1,0 +1,236 @@
+grammar SimpleView;
+
+LABEL_DETAIL_LEVEL_SIMPLE:'"simple"';
+LABEL_DETAIL_LEVEL_FULL:'"full"';
+
+NODE_COLOR : 'nodeColor';
+NODE_SCALE : 'nodeScale';
+LABEL_COLOR : 'labelColor';
+LABEL_SCALE : 'labelScale';
+LABEL_DETAIL_LEVEL : 'labelDetailLevel';
+POSITION_Z : 'positionZ';
+
+BASIC_NODE_SIZE : 'basicNodeSize';
+BASIC_LABEL_SIZE : 'basicLabelSize';
+BASIC_POSITION_Z : 'basicPositionZ';
+
+ANY:'Any';
+FIELD_OF:'FieldOf';
+INSTANCE_OF:'InstanceOf';
+METHOD_OF:'MethodOf';
+CREATOR : 'CreatorOf';
+PARAMETER_OF:'ParameterOf';
+RETURN_OF:'ReturnOf';
+CALLED_PARAM_OF :'CalledParamOf';
+CALLED_RETURN_OF : 'CalledReturnOf';
+CALLED_METHOD_OF : 'CalledMethodOf';
+READ : 'read';
+WRITE : 'write';
+
+IN_PACKAGE :'inPackage';
+USED_BY :'usedBy';
+USE :'use';
+CLASS_OF: 'classOf';
+SUPER : 'superOf';
+SUB : 'subOf';
+
+STYLE : 'Style';
+DEFAULT_STYLE : 'DefaultStyle';
+BASIC_STYLE : 'BasicStyle';
+CLASS_SCOPE : 'ClassScope';
+NODE : 'Node';
+REFERENCE : 'Reference';
+CONDITION : 'Condition';
+STEP : 'Step';
+SEGMENT : 'Seg';
+LINE : 'Line';
+LINE_INSTANCE: 'LineInstance';
+GLUE: 'Glue';
+GLUE_RUNTIME :'GlueRuntime';
+GLULE_MEMBER_OF : 'GlueMemberOf';
+GLUE_INSTANCE_OF : 'GlueInstanceOf';
+GLUE_OVERRIDE : 'GlueOverride';
+GLUE_HIERARCHY : 'GlueHierarchy';
+GRAPH : 'Graph';
+GRAPH_INSTANCE : 'GraphInstance';
+CODE_ORDER : 'CodeOrder';
+
+SHOW : 'show';
+
+compilationUnit
+    : (declaration ';')+ (showCommand ';')*
+    ;
+
+styleAttr
+    : NODE_COLOR ':' STRING ';'
+    | NODE_SCALE ':' FLOAT ';'
+    | LABEL_COLOR ':' STRING ';'
+    | LABEL_SCALE ':' FLOAT ';'
+    | LABEL_DETAIL_LEVEL ':' (LABEL_DETAIL_LEVEL_SIMPLE|LABEL_DETAIL_LEVEL_FULL) ';'
+    | POSITION_Z ':' FLOAT ';'
+    ;
+
+basicStyleAttr
+    : BASIC_NODE_SIZE ':' FLOAT ';'
+    | BASIC_LABEL_SIZE ':' FLOAT ';'
+    | BASIC_POSITION_Z ':' FLOAT ';'
+    ;
+
+styleAttrList
+    : styleAttr+
+    ;
+
+glueAttr
+    : GLUE_RUNTIME      ':' nodeExp ';'
+    | GLULE_MEMBER_OF   ':' classScopeExp ';'
+    | GLUE_INSTANCE_OF  ':' classScopeExp ';'
+    | GLUE_OVERRIDE     ':' nodeExp ';'
+    | GLUE_HIERARCHY    ':' classScopeExp ';'
+    ;
+
+classScopeExp
+    : classKey=STRING
+    | classKeyList='[' STRING (',' STRING)* ']'
+    | IN_PACKAGE '(' packageStr=STRING ')'
+    | USED_BY '(' classScopeExp ')'
+    | USE '(' classScopeExp ')'
+    | SUPER '(' classScopeExp ')'
+    | SUB '(' classScopeExp ')'
+    | classScopeExp union='|' classScopeExp
+    | classScopeExp intersection='&' classScopeExp
+    | classScopeExp difference='-' classScopeExp
+    | '(' bracket=classScopeExp ')'
+    | refOtherScope=IDENTIFIER
+    ;
+
+nodeExp
+    : nodeKey=STRING '(' typeKey=STRING ')'
+    | nodeKeyList='[' STRING '(' STRING ')' (',' STRING '(' STRING ')')* ']'
+    | FIELD_OF '(' classScopeExp ')'
+    | METHOD_OF '(' classScopeExp ')'
+    | PARAMETER_OF '(' methodNode=nodeExp ')'
+    | RETURN_OF '(' methodNode=nodeExp ')'
+    | INSTANCE_OF '(' classScopeExp ',' classScopeExp ')'
+    | CREATOR '(' classScopeExp ')'
+    // called method/parameter/return can only be the outermost layer
+    | CALLED_METHOD_OF '(' methodNode=nodeExp ')'
+    | CALLED_PARAM_OF '(' paramNode=nodeExp ')'
+    | CALLED_RETURN_OF '(' returnNode=nodeExp ')'
+    | nodeExp intersection='&' nodeExp
+    | nodeExp union='|' nodeExp
+    | nodeExp difference='-' nodeExp
+    // read and write key word can only be the outermost layer
+    | READ '(' read=nodeExp ')'
+    | WRITE '(' write=nodeExp ')'
+    | ANY
+    | REFERENCE
+    | CONDITION
+    | STEP
+    | '(' bracket=nodeExp ')'
+    | refOtherNode=IDENTIFIER
+    ;
+
+// line
+paramList
+    : '(' IDENTIFIER (',' IDENTIFIER)* ')'
+    ;
+
+lineExp
+    : lineSegOrNodeExp ('->' lineSegOrNodeExp)+
+    ;
+
+lineSegOrNodeExp
+    : (('[' segName=IDENTIFIER ']')| (nodeExp ('{' (styleName=IDENTIFIER|styleAttrList) '}')?)) wildcard=('?'|'*'|'+')?
+    ;
+
+// graph
+lineArgumentList
+    : '(' IDENTIFIER (',' IDENTIFIER)* ')'
+    ;
+
+graphElement
+    : lineName=IDENTIFIER lineArgumentList?
+    ;
+
+graphBody
+    : graphElement (',' graphElement)*
+    ;
+
+pointInLine
+    : '[' pointInLine (',' pointInLine)* ']'
+    | INT
+    ;
+
+intersectionPoint
+    : '<' pointInLine (',' pointInLine)* '>'
+    ;
+
+declaration
+    : STYLE                     IDENTIFIER '=' '{' styleAttrList '}'                        #styleDeclaration
+    | DEFAULT_STYLE             IDENTIFIER '=' '{' styleAttrList '}'                        #defaultStyleDeclaration
+    | BASIC_STYLE               IDENTIFIER '=' '{' basicStyleAttr+ '}'                      #basicStyleDeclaration
+    | CLASS_SCOPE               IDENTIFIER '=' classScopeExp                                #classScopeDeclaration
+    | NODE                      IDENTIFIER '=' nodeExp                                      #nodeDeclaration
+    | (LINE|CODE_ORDER|SEGMENT) IDENTIFIER paramList? '=' lineExp                           #lineDeclaration
+    | GLUE                      IDENTIFIER '=' '{' glueAttr* '}'                            #glueDeclaration
+    | GRAPH           graphName=IDENTIFIER paramList? '=' graphBody  intersectionPoint+     #graphDeclaration
+    | (LINE_INSTANCE|GRAPH_INSTANCE)    IDENTIFIER '=' IDENTIFIER lineArgumentList          #lineAndGraphInstance
+    ;
+
+showCommand
+    : SHOW '(' graphName=IDENTIFIER ',' defaultStyleName=IDENTIFIER ',' basicStyleName=IDENTIFIER ')'
+    ;
+
+STRING
+   : '"' (ESC | SAFECODEPOINT)* '"'
+   ;
+
+
+fragment ESC
+   : '\\' (["\\/bfnrt] | UNICODE)
+   ;
+
+
+fragment UNICODE
+   : 'u' HEX HEX HEX HEX
+   ;
+
+
+fragment HEX
+   : [0-9a-fA-F]
+   ;
+
+IDENTIFIER
+    : Letter LetterOrDigit*;
+
+fragment LetterOrDigit
+    : Letter
+    | [0-9]
+    ;
+
+fragment Letter
+    : [a-zA-Z$_] // these are the "java letters" below 0x7F
+    | ~[\u0000-\u007F\uD800-\uDBFF] // covers all characters above 0x7F which are not a surrogate
+    | [\uD800-\uDBFF] [\uDC00-\uDFFF] // covers UTF-16 surrogate pairs encodings for U+10000 to U+10FFFF
+    ;
+
+fragment SAFECODEPOINT
+   : ~ ["\\\u0000-\u001F]
+   ;
+
+
+FLOAT
+    : [0-9]+ '.' [0-9]+
+    ;
+
+INT
+   : '0' | [1-9] [0-9]*
+   ;
+
+WS
+   : [ \t\n\r] + -> skip
+   ;
+
+LINE_COMMENT
+    : '//' ~[\r\n]* -> skip
+    ;

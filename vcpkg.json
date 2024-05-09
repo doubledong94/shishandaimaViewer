@@ -1,0 +1,13 @@
+{
+  "dependencies": [
+    {
+      "name": "glad",
+      "features": ["gl-api-41", "extensions"]
+    },
+    "glfw3",
+    "stb",
+    "zlib",
+    "abseil",
+    "nlohmann-json"
+  ]
+}

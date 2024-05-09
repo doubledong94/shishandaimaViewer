@@ -1,0 +1,21 @@
+[submodule "external/antlr4"]
+	path = external/antlr4
+	url = https://github.com/antlr/antlr4.git
+[submodule "external/threepp"]
+	path = external/threepp
+	url = https://github.com/markaren/threepp.git
+[submodule "external/igraph"]
+	path = external/igraph
+	url = https://github.com/igraph/igraph.git
+[submodule "external/re2"]
+	path = external/re2
+	url = https://github.com/google/re2.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "external/swipl"]
+	path = external/swipl
+	url = https://github.com/SWI-Prolog/swipl-devel.git
+[submodule "external/spdlog"]
+	path = external/spdlog
+	url = https://github.com/gabime/spdlog.git

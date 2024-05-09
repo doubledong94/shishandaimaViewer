@@ -1,0 +1,7 @@
+
+// Generated from SimpleView.g4 by ANTLR 4.13.1
+
+
+#include "SimpleViewVisitor.h"
+
+
