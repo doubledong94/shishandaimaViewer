@@ -53,6 +53,7 @@ unsigned int Images::segmentLineIconId = 0;
 unsigned int Images::anyIconId = 0;
 unsigned int Images::referenceIconId = 0;
 unsigned int Images::conditionIconId = 0;
+unsigned int Images::elseIconId = 0;
 unsigned int Images::stepIconId = 0;
 unsigned int Images::unionIconId = 0;
 unsigned int Images::intersectionIconId = 0;
@@ -77,6 +78,7 @@ void Images::init() {
     unsigned int Minus = 0;
     unsigned int A = 0;
     unsigned int C = 0;
+    unsigned int E = 0;
     unsigned int F = 0;
     unsigned int G = 0;
     unsigned int I = 0;
@@ -105,6 +107,9 @@ void Images::init() {
     }
     if (not LoadTextureFromFile(FileManager::alphabetIconCPath.data(), &C, &my_image_width, &my_image_height)) {
         spdlog::get(ErrorManager::FileManagerTag)->warn("icon not found {}", FileManager::alphabetIconCPath.data());
+    }
+    if (not LoadTextureFromFile(FileManager::alphabetIconEPath.data(), &E, &my_image_width, &my_image_height)) {
+        spdlog::get(ErrorManager::FileManagerTag)->warn("icon not found {}", FileManager::alphabetIconEPath.data());
     }
     if (not LoadTextureFromFile(FileManager::alphabetIconFPath.data(), &F, &my_image_width, &my_image_height)) {
         spdlog::get(ErrorManager::FileManagerTag)->warn("icon not found {}", FileManager::alphabetIconFPath.data());
@@ -162,6 +167,7 @@ void Images::init() {
     anyIconId = A;
     referenceIconId = R;
     conditionIconId = C;
+    elseIconId = E;
     stepIconId = S;
     listIconId = L;
     creatorIconId = C;

@@ -41,6 +41,7 @@ CLASS_SCOPE : 'ClassScope';
 NODE : 'Node';
 REFERENCE : 'Reference';
 CONDITION : 'Condition';
+ELSE : 'Else';
 STEP : 'Step';
 SEGMENT : 'Seg';
 LINE : 'Line';
@@ -125,6 +126,7 @@ nodeExp
     | ANY
     | REFERENCE
     | CONDITION
+    | ELSE
     | STEP
     | '(' bracket=nodeExp ')'
     | refOtherNode=IDENTIFIER

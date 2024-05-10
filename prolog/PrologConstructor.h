@@ -254,8 +254,6 @@ public:
 
     static Term* getInstanceOfTerm(Term* instanceKey, Term* typeKey);
 
-    static CompoundTerm* getInstanceOfTerm(Term* typeKey1, Term* typeKey2, Term* instanceKey);
-
     static string getSimpleNameFact(const string& key, const string& simpleName);
 
     static CompoundTerm* getSimpleNameTerm(Term* key, Term* simpleName);
@@ -344,7 +342,7 @@ public:
 
     static CompoundTerm* getNodeConstructorOfTerm(Term* ClassScopeValName, Term* Constructor);
 
-    static CompoundTerm* getNodeInstanceOf(Term* ClassScopeValName, Term* Instance);
+    static CompoundTerm* getNodeInstanceOf(Term* ClassScopeValName, Term* ClassValName, Term* Instance);
 
     static CompoundTerm* getNodeParameterOf(Term* MethodNodeValName, Term* Param);
 

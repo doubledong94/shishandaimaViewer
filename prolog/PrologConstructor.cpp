@@ -529,10 +529,6 @@ Term* CompoundTerm::getInstanceOfTerm(Term* instanceKey, Term* typeKey) {
     return makeTerm(HEAD_INSTANCE_OF, instanceKey, typeKey);
 }
 
-CompoundTerm* CompoundTerm::getInstanceOfTerm(Term* typeKey1, Term* typeKey2, Term* instanceKey) {
-    return makeTerm(HEAD_INSTANCE_OF, typeKey1, typeKey2, instanceKey);
-}
-
 string CompoundTerm::getSimpleNameFact(const string& key, const string& simpleName) {
     string ret = getSimpleNameTerm(Term::getStr(key), Term::getStr(simpleName))->toString();
     ret.push_back('.');
@@ -737,8 +733,8 @@ CompoundTerm* CompoundTerm::getNodeConstructorOfTerm(Term* ClassScopeValName, Te
     return makeTerm(HEAD_NODE_CONSTRUCTOR_OF, ClassScopeValName, Constructor);
 }
 
-CompoundTerm* CompoundTerm::getNodeInstanceOf(Term* ClassScopeValName, Term* Instance) {
-    return makeTerm(HEAD_NODE_INSTANCE_OF, ClassScopeValName, Instance);
+CompoundTerm* CompoundTerm::getNodeInstanceOf(Term* ClassScopeValName, Term* ClassValName, Term* Instance) {
+    return makeTerm(HEAD_NODE_INSTANCE_OF, ClassScopeValName, ClassValName, Instance);
 }
 
 CompoundTerm* CompoundTerm::getNodeParameterOf(Term* MethodNodeValName, Term* Param) {

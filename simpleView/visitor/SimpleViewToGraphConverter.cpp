@@ -312,6 +312,8 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_STEP;
         } else if (ctx->CONDITION() != nullptr) {
             ret = Node::NODE_CONDITION;
+        } else if (ctx->ELSE()) {
+            ret = Node::NODE_ELSE;
         }
         ret->iconId = SimpleView::Node::nodeTypeToIconId[ret->nodeType];
         return getExistNodeIfExist(any_cast<Node*>(ret));
@@ -531,8 +533,13 @@ void SimpleView::declareNodeResolveRules() {
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeConstructorOfTerm(ClassScopeValName, Resolved), {
             CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getConstructorTerm(Class, Resolved)
         }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeInstanceOf(ClassScopeValName, Resolved), {
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getInstanceOfTerm(Resolved, Class)
+    Term* ClassValName = Term::getVar("ClassValName");
+    Term* ClassType = Term::getVar("ClassType");
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeInstanceOf(ClassScopeValName, ClassValName, Resolved), {
+            CompoundTerm::getResolveTerm(ClassScopeValName, Class),
+            CompoundTerm::getResolveTerm(ClassValName, ClassType),
+            CompoundTerm::getFieldTerm(Class,Resolved),
+            CompoundTerm::getInstanceOfTerm(Resolved, ClassType)
         }))->toString());
 
     Term* MethodValName = Term::getVar("MethodValName");

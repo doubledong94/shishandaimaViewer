@@ -78,6 +78,7 @@ string FileManager::alphabetIconPlusPath = "";
 string FileManager::alphabetIconMinusPath = "";
 string FileManager::alphabetIconAPath = "";
 string FileManager::alphabetIconCPath = "";
+string FileManager::alphabetIconEPath = "";
 string FileManager::alphabetIconFPath = "";
 string FileManager::alphabetIconGPath = "";
 string FileManager::alphabetIconIPath = "";
@@ -128,6 +129,7 @@ void FileManager::initCurrentDir() {
     alphabetIconMinusPath = resourceBaseDir + "alphabetIconMinus.png";
     alphabetIconAPath = resourceBaseDir + "alphabetIconA.png";
     alphabetIconCPath = resourceBaseDir + "alphabetIconC.png";
+    alphabetIconEPath = resourceBaseDir + "alphabetIconE.png";
     alphabetIconFPath = resourceBaseDir + "alphabetIconF.png";
     alphabetIconGPath = resourceBaseDir + "alphabetIconG.png";
     alphabetIconIPath = resourceBaseDir + "alphabetIconI.png";

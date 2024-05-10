@@ -130,6 +130,7 @@ namespace SimpleView {
         static Node* NODE_ANY;
         static Node* NODE_REFERENCE;
         static Node* NODE_CONDITION;
+        static Node* NODE_ELSE;
         static Node* NODE_STEP;
 
         int nodeType = -1;

@@ -124,7 +124,7 @@ namespace shishan {
     static char lineEditingName[100];
     static int lineEditingTypeIndex = -1;
     // todo ,"code order"
-    const static char* lineTypes[] = { "segment","data flow" };
+    const static char* lineTypes[] = { "segment","line" };
     static vector<const char*> lineEditValues;
     static map<int, int> nodeInLineIdMap;
     static vector<int> lineEditRepeatTypes;
@@ -849,7 +849,7 @@ namespace shishan {
                         SimpleView::SimpleViewToGraphConverter::valNameToLineInstance[
                             SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder[item]
                         ]->updateDisplayName();
-                            );
+                                );
                     lineEditingIndex = -1;
                     lineEditValues.clear();
                     lineEditRepeatTypes.clear();
@@ -919,6 +919,15 @@ namespace shishan {
                 lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_CONDITION->displayName.data());
                 lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
                 insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_CONDITION->displayName.data(), false, lineEditValueSelectedIndex + 1);
+                lineEditValueSelectedIndex++;
+            }
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            if (ImGui::Button("Else##specialNodeElse")) {
+                cleanLineEditIfItIsHint();
+                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_ELSE->displayName.data());
+                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
+                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_ELSE->displayName.data(), false, lineEditValueSelectedIndex + 1);
                 lineEditValueSelectedIndex++;
             }
             ImGui::SameLine();
@@ -1048,7 +1057,7 @@ namespace shishan {
                     SimpleView::SimpleViewToGraphConverter::valNameToGraphInstance[
                         SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder[item]
                     ]->updateDisplayName();
-                        );
+                            );
                 graphEditingIndex = -1;
                 onExitEditMode();
             }
@@ -1118,7 +1127,7 @@ namespace shishan {
             if (not lineNewFinalInstanceNameIsWrong) {
                 FOR_EACH_ITEM(lineNewFinalInstance->paramNameToArgName,
                     lineNewFinalInstanceArgNameIsWrong = lineNewFinalInstanceArgNameIsWrong or not checkValNameCommon(item.second.data());
-                );
+                    );
                 if (not lineNewFinalInstanceArgNameIsWrong) {
                     lineNewFinalInstance->editingNew = false;
                     lineNewFinalInstance->updateDisplayName();
@@ -1193,7 +1202,7 @@ namespace shishan {
             if (not graphNewInstanceNameIsWrong) {
                 FOR_EACH_ITEM(graphNewInstance->paramNameToArgName,
                     graphNewInstanceArgNameIsWrong = graphNewInstanceArgNameIsWrong or not checkValNameCommon(item.second.data());
-                );
+                    );
                 if (not graphNewInstanceArgNameIsWrong) {
                     graphNewInstance->editingNew = false;
                     graphNewInstance->updateDisplayName();

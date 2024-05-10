@@ -59,6 +59,7 @@ public:
     static string alphabetIconMinusPath;
     static string alphabetIconAPath;
     static string alphabetIconCPath;
+    static string alphabetIconEPath;
     static string alphabetIconFPath;
     static string alphabetIconGPath;
     static string alphabetIconIPath;
