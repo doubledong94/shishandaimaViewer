@@ -213,6 +213,9 @@ void EasierSimpleView::searchNode(const char* classKey, vector<const char*>& sea
         vector<Term*> retList;
         PrologWrapper::queryList(CompoundTerm::getMethodTerm(Term::getStr(classKey), Term::getVar("A")), retList);
         FOR_EACH_ITEM(retList, classToMethod[classKey].push_back(item->atomOrVar););
+        retList.clear();
+        PrologWrapper::queryList(CompoundTerm::getConstructorTerm(Term::getStr(classKey), Term::getVar("A")), retList);
+        FOR_EACH_ITEM(retList, classToMethod[classKey].push_back(item->atomOrVar););
     }
     if (not classToParameter.count(classKey)) {
         classToParameter[classKey] = list<string>();

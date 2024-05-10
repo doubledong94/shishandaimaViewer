@@ -22,10 +22,10 @@ load_unaddressable(ClassKey):-
     assertz(unaddressableLoaded(AllClassKey)),fail.
 
 parameterOfClass(ClassKey,ParameterKey):-
-    method(ClassKey,Method),parameter(Method,ParameterKey).
+    (method(ClassKey,Method);constructor(ClassKey,Method)),parameter(Method,ParameterKey).
 
 returnOfClass(ClassKey,ReturnKey):-
-    method(ClassKey,Method),return(Method,ReturnKey).
+    (method(ClassKey,Method);constructor(ClassKey,Method)),return(Method,ReturnKey).
 
 instanceOf(ClassKey1,ClassKey2,InstanceKey):-
     field(ClassKey1,InstanceKey),instanceOf(InstanceKey,ClassKey2).

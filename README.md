@@ -1,4 +1,5 @@
 # 矢山代码阅读器
+矢山代码阅读器是一个图形化的代码阅读器。目前的目标是：将程序员阅读代码的方式从一维的文字结构中解放出来。
 ## 目录
 #### [编译运行](#编译运行-1)     
 [1. 安装依赖](#1-安装依赖)    
@@ -7,12 +8,13 @@
 [4. 编译](#4-编译)     
 [5. 指定源码位置](#5-指定源码位置)     
 [6. 解析源码](#6-解析源码)     
-#### [搜索源码](#搜索源码-1)     
+#### [源码搜索的思路](#源码搜索的思路-1)     
 [基本思路(必看)](#基本思路必看)  
 [正则的字符](#正则的字符)  
 [类范围](#类范围)  
 [使用正则搜索](#使用正则搜索)  
 [相交搜索](#相交搜索)  
+#### [源码搜索的操作](#源码搜索的操作-1)     
 #### [阅读源码](#阅读源码-1)     
 #### [项目方案](#项目方案-1)     
 
@@ -48,17 +50,17 @@ vcpkg是一个c++包的管理与下载工具，请自行选择合适目录下载
 第一次运行请使用快捷键`ctrl+alt+p`，并点击yes，开始解析源码。解析完成后请关闭矢山并重新打开后才能正常使用。       
 之后你的源码如果有改动，不需要再次指定[src path]，直接使用快捷键解析，矢山会使用你上一次指定的[src path]。
 
-## 搜索源码
+## 源码搜索的思路
 ### 基本思路(必看)      
-矢山的基本思路是将搜索代码分为五个方向:    
+矢山的基本思路是将搜索代码分为**5个方向**:    
 1. 时机传递方向
 2. 逻辑控制方向
 3. 数据流动方向
 4. 类嵌套方向（对象引用）
 5. 执行顺序方向（目前没有实现）
 
-通过对这个五个方向的搜索，可以对所有java代码进行非常精确的搜索。所谓“精确”的意思是：对于任意一段代码，都可以通过这五个方向的组合，唯一的定位到它。(执行顺序方向 的搜索与展示目前没有实现)       
-**矢山使用了正则搜索的方式搜索上面提到的五个方向。**    
+通过对这个**5个方向**的搜索，可以对所有java代码进行非常精确的搜索。所谓“精确”的意思是：对于任意一段代码，都可以通过这**5个方向**的组合，唯一的定位到它。(执行顺序方向 的搜索与展示目前没有实现)       
+**矢山使用了正则搜索的方式搜索上面提到的5个方向。**    
 ### 正则的字符
 用户可以通过下面的规则自定义正则搜索中使用的**普通字符**：   
 1. 属性/函数的全名，代码这个一个属性/函数（全名不需要用户打字输入，用户此时不必在意全名是如何定义的）
@@ -97,30 +99,119 @@ vcpkg是一个c++包的管理与下载工具，请自行选择合适目录下载
 9. union(A1,A2)，代表A1和A2的并集
 10. difference(A1,A2)，代表A1和A2的差集，A1-A2
 
-被定义好的**类范围**，可以用来定义**普通字符**
+被定义好的**类范围**，可以用来定义**普通字符**。比如在使用规则fieldOf(C)定义**普通字符**时，定义好的**类范围**可以替换C。
 
 ### 使用正则搜索
-有了上面定义好的**正则字符**和**类范围**，就可以开始定义搜索了，下面会用例子的方式介绍如何定义搜索
+有了定义好的**正则字符**和**类范围**，就可以开始定义搜索了，下面会用例子的方式介绍如何定义搜索。（例子中的代码不需要用户打字输入，而是使用GUI输入的）
 #### 时机传递方向
+时机传递对应的是函数调用。        
+**例**：搜索在类android.view.View中调用的所有构造函数  
+代码：
+```
+// 定义类范围
+ClassScope class_view = "android.view.View";
+ClassScope class_usedBy_view = usedBy ( class_view );
+
+// 定义正则普通字符
+Node method_view = MethodOf ( class_view );
+Node creator_usedBy_view = CreatorOf ( class_usedBy_view );
+Node called_creator_usdedBy_view = CalledMethodOf ( creator_usedBy_view );
+
+// 定义正则搜索
+Line timing_created_by_view = method_view->Condition*->called_creator_usdedBy_view;
+
+```
+搜索结果:  
+![timing_created_by_view](/imgForReadMe/timing_created_by_view.png "timing_created_by_view")
+**例**：搜索android.view.View类内部的函数调用栈    
+代码：
+```
+// 定义类范围
+ClassScope class_view = "android.view.View";
+
+// 定义正则普通字符
+Node method_view = MethodOf ( class_view );
+Node called_method_view = CalledMethodOf ( method_view );
+
+// 定义正则搜索
+Line timing_call_stack_of_view = method_view->Condition*->called_method_view->Step->method_view;
+
+```
+搜索结果：
+![timing_call_stack_of_view](/imgForReadMe/timing_call_stack_of_view.png "timing_call_stack_of_view")
 
 #### 逻辑控制方向
+逻辑控制对应的是if/for/while语句中的条件表达式。    
+**例**：搜索"android.view.View.mViewFlags"控制了哪些函数的调用    
+代码:
+```
+// 定义类范围
+ClassScope class_view = "android.view.View";
+ClassScope class_usedBy_view = usedBy ( class_view );
 
+// 定义正则普通字符
+Node field_view_flag = "android.view.View.mViewFlags" ("android.view.View");
+Node method_usedBy_view = MethodOf ( class_usedBy_view );
+Node called_method_usedBy_view = CalledMethodOf ( method_usedBy_view );
+
+// 定义正则搜索
+Line logic_controledBy_flag_view = field_view_flag->Any*->Condition*->called_method_usedBy_view;
+
+```
+搜索结果:  
+![logic_controledBy_flag_view](/imgForReadMe/logic_controledBy_flag_view.png "logic_controledBy_flag_view")
 #### 数据流动方向
+数据流动对应的是赋值，传参和函数返回。     
+**例**：搜索：构造android.view.View对象时，给它的参数context是如何被使用的    
+代码：
+```
+// 定义类范围
+ClassScope class_view = "android.view.View";
 
+// 定义正则普通字符
+Node param_of_constructor_view = "android.view.View.View::Context,AttributeSet,Integer,Integer:context" ("android.view.View");
+
+// 定义正则搜索
+Line dataFlow_from_paramOf_constructor_view = param_of_constructor_view->Any+;
+
+```
+搜索结果：
+![dataFlow_from_param_of_constructor_view](/imgForReadMe/dataFlow_from_param_of_constructor_view.png "dataFlow_from_param_of_constructor_view")
 #### 类嵌套方向
+类嵌套对应的是引用对象属性和函数这个动作。  
+**例**：上面搜索到的结果非常少，大概是因为没有搜索类嵌套方向，下面我们加入类嵌套方向的搜索
+```
+// 定义类范围
+ClassScope class_view = "android.view.View";
+
+// 定义正则普通字符
+Node param_of_constructor_view = "android.view.View.View::Context,AttributeSet,Integer,Integer:context" ("android.view.View");
+
+// 定义正则搜索
+Line dataFlow_with_ref_from_paramOf_constructor_view = param_of_constructor_view->Any*->Reference*->Any+;
+
+```
+搜索结果：
+![dataFlow_with_ref_from_param_of_constructor_view](/imgForReadMe/dataFlow_with_ref_from_param_of_constructor_view.png "dataFlow_with_ref_from_param_of_constructor_view")
 
 #### 执行顺序方向(目前没有实现)
 
 ### 相交搜索
+到此我们已经介绍了所谓的**5个方向**的搜索，下面我们介绍如何同时从不同方向进行搜索。
+#### 什么叫做：同时从不同方向搜索
+
+#### 如何同时从不同方向进行搜索
+
+## 源码搜索的操作
 
 ## 阅读源码
 
 ## 项目方案
-|功能|三方工具|
+|用到的功能|三方工具|
 |---|---|
 |源码解析|[antlr4](https://github.com/antlr/antlr4)|
 |GUI|[imgui](https://github.com/ocornut/imgui)|
-|正则搜索|[re2](https://github.com/google/re2)+[swipl](https://github.com/SWI-Prolog/swipl-devel)|
+|正则搜索|[re2](https://github.com/google/re2) + [swipl](https://github.com/SWI-Prolog/swipl-devel)|
 |绘制搜索结果|[threepp](https://github.com/markaren/threepp)|
 |力导布局与其他图算法|[igraph](https://github.com/igraph/igraph)|
 
