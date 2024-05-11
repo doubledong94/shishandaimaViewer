@@ -21,32 +21,52 @@
 ## 编译运行
 矢山目前只能在linux上编译运行
 ### 1. 安装依赖
-`sudo apt install git cmake g++ bison flex curl libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config`
+```
+sudo apt install git cmake g++ bison flex curl libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config
+```
 
 ### 2. 下载 vcpkg(如果已经下载过vcpkg可跳过这个步骤)
 vcpkg是一个c++包的管理与下载工具，请自行选择合适目录下载安装   
-`git clone https://github.com/microsoft/vcpkg`    
-`./vcpkg/bootstrap-vcpkg.sh`    
+```
+git clone https://github.com/microsoft/vcpkg
+```    
+```
+./vcpkg/bootstrap-vcpkg.sh
+```    
 
 ### 3. 下载矢山项目代码与子项目代码
-`git clone https://github.com/doubledong94/shishandaimaViewer.git`    
-`cd shishandaimaViewer/`  
-`git submodule update --init --remote –recursive`    
+```
+git clone https://github.com/doubledong94/shishandaimaViewer.git
+```    
+```
+cd shishandaimaViewer/
+```  
+```
+git submodule update --init --remote –recursive
+```    
 上面这个命令（git submodule......）如果卡住或者报错，导致你想重新执行时，需要把矢山项目删除，从第三步的开头开始执行
 ### 4. 编译
-`./configureRelease.sh  [vcpkg_path]`  
-`./buildDebug.sh `    
+```
+./configureRelease.sh  [vcpkg_path]
+```  
+```
+./buildDebug.sh
+```    
 这里的vcpkg_path是你在第二步中下载vcpkg的路径，路径要包括vcpkg文件夹本身，例：/home/ydd/github/vcpkg
 
 ### 5. 指定源码位置
-`./srcPath.sh [src path]`  
+```
+./srcPath.sh [src path]
+```  
 第一次运行前需要告诉矢山你想读的代码存放在哪个文件夹里面。这个文件夹需要包含**java se中的类文件**（或者ee，根据个人需求），也就是java.lang/java.util/java.math等这些包里的代码。如果你的项目依赖了别的java项目，那么这个文件夹也需要包含**你所依赖的项目的源码**。     
 如果你不想将**java se的代码**或者**你所依赖项目的代码**放到你的工程目录里，你可以先将[src path]指定成存放**java se代码和依赖代码**的路径，然后执行第六步，然后再将[src path]配置成你工程的路径，，然后再执行第六步。
 
 
 ### 6. 解析源码
-这个软件没有提供install的步骤，编译后的可执行文件在：
-`./build/bin/shishandaimaViewer`     
+这个软件没有提供install的步骤，编译后的可执行文件在：     
+```
+./build/bin/shishandaimaViewer
+```     
 第一次运行请使用快捷键`ctrl+alt+p`，并点击yes，开始解析源码。解析完成后请关闭矢山并重新打开后才能正常使用。       
 之后你的源码如果有改动，不需要再次指定[src path]，直接使用快捷键解析，矢山会使用你上一次指定的[src path]。
 
@@ -71,9 +91,9 @@ vcpkg是一个c++包的管理与下载工具，请自行选择合适目录下载
 6. returnOf(M)，代表M函数的返回
 7. instanceOf(C1,C2)，代表声明在C1类中，类型为C2的属性
 8. creatorOf(C)，代表C类的构造函数
-9. calledMethod(M)，请看[时机传递方向](#时机传递方向)
-10. calledParam(P)，请看[时机传递方向](#时机传递方向)
-11. calledReturn(R)，请看[时机传递方向](#时机传递方向)
+9. calledMethod(M)，具体请看[时机传递方向](#时机传递方向)
+10. calledParam(P)，具体请看[数据流动方向](#数据流动方向)
+11. calledReturn(R)，具体请看[数据流动方向](#数据流动方向)
 12. intersection(A1,A2)，代表A1和A2的交集
 13. union(A1,A2)，代表A1和A2的并集
 14. difference(A1,A2)，代表A1和A2的差集，A1-A2
@@ -81,9 +101,9 @@ vcpkg是一个c++包的管理与下载工具，请自行选择合适目录下载
 正则搜索使用的**特殊字符**有：
 1. Any，代表任一个**普通字符**以及没有被**普通字符**表示的局部变量和操作符（+-*/等）       
 2. Reference，可搜索类嵌套方向
-3. Condition，可搜索时机传递与逻辑控制方向
-4. Else，可搜索逻辑控制方向
-5. Step，可搜索时机传递方向
+3. Condition，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
+4. Else，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
+5. Step，可搜索时机传递方向，具体请看[时机传递方向](#时机传递方向)
 
 ### 类范围
 一个项目会有成千上万个类，而矢山在搜索时，需要把所搜索的类加载到内存中。如果为了搜一个类要把上万个类都加载到内存中，是非常不划算的。因此用户需要指定搜索范围，也就是要指定：你搜索的时机传递/数据流动等，发生在哪些类的函数中。
@@ -102,11 +122,63 @@ vcpkg是一个c++包的管理与下载工具，请自行选择合适目录下载
 被定义好的**类范围**，可以用来定义**普通字符**。比如在使用规则fieldOf(C)定义**普通字符**时，定义好的**类范围**可以替换C。
 
 ### 使用正则搜索
-有了定义好的**正则字符**和**类范围**，就可以开始定义搜索了，下面会用例子的方式介绍如何定义搜索。（例子中的代码不需要用户打字输入，而是使用GUI输入的）
+有了定义好的**正则字符**和**类范围**，就可以开始定义搜索了，下面会用例子的方式介绍如何定义搜索。
 #### 时机传递方向
-时机传递对应的是函数调用。        
-**例**：搜索在类android.view.View中调用的所有构造函数  
-代码：
+时机传递对应的是函数调用。为了让代码能被正则搜索，矢山给函数调用场景添加了一些特殊节点类型。由于这些节点类型不像fieldOf那样直观，下面进行说明。        
+
+**举例**说明**普通字符**规则calledMethod 和 **特殊字符**Step    
+```java
+class A {
+    void a() {
+
+    }
+    void b() {
+        a();
+    }
+    void c() {
+        b();
+    }
+}
+```
+对于上面的函数调用，在矢山中的时机传递表示为：    
+发生在A.c中：  A.c::: -> A.b:::# -> Step -> A.b:::     
+发生在A.b中：  A.b::: -> A.a:::# -> Step -> A.a:::     
+其中这些冒号是矢山表示函数的方式，->表示传递方向。有#号后缀的就是函数的calledMethod节点，此类节点区别于函数本身。例如当b中调用了5次a时，就会有5个a的calledMethod节点，这些节点都指向Step，然后Step指向唯一的a节点。    
+
+**举例**说明**特殊字符**Condition 和 Else   
+```java
+class A {
+    bool c1;
+    bool c2;
+    void a1() {
+
+    }
+    void a2() {
+
+    }
+    void a3() {
+
+    }
+    void b() {
+        if (c1) {
+            a1();
+        } else if(c2) {
+            a2();
+        } else {
+            a3();
+        }
+    }
+}
+``` 
+对于上面的函数调用，在矢山中的时机传递表示为：    
+A.b::: -> Condition -> A.a1:::# -> Step -> A.a1:::     
+A.b::: -> Condition -> A.a2:::# -> Step -> A.a2:::     
+A.b::: -> Condition -> A.a3:::# -> Step -> A.a3:::     
+这里的Condition对应于代码中的条件分支，函数b中有三个条件分支，因此有三个Condition节点。这三个Condition节点之间有Else节点连接：     
+Condition1->Else->Condition2->Else->Condition    
+
+**举例**说明时机传递方向的搜索      
+搜索在类android.view.View中调用的所有构造函数  
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -123,8 +195,8 @@ Line timing_created_by_view = method_view->Condition*->called_creator_usdedBy_vi
 ```
 搜索结果:  
 ![timing_created_by_view](/imgForReadMe/timing_created_by_view.png "timing_created_by_view")
-**例**：搜索android.view.View类内部的函数调用栈    
-代码：
+
+搜索android.view.View类内部的函数调用栈    
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -142,8 +214,40 @@ Line timing_call_stack_of_view = method_view->Condition*->called_method_view->St
 
 #### 逻辑控制方向
 逻辑控制对应的是if/for/while语句中的条件表达式。    
-**例**：搜索"android.view.View.mViewFlags"控制了哪些函数的调用    
-代码:
+
+**举例**说明**特殊字符**Condition 和 Else   
+```java
+class A {
+    bool c1;
+    bool c2;
+    void a1() {
+
+    }
+    void a2() {
+
+    }
+    void a3() {
+
+    }
+    void b() {
+        if (c1) {
+            a1();
+        } else if(c2) {
+            a2();
+        } else {
+            a3();
+        }
+    }
+}
+``` 
+对于上面的条件语句，在矢山中的逻辑控制表示为：    
+c1 -> Condition    
+c2 -> Condition    
+这里的Condition对应于代码中的条件分支，由于第三个分支没有条件语句，因此只有两个Condition。但第三个Condition节点还是存在的，且这三个Condition节点之间有Else节点连接：     
+Condition1->Else->Condition2->Else->Condition   
+
+**举例**说明逻辑控制方向的搜索      
+搜索"android.view.View.mViewFlags"控制了哪些函数的调用    
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -162,8 +266,35 @@ Line logic_controledBy_flag_view = field_view_flag->Any*->Condition*->called_met
 ![logic_controledBy_flag_view](/imgForReadMe/logic_controledBy_flag_view.png "logic_controledBy_flag_view")
 #### 数据流动方向
 数据流动对应的是赋值，传参和函数返回。     
-**例**：搜索：构造android.view.View对象时，给它的参数context是如何被使用的    
-代码：
+
+**举例**说明**普通字符**规则calledParam calledReturn 和 **特殊字符**Step          
+```
+class A {
+    int mI;
+    void a(int i) {
+        return i+1;
+    }
+    void b(int i) {
+        return a(i);
+    }
+    void c() {
+        mI = b(mI);
+    }
+}
+```
+对于上面的传参与返回值，在矢山中的数据流动表示为：     
+发生在A.c中：  A.mI -> A.b::int:i# -> Step -> A.b::int:i       
+发生在A.b中：  A.b::int:i -> A.a::int:i# -> Step -> A.a::int:i      
+发生在A.a中：  A.a::int:i -> + -> A.a::int:return -> Step -> A.a::int:return#     
+发生在A.b中：  A.a::int:return# -> A.b::int:return -> Step -> A.b::int:return#     
+发生在A.c中：  A.b::int:return# -> A.mI     
+从上面可以看出，对于正向的数据流动，calledParam指向Step指向param，而return指向Step指向calledReturn，与param正好相反。    
+为了表达calledParam，calledReturn，calledMethod的关系，数据流动的表示需要增加：   
+发生在A.c中：  A.b::int:i# -> A.b::int:# -> A.b::int:return#        
+发生在A.b中：  A.a::int:i# -> A.a::int:# -> A.a::int:return#        
+
+**举例**说明数据流动方向的搜索      
+搜索：构造android.view.View对象时，给它的参数context是如何被使用的    
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -179,7 +310,8 @@ Line dataFlow_from_paramOf_constructor_view = param_of_constructor_view->Any+;
 ![dataFlow_from_param_of_constructor_view](/imgForReadMe/dataFlow_from_param_of_constructor_view.png "dataFlow_from_param_of_constructor_view")
 #### 类嵌套方向
 类嵌套对应的是引用对象属性和函数这个动作。  
-**例**：上面搜索到的结果非常少，大概是因为没有搜索类嵌套方向，下面我们加入类嵌套方向的搜索
+**举例**说明类嵌套方向的搜索      
+上面搜索到的结果非常少，大概是因为没有搜索类嵌套方向，下面我们加入类嵌套方向的搜索
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -197,10 +329,38 @@ Line dataFlow_with_ref_from_paramOf_constructor_view = param_of_constructor_view
 #### 执行顺序方向(目前没有实现)
 
 ### 相交搜索
-到此我们已经介绍了所谓的**5个方向**的搜索，下面我们介绍如何同时从不同方向进行搜索。
-#### 什么叫做：同时从不同方向搜索
+到此我们已经介绍了所谓的**5个方向**的搜索。但有些情况，单一的搜索方向不能满足需求，需要我们同时从不同方向进行搜索。上面[类嵌套方向](#类嵌套方向)的例子中，我们已经看到了数据流动和类嵌套这两个方向上同时搜索的一个例子（虽然这个例子没有用到相交的方式搜索）。下面再举个例子进一步说明如何使用相交搜索的方式同时搜索两个方向。   
+```java
+class A {
+    int i;
+    void a(int i) {
+        this.i = i;
+    };
+}
 
-#### 如何同时从不同方向进行搜索
+class B {
+    A a1;
+    int i1;
+    A a2;
+    int i2;
+    A a3;
+    int i3;
+    void b1() {
+        a1.a(i1);
+    }
+    void b2() {
+        a2.a(i2);
+    }
+    void b3() {
+        a3.a(i3);
+    }
+}
+```
+目标是找到B的哪个函数将i1传入到a1中。此时我们一眼就能看出答案是函数b1。但如果代码十分复杂：B中有100个类型为A的属性，并在1000个地方调用了A.a，我们不愿一个一个去查找时，该如何使用矢山帮助我们找到函数b1？   
+答案：分别定义两个方向的搜索，并指定两个搜索相交的位置。   
+方向1：数据流动：B.i1->A.a::int:i#->A.a::int:#     
+方向2：类嵌套：B.a1->Reference->A.a::int:#   
+指定交点：A.a::int:#
 
 ## 源码搜索的操作
 
