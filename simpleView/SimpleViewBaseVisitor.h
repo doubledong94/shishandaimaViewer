@@ -19,18 +19,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitStyleAttr(SimpleViewParser::StyleAttrContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitBasicStyleAttr(SimpleViewParser::BasicStyleAttrContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitStyleAttrList(SimpleViewParser::StyleAttrListContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitGlueAttr(SimpleViewParser::GlueAttrContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -72,18 +60,6 @@ public:
   }
 
   virtual std::any visitIntersectionPoint(SimpleViewParser::IntersectionPointContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitStyleDeclaration(SimpleViewParser::StyleDeclarationContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitDefaultStyleDeclaration(SimpleViewParser::DefaultStyleDeclarationContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitBasicStyleDeclaration(SimpleViewParser::BasicStyleDeclarationContext *ctx) override {
     return visitChildren(ctx);
   }
 

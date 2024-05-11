@@ -61,26 +61,6 @@ void SimpleView::SimpleViewToGraphConverter::addNode(const string& name, const l
     nodeNameOrder.insert(nodeNameOrder.begin(), name);
 }
 
-SimpleView::ClassScope* SimpleView::SimpleViewToGraphConverter::getExitsClassScopeIfExist(SimpleView::ClassScope* classScope) {
-    for (auto* existClassScope : allDistinctClassScope) {
-        if (existClassScope == classScope or ClassScope::compare(existClassScope, classScope)) {
-            return existClassScope;
-        }
-    }
-    allDistinctClassScope.push_back(classScope);
-    return classScope;
-}
-
-SimpleView::Node* SimpleView::SimpleViewToGraphConverter::getExistNodeIfExist(SimpleView::Node* node) {
-    for (auto* existNode : allDistinctNodes) {
-        if (existNode == node or Node::compare(existNode, node)) {
-            return existNode;
-        }
-    }
-    allDistinctNodes.push_back(node);
-    return node;
-}
-
 any SimpleView::SimpleViewToGraphConverter::visitCompilationUnit(SimpleViewParser::CompilationUnitContext* ctx) {
     SimpleViewBaseVisitor::visitCompilationUnit(ctx);
     return 0;
@@ -160,65 +140,13 @@ any SimpleView::SimpleViewToGraphConverter::visitClassScopeExp(SimpleViewParser:
             { any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0))),
              any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(1))) };
         }
+        if (ctx->varClass) {
+            classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_VAR;
+            classScope->referenceClassScope = valNameToClassScope[ctx->refOtherScope->getText()];
+        }
         classScope->iconId = SimpleView::ClassScope::classTypeToIconId[classScope->classScopeType];
-        return getExitsClassScopeIfExist(any_cast<ClassScope*>(classScope));
+        return classScope;
     }
-}
-
-any SimpleView::SimpleViewToGraphConverter::visitStyleAttrList(SimpleViewParser::StyleAttrListContext* ctx) {
-    NodeStyle* nodeConfig = new NodeStyle();
-    for (auto* attr : ctx->styleAttr()) {
-        if (attr->NODE_COLOR() != nullptr) {
-            nodeConfig->nodeColor = REMOVE_QUOTATION(attr->STRING()->getText());
-        } else if (attr->NODE_SCALE() != nullptr) {
-            nodeConfig->nodeScale = stof(attr->FLOAT()->getText());
-        } else if (attr->LABEL_COLOR() != nullptr) {
-            nodeConfig->labelColor = REMOVE_QUOTATION(attr->STRING()->getText());
-        } else if (attr->LABEL_SCALE() != nullptr) {
-            nodeConfig->labelScale = stof(attr->FLOAT()->getText());
-        } else if (attr->LABEL_DETAIL_LEVEL() != nullptr) {
-            if (attr->LABEL_DETAIL_LEVEL_SIMPLE() != nullptr) {
-                nodeConfig->labelDetailLevel = LABEL_DETAIL_LEVEL_SIMPLE;
-            } else if (attr->LABEL_DETAIL_LEVEL_FULL() != nullptr) {
-                nodeConfig->labelDetailLevel = LABEL_DETAIL_LEVEL_FULL;
-            }
-        } else if (attr->POSITION_Z() != nullptr) {
-            nodeConfig->positionZ = stof(attr->FLOAT()->getText());
-        }
-    }
-    return nodeConfig;
-}
-
-any SimpleView::SimpleViewToGraphConverter::visitStyleDeclaration(SimpleViewParser::StyleDeclarationContext* ctx) {
-    auto* nodeStyle = any_cast<NodeStyle*>(visitStyleAttrList(ctx->styleAttrList()));
-    nodeStyle->displayName = ctx->IDENTIFIER()->getText();
-    valNameToNodeStyle[ctx->IDENTIFIER()->getText()] = nodeStyle;
-    return 0;
-}
-
-any SimpleView::SimpleViewToGraphConverter::visitDefaultStyleDeclaration(SimpleViewParser::DefaultStyleDeclarationContext* ctx) {
-    auto* nodeStyle = any_cast<NodeStyle*>(visitStyleAttrList(ctx->styleAttrList()));
-    nodeStyle->displayName = ctx->IDENTIFIER()->getText();
-    valNameToNodeStyle[ctx->IDENTIFIER()->getText()] = nodeStyle;
-    return 0;
-}
-
-any SimpleView::SimpleViewToGraphConverter::visitBasicStyleDeclaration(SimpleViewParser::BasicStyleDeclarationContext* ctx) {
-    string varName = ctx->IDENTIFIER()->getText();
-    BasicStyle* basicConfig = new BasicStyle();
-    for (auto* attr : ctx->basicStyleAttr()) {
-        if (attr->BASIC_NODE_SIZE() != nullptr) {
-            basicConfig->basicNodeSize = stof(attr->FLOAT()->getText());
-        } else if (attr->BASIC_LABEL_SIZE() != nullptr) {
-            basicConfig->basicLabelSize = stof(attr->FLOAT()->getText());
-
-        } else if (attr->BASIC_POSITION_Z() != nullptr) {
-            basicConfig->basicPositionZ = stof(attr->FLOAT()->getText());
-
-        }
-    }
-    valNameToBasicNodeStyle[varName] = basicConfig;
-    return 0;
 }
 
 any SimpleView::SimpleViewToGraphConverter::visitClassScopeDeclaration(SimpleViewParser::ClassScopeDeclarationContext* ctx) {
@@ -314,22 +242,17 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_CONDITION;
         } else if (ctx->ELSE()) {
             ret = Node::NODE_ELSE;
+        } else if (ctx->varNode) {
+            ret->nodeType = Node::NODE_TYPE_VAR;
+            ret->referenceNode = valNameToNode[ctx->IDENTIFIER()->getText()];
         }
         ret->iconId = SimpleView::Node::nodeTypeToIconId[ret->nodeType];
-        return getExistNodeIfExist(any_cast<Node*>(ret));
+        return ret;
     }
 }
 
 any SimpleView::SimpleViewToGraphConverter::visitLineSegOrNodeExp(SimpleViewParser::LineSegOrNodeExpContext* ctx) {
     auto* nodeAndRepeatType = new NodeAndRepeatType();
-    // node style, maybe null
-    NodeStyle* nodeStyle = nullptr;
-    if (ctx->styleName != nullptr) {
-        nodeStyle = valNameToNodeStyle[ctx->styleName->getText()];
-    } else if (ctx->styleAttrList() != nullptr) {
-        nodeStyle = any_cast<NodeStyle*>(visitStyleAttrList(ctx->styleAttrList()));
-    }
-    nodeAndRepeatType->nodeStyleSpec = nodeStyle;
     // repeat type
     int repeatType = -1;
     if (ctx->wildcard == nullptr) {

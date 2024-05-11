@@ -4,6 +4,7 @@ public:
     static unsigned int fieldIconId;
     static unsigned int methodIconId;
     static unsigned int parameterIconId;
+    static unsigned int varIconId;
     static unsigned int returnIconId;
     static unsigned int lineIconId;
     static unsigned int orderLineIconId;

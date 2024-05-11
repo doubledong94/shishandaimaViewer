@@ -29,23 +29,11 @@ namespace SimpleView {
         list<ClassScope*> allDistinctClassScope;
         list<Node*> allDistinctNodes;
 
-        ClassScope* getExitsClassScopeIfExist(ClassScope* classScope);
-
-        Node* getExistNodeIfExist(Node* node);
-
         any visitCompilationUnit(SimpleViewParser::CompilationUnitContext* ctx) override;
 
         any visitClassScopeExp(SimpleViewParser::ClassScopeExpContext* ctx) override;
 
         any visitNodeExp(SimpleViewParser::NodeExpContext* ctx) override;
-
-        any visitStyleAttrList(SimpleViewParser::StyleAttrListContext* ctx) override;
-
-        any visitStyleDeclaration(SimpleViewParser::StyleDeclarationContext* ctx) override;
-
-        any visitDefaultStyleDeclaration(SimpleViewParser::DefaultStyleDeclarationContext* ctx) override;
-
-        any visitBasicStyleDeclaration(SimpleViewParser::BasicStyleDeclarationContext* ctx) override;
 
         any visitClassScopeDeclaration(SimpleViewParser::ClassScopeDeclarationContext* ctx) override;
 

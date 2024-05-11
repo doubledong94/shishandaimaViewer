@@ -100,7 +100,7 @@ namespace shishan {
     static int classScopeEditingIndex = -1;
     static char classScopeEditingName[100];
     static int classScopeEditingTypeIndex = -1;
-    const static char* classScopeTypes[] = { "full path","list","in package","used by","use","super","sub","intersection","union","difference" };
+    const static char* classScopeTypes[] = { "full path","list","in package","used by","use","super","sub","intersection","union","difference","var" };
     static vector<const char*> classScopeEditValues;
     static int classScopeEditValueSelectedIndex = 0;
 
@@ -110,7 +110,7 @@ namespace shishan {
     static int nodeEditingIndex = -1;
     static char nodeEditingName[100];
     static int nodeEditingTypeIndex = -1;
-    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","creatorOf","parameterOf","returnOf","calledMethod","calledParameter","calledReturn","intersection","union","difference" };
+    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","creatorOf","parameterOf","returnOf","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
     static vector<const char*> nodeEditValues;
     static vector<const char*> typeKeyForNodeKey;
     static char* openedTypeKey;
@@ -520,6 +520,9 @@ namespace shishan {
                 classScopeEditValues.push_back("Click me first, then click class you created above to replace,");
                 classScopeEditValues.push_back("Click me first, then click class you created above to replace.");
                 break;
+            case SimpleView::ClassScope::CLASS_SCOPE_TYPE_VAR:
+                classScopeEditValues.push_back("Click class you created above to choose");
+                break;
             }
         }
         ImGui::SameLine();
@@ -568,32 +571,7 @@ namespace shishan {
             for (int i = 0;i < classScopeEditValues.size();i++) {
                 ImGui::PushID(i);
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
-                unsigned int iconId = 0;
-                switch (classScopeEditingTypeIndex) {
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_KEY:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_LIST:
-                    iconId = Images::keyIconId;
-                    break;
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_IN_PACKAGE:
-                    iconId = Images::inPackageIconId;
-                    break;
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_USED_BY:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_USE:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUPER:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUB:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_INTERSECTION:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_UNION:
-                case SimpleView::ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE:
-                    if (SimpleView::SimpleViewToGraphConverter::valNameToClassScope.count(classScopeEditValues[i])) {
-                        iconId = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeEditValues[i]]->iconId;
-                    }
-                    break;
-                }
-                if (iconId) {
-                    ImGui::Image((void*)(intptr_t)iconId, ImVec2(fontSize, fontSize));
-                } else {
-                    ImGui::Text("value: ");
-                }
+                ImGui::Text("value: ");
                 ImGui::SameLine();
                 if (ImGui::Selectable(classScopeEditValues[i], classScopeEditValueSelectedIndex == i)) {
                     classScopeEditValueSelectedIndex = i;
@@ -660,6 +638,9 @@ namespace shishan {
                 nodeEditValues.push_back("Click me first, then click field/method/param/return you created above");
                 nodeEditValues.push_back("Click me first, then click field/method/param/return you created above");
                 break;
+            case SimpleView::Node::NODE_TYPE_VAR:
+                nodeEditValues.push_back("Click node you created above");
+                break;
             }
         }
         ImGui::SameLine();
@@ -708,40 +689,7 @@ namespace shishan {
             for (int i = 0;i < nodeEditValues.size();i++) {
                 ImGui::PushID(i);
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
-                unsigned int iconId = 0;
-                switch (nodeEditingTypeIndex) {
-                case SimpleView::Node::NODE_TYPE_KEY:
-                case SimpleView::Node::NODE_TYPE_LIST:
-                    iconId = Images::keyIconId;
-                    break;
-                case SimpleView::Node::NODE_TYPE_FIELD_OF:
-                case SimpleView::Node::NODE_TYPE_METHOD_OF:
-                case SimpleView::Node::NODE_TYPE_CREATOR:
-                    if (SimpleView::SimpleViewToGraphConverter::valNameToClassScope.count(nodeEditValues[i])) {
-                        iconId = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[nodeEditValues[i]]->iconId;
-                    }
-                    break;
-                case SimpleView::Node::NODE_TYPE_PARAMETER_OF:
-                case SimpleView::Node::NODE_TYPE_RETURN_OF:
-                case SimpleView::Node::NODE_TYPE_INSTANCE_OF:
-                case SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF:
-                case SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF:
-                case SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF:
-                case SimpleView::Node::NODE_TYPE_INTERSECTION:
-                case SimpleView::Node::NODE_TYPE_UNION:
-                case SimpleView::Node::NODE_TYPE_DIFFERENCE:
-                case SimpleView::Node::NODE_TYPE_READ:
-                case SimpleView::Node::NODE_TYPE_WRITE:
-                    if (SimpleView::SimpleViewToGraphConverter::valNameToNode.count(nodeEditValues[i])) {
-                        iconId = SimpleView::SimpleViewToGraphConverter::valNameToNode[nodeEditValues[i]]->iconId;
-                    }
-                    break;
-                }
-                if (iconId) {
-                    ImGui::Image((void*)(intptr_t)iconId, ImVec2(fontSize, fontSize));
-                } else {
-                    ImGui::Text("value: ");
-                }
+                ImGui::Text("value: ");
                 ImGui::SameLine();
                 if (ImGui::Selectable(nodeEditValues[i], nodeEditValueSelectedIndex == i)) {
                     nodeEditValueSelectedIndex = i;
@@ -945,21 +893,7 @@ namespace shishan {
                 }
                 ImGui::PushID(nodeInLineIdMap[i]);
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
-                unsigned int iconId = 0;
-                if (SimpleView::SimpleViewToGraphConverter::valNameToNode.count(lineEditValues[i])) {
-                    iconId = SimpleView::SimpleViewToGraphConverter::valNameToNode[lineEditValues[i]]->iconId;
-                } else if (SimpleView::SimpleViewToGraphConverter::valNameToLine.count(lineEditValues[i])) {
-                    iconId = SimpleView::SimpleViewToGraphConverter::valNameToLine[lineEditValues[i]]->iconId;
-                } else {
-                    if (not isEditValueIsActuallyHint(lineEditValues)) {
-                        iconId = Images::parameterIconId;
-                    }
-                }
-                if (iconId) {
-                    ImGui::Image((void*)(intptr_t)iconId, ImVec2(fontSize, fontSize));
-                } else {
-                    ImGui::Text("value: ");
-                }
+                ImGui::Text("value: ");
                 ImGui::SameLine();
                 string repeatTypeStr = " ";
                 switch (lineEditRepeatTypes[i]) {
@@ -1325,6 +1259,11 @@ namespace shishan {
                     classScopeEditValues[classScopeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[index].data();
                 }
                 break;
+            case SimpleView::ClassScope::CLASS_SCOPE_TYPE_VAR:
+                if (type == 2) {
+                    classScopeEditValues[classScopeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[index].data();
+                }
+                break;
             }
         }
         if (nodeEditingIndex > -1) {
@@ -1405,6 +1344,11 @@ namespace shishan {
                         ) {
                         nodeEditValues[nodeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data();
                     }
+                }
+                break;
+            case SimpleView::Node::NODE_TYPE_VAR:
+                if (type == 3) {
+                    nodeEditValues[nodeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data();
                 }
                 break;
             }

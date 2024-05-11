@@ -73,9 +73,9 @@ git submodule update --init --remote –recursive
 ## 源码搜索的思路
 ### 基本思路(必看)      
 矢山的基本思路是将搜索代码分为**5个方向**:    
-1. 时机传递方向
-2. 逻辑控制方向
-3. 数据流动方向
+1. 时机传递方向（函数调用）
+2. 逻辑控制方向（条件语句）
+3. 数据流动方向（赋值，传参，返回值）
 4. 类嵌套方向（对象引用）
 5. 执行顺序方向（目前没有实现）
 
@@ -97,13 +97,14 @@ git submodule update --init --remote –recursive
 12. intersection(A1,A2)，代表A1和A2的交集
 13. union(A1,A2)，代表A1和A2的并集
 14. difference(A1,A2)，代表A1和A2的差集，A1-A2
+15. var(A)，代表一个变量，值为A，A是一个定义好的字符
 
 正则搜索使用的**特殊字符**有：
 1. Any，代表任一个**普通字符**以及没有被**普通字符**表示的局部变量和操作符（+-*/等）       
-2. Reference，可搜索类嵌套方向
+2. Reference，可搜索类嵌套方向，具体请看[类嵌套方向](#类嵌套方向)
 3. Condition，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
 4. Else，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
-5. Step，可搜索时机传递方向，具体请看[时机传递方向](#时机传递方向)
+5. Step，可搜索时机传递方向与数据流动方向，具体请看[时机传递方向](#时机传递方向) [数据流动方向](#数据流动方向)
 
 ### 类范围
 一个项目会有成千上万个类，而矢山在搜索时，需要把所搜索的类加载到内存中。如果为了搜一个类要把上万个类都加载到内存中，是非常不划算的。因此用户需要指定搜索范围，也就是要指定：你搜索的时机传递/数据流动等，发生在哪些类的函数中。
@@ -118,13 +119,14 @@ git submodule update --init --remote –recursive
 8. intersection(A1,A2)，代表A1和A2的交集
 9. union(A1,A2)，代表A1和A2的并集
 10. difference(A1,A2)，代表A1和A2的差集，A1-A2
+11. var(A)，代表一个变量，值为A，A是一个定义好的类范围
 
 被定义好的**类范围**，可以用来定义**普通字符**。比如在使用规则fieldOf(C)定义**普通字符**时，定义好的**类范围**可以替换C。
 
 ### 使用正则搜索
 有了定义好的**正则字符**和**类范围**，就可以开始定义搜索了，下面会用例子的方式介绍如何定义搜索。
 #### 时机传递方向
-时机传递对应的是函数调用。为了让代码能被正则搜索，矢山给函数调用场景添加了一些特殊节点类型。由于这些节点类型不像fieldOf那样直观，下面进行说明。        
+时机传递对应的是函数调用。为了让代码能被正则搜索，矢山给函数调用场景添加了一些特殊节点类型。由于这些节点类型不像fieldOf那样直观，需要进行说明。        
 
 **举例**说明**普通字符**规则calledMethod 和 **特殊字符**Step    
 ```java
@@ -171,11 +173,11 @@ class A {
 }
 ``` 
 对于上面的函数调用，在矢山中的时机传递表示为：    
-A.b::: -> Condition -> A.a1:::# -> Step -> A.a1:::     
-A.b::: -> Condition -> A.a2:::# -> Step -> A.a2:::     
-A.b::: -> Condition -> A.a3:::# -> Step -> A.a3:::     
+A.b::: -> Condition1 -> A.a1:::# -> Step -> A.a1:::     
+A.b::: -> Condition2 -> A.a2:::# -> Step -> A.a2:::     
+A.b::: -> Condition3 -> A.a3:::# -> Step -> A.a3:::     
 这里的Condition对应于代码中的条件分支，函数b中有三个条件分支，因此有三个Condition节点。这三个Condition节点之间有Else节点连接：     
-Condition1->Else->Condition2->Else->Condition    
+Condition1->Else->Condition2->Else->Condition3    
 
 **举例**说明时机传递方向的搜索      
 搜索在类android.view.View中调用的所有构造函数  
@@ -241,10 +243,10 @@ class A {
 }
 ``` 
 对于上面的条件语句，在矢山中的逻辑控制表示为：    
-c1 -> Condition    
-c2 -> Condition    
+c1 -> Condition1    
+c2 -> Condition2    
 这里的Condition对应于代码中的条件分支，由于第三个分支没有条件语句，因此只有两个Condition。但第三个Condition节点还是存在的，且这三个Condition节点之间有Else节点连接：     
-Condition1->Else->Condition2->Else->Condition   
+Condition1->Else->Condition2->Else->Condition3   
 
 **举例**说明逻辑控制方向的搜索      
 搜索"android.view.View.mViewFlags"控制了哪些函数的调用    
@@ -310,6 +312,27 @@ Line dataFlow_from_paramOf_constructor_view = param_of_constructor_view->Any+;
 ![dataFlow_from_param_of_constructor_view](/imgForReadMe/dataFlow_from_param_of_constructor_view.png "dataFlow_from_param_of_constructor_view")
 #### 类嵌套方向
 类嵌套对应的是引用对象属性和函数这个动作。  
+
+**举例**说明**特殊字符**Reference   
+```java
+class A {
+    int i;
+    void a(int i) {
+        this.i = i;
+    };
+}
+
+class B {
+    A a;
+    void b() {
+        a.a(1);
+    }
+}
+```
+对于上面的引用对象函数，在矢山中的类嵌套表示为：      
+B.a -> Reference -> A.a::int:#     
+注意这里使用的是calledMethod节点。       
+
 **举例**说明类嵌套方向的搜索      
 上面搜索到的结果非常少，大概是因为没有搜索类嵌套方向，下面我们加入类嵌套方向的搜索
 ```
@@ -329,7 +352,7 @@ Line dataFlow_with_ref_from_paramOf_constructor_view = param_of_constructor_view
 #### 执行顺序方向(目前没有实现)
 
 ### 相交搜索
-到此我们已经介绍了所谓的**5个方向**的搜索。但有些情况，单一的搜索方向不能满足需求，需要我们同时从不同方向进行搜索。上面[类嵌套方向](#类嵌套方向)的例子中，我们已经看到了数据流动和类嵌套这两个方向上同时搜索的一个例子（虽然这个例子没有用到相交的方式搜索）。下面再举个例子进一步说明如何使用相交搜索的方式同时搜索两个方向。   
+到此我们已经介绍了所谓的**5个方向**的搜索。但有些情况，单一的搜索方向不能满足需求，需要我们同时从不同方向进行搜索。上面[类嵌套方向](#类嵌套方向)的例子中，我们已经看到了数据流动和类嵌套这两个方向上同时搜索的一个例子（虽然这个例子没有用到相交的方式搜索）。下面举个例子进一步说明如何使用相交搜索的方式同时搜索两个方向。   
 ```java
 class A {
     int i;
@@ -363,6 +386,19 @@ class B {
 指定交点：A.a::int:#
 
 ## 源码搜索的操作
+快捷键：e打开正则编辑面板
+![regex_editing_panel](/imgForReadMe/regex_editing_panel.png "regex_editing_panel")
+
+### 定义类范围
+### 定义正则普通字符
+### 定义正则搜索
+### 定义相交搜索
+
+### 开始搜索
+快捷键： a 选择类范围作为搜索范围    
+快捷键： s 选择正则搜索    
+快捷键： d 选择相交搜索     
+快捷键： ctrl + f 开始搜索    
 
 ## 阅读源码
 

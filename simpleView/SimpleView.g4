@@ -62,25 +62,6 @@ compilationUnit
     : (declaration ';')+ (showCommand ';')*
     ;
 
-styleAttr
-    : NODE_COLOR ':' STRING ';'
-    | NODE_SCALE ':' FLOAT ';'
-    | LABEL_COLOR ':' STRING ';'
-    | LABEL_SCALE ':' FLOAT ';'
-    | LABEL_DETAIL_LEVEL ':' (LABEL_DETAIL_LEVEL_SIMPLE|LABEL_DETAIL_LEVEL_FULL) ';'
-    | POSITION_Z ':' FLOAT ';'
-    ;
-
-basicStyleAttr
-    : BASIC_NODE_SIZE ':' FLOAT ';'
-    | BASIC_LABEL_SIZE ':' FLOAT ';'
-    | BASIC_POSITION_Z ':' FLOAT ';'
-    ;
-
-styleAttrList
-    : styleAttr+
-    ;
-
 glueAttr
     : GLUE_RUNTIME      ':' nodeExp ';'
     | GLULE_MEMBER_OF   ':' classScopeExp ';'
@@ -102,6 +83,7 @@ classScopeExp
     | classScopeExp difference='-' classScopeExp
     | '(' bracket=classScopeExp ')'
     | refOtherScope=IDENTIFIER
+    | varClass='{' IDENTIFIER '}'
     ;
 
 nodeExp
@@ -130,6 +112,7 @@ nodeExp
     | STEP
     | '(' bracket=nodeExp ')'
     | refOtherNode=IDENTIFIER
+    | varNode='{' IDENTIFIER '}'
     ;
 
 // line
@@ -142,7 +125,7 @@ lineExp
     ;
 
 lineSegOrNodeExp
-    : (('[' segName=IDENTIFIER ']')| (nodeExp ('{' (styleName=IDENTIFIER|styleAttrList) '}')?)) wildcard=('?'|'*'|'+')?
+    : (('[' segName=IDENTIFIER ']')| nodeExp ) wildcard=('?'|'*'|'+')?
     ;
 
 // graph
@@ -168,10 +151,7 @@ intersectionPoint
     ;
 
 declaration
-    : STYLE                     IDENTIFIER '=' '{' styleAttrList '}'                        #styleDeclaration
-    | DEFAULT_STYLE             IDENTIFIER '=' '{' styleAttrList '}'                        #defaultStyleDeclaration
-    | BASIC_STYLE               IDENTIFIER '=' '{' basicStyleAttr+ '}'                      #basicStyleDeclaration
-    | CLASS_SCOPE               IDENTIFIER '=' classScopeExp                                #classScopeDeclaration
+    : CLASS_SCOPE               IDENTIFIER '=' classScopeExp                                #classScopeDeclaration
     | NODE                      IDENTIFIER '=' nodeExp                                      #nodeDeclaration
     | (LINE|CODE_ORDER|SEGMENT) IDENTIFIER paramList? '=' lineExp                           #lineDeclaration
     | GLUE                      IDENTIFIER '=' '{' glueAttr* '}'                            #glueDeclaration

@@ -116,6 +116,7 @@ void EasierSimpleView::init() {
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_INTERSECTION,Images::intersectionIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_UNION,Images::unionIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE,Images::differenceIconId},
+            {SimpleView::ClassScope::CLASS_SCOPE_TYPE_VAR,Images::varIconId},
     };
     SimpleView::Node::nodeTypeToIconId = {
                 {SimpleView::Node::NODE_TYPE_KEY,Images::keyIconId},
@@ -139,7 +140,8 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_CONDITION,Images::conditionIconId},
                 {SimpleView::Node::NODE_TYPE_ELSE,Images::elseIconId},
                 {SimpleView::Node::NODE_TYPE_STEP,Images::stepIconId},
-                {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId}
+                {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId},
+                {SimpleView::Node::NODE_TYPE_VAR,Images::varIconId},
     };
     vector<Term*> retList;
     PrologWrapper::queryList(CompoundTerm::getPackageTerm(Term::getVar("A"), Term::getVar("B")), retList);
@@ -658,6 +660,10 @@ string SimpleView::ClassScope::toString(map<int, string>& voc) const {
             operandForSetOperation.second->toString(voc) : operandForSetOperation.second->displayName;
         return firstText + " - " + secondText;
     }
+    case CLASS_SCOPE_TYPE_VAR:
+    {
+        return "{ " + referenceClassScope->displayName + " }";
+    }
     }
     return "error: wrong class scope type.";
 }
@@ -724,11 +730,22 @@ void SimpleView::ClassScope::resolve(std::function<void(int, int, const char*)>*
             Term::getVar("C")), termListForQuery);
         break;
     }
-    FOR_EACH_ITEM(termListForQuery, resolvedList.insert(item->atomOrVar););
-    int c = 0;
-    FOR_EACH_ITEM(resolvedList, c++;if (update) (*update)(c, resolvedList.size(), item.data());PrologWrapper::loadTypeKeyAddressable(item););
-    if (update) (*update)(resolvedList.size() + 1, resolvedList.size(), "");
-    FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString()););
+    if (classScopeType == CLASS_SCOPE_TYPE_VAR) {
+        referenceClassScope->resolve(update);
+        resolvedList = referenceClassScope->resolvedList;
+        Term* keyTerm = Term::getVar("K");
+        PrologWrapper::addRule(
+            Rule::getRuleInstance(CompoundTerm::getResolveTerm(Term::getStr(innerValName), keyTerm),
+                { CompoundTerm::getResolveTerm(Term::getStr(referenceClassScope->innerValName),keyTerm) }
+            )->toString()
+        );
+    } else {
+        FOR_EACH_ITEM(termListForQuery, resolvedList.insert(item->atomOrVar););
+        int c = 0;
+        FOR_EACH_ITEM(resolvedList, c++;if (update) (*update)(c, resolvedList.size(), item.data());PrologWrapper::loadTypeKeyAddressable(item););
+        if (update) (*update)(resolvedList.size() + 1, resolvedList.size(), "");
+        FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString()););
+    }
     resolved = true;
 }
 
@@ -774,47 +791,6 @@ int SimpleView::ClassScope::getClassType() {
     return ToBeResolved::CLASS_TYPE_CLASS_SCOPE;
 }
 
-bool SimpleView::ClassScope::compare(SimpleView::ClassScope* c1, SimpleView::ClassScope* c2) {
-    if (not c1->displayName.empty() or not c2->displayName.empty()) {
-        return false;
-    }
-    if (c1->classScopeType != c2->classScopeType) {
-        return false;
-    } else {
-        switch (c1->classScopeType) {
-        case CLASS_SCOPE_TYPE_KEY:
-        case CLASS_SCOPE_TYPE_IN_PACKAGE:
-            return c1->extraStr == c2->extraStr;
-        case CLASS_SCOPE_TYPE_LIST:
-        {
-            if (c1->classList.size() == c2->classList.size()) {
-                set<string> classSet;
-                FOR_EACH_ITEM(c1->classList, classSet.insert(item););
-                bool allEqual = true;
-                FOR_EACH_ITEM(c2->classList, if (not classSet.count(item)) { allEqual = false;break; });
-                return allEqual;
-            }
-        }
-        break;
-        case CLASS_SCOPE_TYPE_USED_BY:
-        case CLASS_SCOPE_TYPE_USE:
-        case CLASS_SCOPE_TYPE_SUPER:
-        case CLASS_SCOPE_TYPE_SUB:
-            return c1->referenceClassScope == c2->referenceClassScope;
-        case CLASS_SCOPE_TYPE_INTERSECTION:
-        case CLASS_SCOPE_TYPE_UNION:
-            return (c1->operandForSetOperation.first == c2->operandForSetOperation.first and
-                c1->operandForSetOperation.second == c2->operandForSetOperation.second) or
-                (c1->operandForSetOperation.first == c2->operandForSetOperation.second and
-                    c1->operandForSetOperation.second == c2->operandForSetOperation.first);
-        case CLASS_SCOPE_TYPE_DIFFERENCE:
-            return c1->operandForSetOperation.first == c2->operandForSetOperation.first and
-                c1->operandForSetOperation.second == c2->operandForSetOperation.second;
-        }
-        return false;
-    }
-}
-
 void SimpleView::ClassScope::listTerm(vector<const char*>& ret) {
     ret.clear();
     for (auto& s : resolvedList) {
@@ -842,6 +818,9 @@ void SimpleView::ClassScope::loadValueToUI(vector<const char*>& values) {
     case CLASS_SCOPE_TYPE_DIFFERENCE:
         values.push_back(operandForSetOperation.first->displayName.data());
         values.push_back(operandForSetOperation.second->displayName.data());
+        break;
+    case CLASS_SCOPE_TYPE_VAR:
+        values.push_back(referenceClassScope->displayName.data());
         break;
     }
 }
@@ -875,6 +854,9 @@ void SimpleView::ClassScope::resetValue(const char* name, int type, vector<const
             SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[0]],
             SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[1]]
         };
+        break;
+    case CLASS_SCOPE_TYPE_VAR:
+        referenceClassScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[0]];
         break;
     }
 
@@ -941,60 +923,6 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     }
     SimpleViewToGraphConverter::valNameToNode[node->displayName] = node;
     return node;
-}
-
-bool SimpleView::Node::compare(const SimpleView::Node* c1, const SimpleView::Node* c2) {
-    if (not c1->displayName.empty() or not c2->displayName.empty()) {
-        return false;
-    }
-    if (c1->nodeType != c2->nodeType) {
-        return false;
-    } else {
-        switch (c1->nodeType) {
-        case NODE_TYPE_PARAM_OF_LINE_AND_GRAPH:
-            // if it is line param, extra string stores the addressable name of this param
-            return c1->extraStr == c2->extraStr;
-        case NODE_TYPE_KEY:
-            return strcmp(c1->nodeKey.first.data(), c2->nodeKey.first.data()) == 0;
-        case NODE_TYPE_LIST:
-            return false;
-        case NODE_TYPE_FIELD_OF:
-        case NODE_TYPE_METHOD_OF:
-        case NODE_TYPE_CREATOR:
-            return c1->classScope == c2->classScope;
-        case NODE_TYPE_INSTANCE_OF:
-            return c1->classScope == c2->classScope and c1->classScope2 == c2->classScope2;
-        case NODE_TYPE_PARAMETER_OF:
-        case NODE_TYPE_RETURN_OF:
-        case NODE_TYPE_CALLED_METHOD_OF:
-        case NODE_TYPE_CALLED_PARAMETER_OF:
-        case NODE_TYPE_CALLED_RETURN_OF:
-        case NODE_TYPE_READ:
-        case NODE_TYPE_WRITE:
-            return c1->referenceNode == c2->referenceNode;
-        case NODE_TYPE_UNION:
-        case NODE_TYPE_INTERSECTION:
-            return (c1->operandForSetOperation.first == c2->operandForSetOperation.first and
-                c1->operandForSetOperation.second == c2->operandForSetOperation.second) or
-                (c1->operandForSetOperation.first == c2->operandForSetOperation.second and
-                    c1->operandForSetOperation.second == c2->operandForSetOperation.first);
-        case NODE_TYPE_DIFFERENCE:
-            return c1->operandForSetOperation.first == c2->operandForSetOperation.first and
-                c1->operandForSetOperation.second == c2->operandForSetOperation.second;
-        case NODE_TYPE_REFERENCE:
-            // there is only one reference node
-        case NODE_TYPE_CONDITION:
-            // there is only one condition node
-        case NODE_TYPE_ELSE:
-        case NODE_TYPE_ANY:
-            // there is only one Any node
-        case NODE_TYPE_STEP:
-            return true;
-        default:
-            return false;
-        }
-        return false;
-    }
 }
 
 /**
@@ -1087,7 +1015,16 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
             Term::getVar("N")), termListForQuery);
         break;
     }
-    if (nodeType == NODE_TYPE_RUNTIME) {
+    if (nodeType == NODE_TYPE_VAR) {
+        referenceNode->resolve(update);
+        resolvedList = referenceNode->resolvedList;
+        Term* keyTerm = Term::getVar("K");
+        PrologWrapper::addRule(
+            Rule::getRuleInstance(CompoundTerm::getResolveTerm(Term::getStr(innerValName), keyTerm),
+                { CompoundTerm::getResolveTerm(Term::getStr(referenceNode->innerValName),keyTerm) }
+            )->toString()
+        );
+    } else if (nodeType == NODE_TYPE_RUNTIME) {
         for (auto& runtimeNode : runtimeNodeList) {
             auto resolveRuntime = CompoundTerm::getResolveRuntimeTerm(
                 Term::getStr(innerValName), Term::getIgnoredVar(),
@@ -1190,6 +1127,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return operandForSetOperation.first->displayName + " - " + operandForSetOperation.second->displayName;
     case NODE_TYPE_PARAM_OF_LINE_AND_GRAPH:
         return "NODE_TYPE_PARAM_OF_LINE_AND_GRAPH";
+    case NODE_TYPE_VAR:
+        return "{ " + referenceNode->displayName + " }";
     }
     return "(" + to_string(nodeType) + ")";
 }
@@ -1249,6 +1188,9 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
         values.push_back(operandForSetOperation.first->displayName.data());
         values.push_back(operandForSetOperation.second->displayName.data());
         break;
+    case NODE_TYPE_VAR:
+        values.push_back(referenceNode->displayName.data());
+        break;
     }
 }
 
@@ -1293,6 +1235,9 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
             SimpleView::SimpleViewToGraphConverter::valNameToNode[values[0]],
             SimpleView::SimpleViewToGraphConverter::valNameToNode[values[1]]
         };
+        break;
+    case NODE_TYPE_VAR:
+        referenceNode = SimpleViewToGraphConverter::valNameToNode[values[0]];
         break;
     }
     if (not editingNew) {

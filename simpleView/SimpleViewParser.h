@@ -30,11 +30,10 @@ public:
   };
 
   enum {
-    RuleCompilationUnit = 0, RuleStyleAttr = 1, RuleBasicStyleAttr = 2, 
-    RuleStyleAttrList = 3, RuleGlueAttr = 4, RuleClassScopeExp = 5, RuleNodeExp = 6, 
-    RuleParamList = 7, RuleLineExp = 8, RuleLineSegOrNodeExp = 9, RuleLineArgumentList = 10, 
-    RuleGraphElement = 11, RuleGraphBody = 12, RulePointInLine = 13, RuleIntersectionPoint = 14, 
-    RuleDeclaration = 15, RuleShowCommand = 16
+    RuleCompilationUnit = 0, RuleGlueAttr = 1, RuleClassScopeExp = 2, RuleNodeExp = 3, 
+    RuleParamList = 4, RuleLineExp = 5, RuleLineSegOrNodeExp = 6, RuleLineArgumentList = 7, 
+    RuleGraphElement = 8, RuleGraphBody = 9, RulePointInLine = 10, RuleIntersectionPoint = 11, 
+    RuleDeclaration = 12, RuleShowCommand = 13
   };
 
   explicit SimpleViewParser(antlr4::TokenStream *input);
@@ -55,9 +54,6 @@ public:
 
 
   class CompilationUnitContext;
-  class StyleAttrContext;
-  class BasicStyleAttrContext;
-  class StyleAttrListContext;
   class GlueAttrContext;
   class ClassScopeExpContext;
   class NodeExpContext;
@@ -88,58 +84,6 @@ public:
 
   CompilationUnitContext* compilationUnit();
 
-  class  StyleAttrContext : public antlr4::ParserRuleContext {
-  public:
-    StyleAttrContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *NODE_COLOR();
-    antlr4::tree::TerminalNode *STRING();
-    antlr4::tree::TerminalNode *NODE_SCALE();
-    antlr4::tree::TerminalNode *FLOAT();
-    antlr4::tree::TerminalNode *LABEL_COLOR();
-    antlr4::tree::TerminalNode *LABEL_SCALE();
-    antlr4::tree::TerminalNode *LABEL_DETAIL_LEVEL();
-    antlr4::tree::TerminalNode *LABEL_DETAIL_LEVEL_SIMPLE();
-    antlr4::tree::TerminalNode *LABEL_DETAIL_LEVEL_FULL();
-    antlr4::tree::TerminalNode *POSITION_Z();
-
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  StyleAttrContext* styleAttr();
-
-  class  BasicStyleAttrContext : public antlr4::ParserRuleContext {
-  public:
-    BasicStyleAttrContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *BASIC_NODE_SIZE();
-    antlr4::tree::TerminalNode *FLOAT();
-    antlr4::tree::TerminalNode *BASIC_LABEL_SIZE();
-    antlr4::tree::TerminalNode *BASIC_POSITION_Z();
-
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  BasicStyleAttrContext* basicStyleAttr();
-
-  class  StyleAttrListContext : public antlr4::ParserRuleContext {
-  public:
-    StyleAttrListContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    std::vector<StyleAttrContext *> styleAttr();
-    StyleAttrContext* styleAttr(size_t i);
-
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  StyleAttrListContext* styleAttrList();
-
   class  GlueAttrContext : public antlr4::ParserRuleContext {
   public:
     GlueAttrContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -166,6 +110,7 @@ public:
     antlr4::Token *packageStr = nullptr;
     SimpleViewParser::ClassScopeExpContext *bracket = nullptr;
     antlr4::Token *refOtherScope = nullptr;
+    antlr4::Token *varClass = nullptr;
     antlr4::Token *union_ = nullptr;
     antlr4::Token *intersection = nullptr;
     antlr4::Token *difference = nullptr;
@@ -201,6 +146,7 @@ public:
     SimpleViewParser::NodeExpContext *write = nullptr;
     SimpleViewParser::NodeExpContext *bracket = nullptr;
     antlr4::Token *refOtherNode = nullptr;
+    antlr4::Token *varNode = nullptr;
     antlr4::Token *intersection = nullptr;
     antlr4::Token *union_ = nullptr;
     antlr4::Token *difference = nullptr;
@@ -268,13 +214,11 @@ public:
   class  LineSegOrNodeExpContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *segName = nullptr;
-    antlr4::Token *styleName = nullptr;
     antlr4::Token *wildcard = nullptr;
     LineSegOrNodeExpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     NodeExpContext *nodeExp();
     antlr4::tree::TerminalNode *IDENTIFIER();
-    StyleAttrListContext *styleAttrList();
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
@@ -406,17 +350,6 @@ public:
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };
 
-  class  DefaultStyleDeclarationContext : public DeclarationContext {
-  public:
-    DefaultStyleDeclarationContext(DeclarationContext *ctx);
-
-    antlr4::tree::TerminalNode *DEFAULT_STYLE();
-    antlr4::tree::TerminalNode *IDENTIFIER();
-    StyleAttrListContext *styleAttrList();
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
   class  LineAndGraphInstanceContext : public DeclarationContext {
   public:
     LineAndGraphInstanceContext(DeclarationContext *ctx);
@@ -440,29 +373,6 @@ public:
     antlr4::tree::TerminalNode *CODE_ORDER();
     antlr4::tree::TerminalNode *SEGMENT();
     ParamListContext *paramList();
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  StyleDeclarationContext : public DeclarationContext {
-  public:
-    StyleDeclarationContext(DeclarationContext *ctx);
-
-    antlr4::tree::TerminalNode *STYLE();
-    antlr4::tree::TerminalNode *IDENTIFIER();
-    StyleAttrListContext *styleAttrList();
-
-    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-  };
-
-  class  BasicStyleDeclarationContext : public DeclarationContext {
-  public:
-    BasicStyleDeclarationContext(DeclarationContext *ctx);
-
-    antlr4::tree::TerminalNode *BASIC_STYLE();
-    antlr4::tree::TerminalNode *IDENTIFIER();
-    std::vector<BasicStyleAttrContext *> basicStyleAttr();
-    BasicStyleAttrContext* basicStyleAttr(size_t i);
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
   };

@@ -59,6 +59,7 @@ namespace SimpleView {
             CLASS_SCOPE_TYPE_INTERSECTION,
             CLASS_SCOPE_TYPE_UNION,
             CLASS_SCOPE_TYPE_DIFFERENCE,
+            CLASS_SCOPE_TYPE_VAR,
         };
         static map<int, int> classTypeToIconId;
         int classScopeType = -1;
@@ -78,8 +79,6 @@ namespace SimpleView {
         void unResolve(bool retract = false) override;
 
         int getClassType() override;
-
-        static bool compare(ClassScope* c1, ClassScope* c2);
 
         void listTerm(vector<const char*>& ret);
 
@@ -109,6 +108,7 @@ namespace SimpleView {
             NODE_TYPE_INTERSECTION,
             NODE_TYPE_UNION,
             NODE_TYPE_DIFFERENCE,
+            NODE_TYPE_VAR,
 
             NODE_TYPE_READ,
             NODE_TYPE_WRITE,
@@ -143,8 +143,6 @@ namespace SimpleView {
         Node* referenceNode = nullptr;
         pair<Node*, Node*> operandForSetOperation;
         set<string> resolvedList;
-
-        static bool compare(const Node* c1, const Node* c2);
 
         string toString(map<int, string>& voc);
 

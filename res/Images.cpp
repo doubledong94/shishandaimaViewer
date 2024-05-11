@@ -46,6 +46,7 @@ unsigned int Images::classScopeIconId = 0;
 unsigned int Images::fieldIconId = 0;
 unsigned int Images::methodIconId = 0;
 unsigned int Images::parameterIconId = 0;
+unsigned int Images::varIconId = 0;
 unsigned int Images::returnIconId = 0;
 unsigned int Images::lineIconId = 0;
 unsigned int Images::orderLineIconId = 0;
@@ -91,6 +92,7 @@ void Images::init() {
     unsigned int R = 0;
     unsigned int S = 0;
     unsigned int U = 0;
+    unsigned int V = 0;
     unsigned int W = 0;
 
     if (not LoadTextureFromFile(FileManager::alphabetIconAndPath.data(), &And, &my_image_width, &my_image_height)) {
@@ -147,6 +149,9 @@ void Images::init() {
     if (not LoadTextureFromFile(FileManager::alphabetIconUPath.data(), &U, &my_image_width, &my_image_height)) {
         spdlog::get(ErrorManager::FileManagerTag)->warn("icon not found {}", FileManager::alphabetIconUPath.data());
     }
+    if (not LoadTextureFromFile(FileManager::alphabetIconVPath.data(), &V, &my_image_width, &my_image_height)) {
+        spdlog::get(ErrorManager::FileManagerTag)->warn("icon not found {}", FileManager::alphabetIconVPath.data());
+    }
     if (not LoadTextureFromFile(FileManager::alphabetIconWPath.data(), &W, &my_image_width, &my_image_height)) {
         spdlog::get(ErrorManager::FileManagerTag)->warn("icon not found {}", FileManager::alphabetIconWPath.data());
     }
@@ -160,6 +165,7 @@ void Images::init() {
     fieldIconId = F;
     methodIconId = M;
     parameterIconId = P;
+    varIconId = V;
     returnIconId = R;
     lineIconId = L;
     orderLineIconId = O;

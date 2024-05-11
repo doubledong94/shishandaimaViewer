@@ -91,6 +91,7 @@ string FileManager::alphabetIconPPath = "";
 string FileManager::alphabetIconRPath = "";
 string FileManager::alphabetIconSPath = "";
 string FileManager::alphabetIconUPath = "";
+string FileManager::alphabetIconVPath = "";
 string FileManager::alphabetIconWPath = "";
 
 
@@ -142,6 +143,7 @@ void FileManager::initCurrentDir() {
     alphabetIconRPath = resourceBaseDir + "alphabetIconR.png";
     alphabetIconSPath = resourceBaseDir + "alphabetIconS.png";
     alphabetIconUPath = resourceBaseDir + "alphabetIconU.png";
+    alphabetIconVPath = resourceBaseDir + "alphabetIconV.png";
     alphabetIconWPath = resourceBaseDir + "alphabetIconW.png";
     ifstream f;
     f.open(srcPathConfig);

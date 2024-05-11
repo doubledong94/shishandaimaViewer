@@ -72,6 +72,7 @@ public:
     static string alphabetIconRPath;
     static string alphabetIconSPath;
     static string alphabetIconUPath;
+    static string alphabetIconVPath;
     static string alphabetIconWPath;
 };
 

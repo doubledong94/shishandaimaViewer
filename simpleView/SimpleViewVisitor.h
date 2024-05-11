@@ -21,12 +21,6 @@ public:
    */
     virtual std::any visitCompilationUnit(SimpleViewParser::CompilationUnitContext *context) = 0;
 
-    virtual std::any visitStyleAttr(SimpleViewParser::StyleAttrContext *context) = 0;
-
-    virtual std::any visitBasicStyleAttr(SimpleViewParser::BasicStyleAttrContext *context) = 0;
-
-    virtual std::any visitStyleAttrList(SimpleViewParser::StyleAttrListContext *context) = 0;
-
     virtual std::any visitGlueAttr(SimpleViewParser::GlueAttrContext *context) = 0;
 
     virtual std::any visitClassScopeExp(SimpleViewParser::ClassScopeExpContext *context) = 0;
@@ -48,12 +42,6 @@ public:
     virtual std::any visitPointInLine(SimpleViewParser::PointInLineContext *context) = 0;
 
     virtual std::any visitIntersectionPoint(SimpleViewParser::IntersectionPointContext *context) = 0;
-
-    virtual std::any visitStyleDeclaration(SimpleViewParser::StyleDeclarationContext *context) = 0;
-
-    virtual std::any visitDefaultStyleDeclaration(SimpleViewParser::DefaultStyleDeclarationContext *context) = 0;
-
-    virtual std::any visitBasicStyleDeclaration(SimpleViewParser::BasicStyleDeclarationContext *context) = 0;
 
     virtual std::any visitClassScopeDeclaration(SimpleViewParser::ClassScopeDeclarationContext *context) = 0;
 
