@@ -756,9 +756,17 @@ void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
     } else {
         nodesObj->selected.insert(nodeInstanceId);
     }
+    if (lastClickedNodeId == nodeInstanceId) {
+        nodeClickedForTheFirstTime = false;
+    } else {
+        nodeClickedForTheFirstTime = true;
+    }
+    lastClickedNodeId = nodeInstanceId;
     doubleClickStateMachine->onClick([&, nodeInstanceId]() {
-        nodesObj->selected.insert(nodeInstanceId);
-        onFocusOn(points[nodeInstanceId]);
+        if (not nodeClickedForTheFirstTime) {
+            nodesObj->selected.insert(nodeInstanceId);
+            onFocusOn(points[nodeInstanceId]);
+        }
         });
     onNodeColorChanged();
 }

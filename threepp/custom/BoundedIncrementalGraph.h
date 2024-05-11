@@ -266,6 +266,8 @@ public:
     NeedToBeUpdated<igraph_matrix_t> distance;
 
     bool shouldRemoveNode = false;
+    int lastClickedNodeId = -1;
+    bool nodeClickedForTheFirstTime = true;
 
     enum {
         LAYOUT_STATE_2D,

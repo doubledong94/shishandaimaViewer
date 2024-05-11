@@ -87,7 +87,7 @@ map<string, SimpleView::GraphInstance*> SimpleView::SimpleViewToGraphConverter::
 
 any SimpleView::SimpleViewToGraphConverter::visitClassScopeExp(SimpleViewParser::ClassScopeExpContext* ctx) {
     if (ctx->refOtherScope != nullptr) {
-        return valNameToClassScope[ctx->refOtherScope->getText()];
+        return valNameToClassScope[ctx->IDENTIFIER()->getText()];
     } else if (ctx->bracket != nullptr) {
         return visitClassScopeExp(ctx->bracket);
     } else {
@@ -142,7 +142,7 @@ any SimpleView::SimpleViewToGraphConverter::visitClassScopeExp(SimpleViewParser:
         }
         if (ctx->varClass) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_VAR;
-            classScope->referenceClassScope = valNameToClassScope[ctx->refOtherScope->getText()];
+            classScope->referenceClassScope = valNameToClassScope[ctx->IDENTIFIER()->getText()];
         }
         classScope->iconId = SimpleView::ClassScope::classTypeToIconId[classScope->classScopeType];
         return classScope;
