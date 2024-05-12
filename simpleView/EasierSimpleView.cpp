@@ -765,9 +765,6 @@ void SimpleView::ClassScope::resolveForRuntime(std::function<void(int, int, cons
 }
 
 void SimpleView::ClassScope::unResolve(bool retract) {
-    if (not resolved) {
-        return;
-    }
     spdlog::get(ErrorManager::DebugTag)->info("unresolve class scope: {}; {}", displayName.data(), innerValName.data());
     if (referenceClassScope) {
         referenceClassScope->unResolve();
@@ -1045,9 +1042,6 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
 }
 
 void SimpleView::Node::unResolve(bool retract) {
-    if (not resolved) {
-        return;
-    }
     spdlog::get(ErrorManager::DebugTag)->info("unresolve node: {}; {}", displayName.data(), innerValName.data());
     if (classScope) {
         classScope->unResolve(retract);
@@ -1356,12 +1350,12 @@ int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int> nodeToRuntimeCoun
                 if (node->nodeType == SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH) {
                     innerName = SimpleView::SimpleViewToGraphConverter::valNameToNode[paramNameToArgName[node->displayName]]->innerValName;
                 }
-                return PrologWrapper::queryCount(CompoundTerm::getResolveRuntimeTerm(
+                return PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getResolveRuntimeTerm(
                     Term::getStr(innerName),
                     Term::getStr(classScope->innerValName),
                     Term::getIgnoredVar(),
                     Term::getVar("RuntimeNode"),
-                    Term::getIgnoredVar(), Term::getIgnoredVar()));
+                    Term::getIgnoredVar(), Term::getIgnoredVar()), Term::getVar("C")));
             } else {
                 return INT_MAX;
             }
@@ -1712,9 +1706,6 @@ void SimpleView::LineTemplate::resolve(std::function<void(int, int, const char*)
 }
 
 void SimpleView::LineTemplate::unResolve(bool retract) {
-    if (not resolved) {
-        return;
-    }
     spdlog::get(ErrorManager::DebugTag)->info("unresolve line template: {}; {}", name.data(), innerValName.data());
     FOR_EACH_ITEM(nodeAndRepeatType, item->unResolve(););
     resolved = false;
@@ -1776,9 +1767,6 @@ void SimpleView::LineInstance::resolve(std::function<void(int, int, const char*)
 }
 
 void SimpleView::LineInstance::unResolve(bool retract) {
-    if (not resolved) {
-        return;
-    }
     spdlog::get(ErrorManager::DebugTag)->info("unresolve line instance: {}; {}", valName.data(), innerValName.data());
     FOR_EACH_ITEM(paramNameToArgName, SimpleViewToGraphConverter::valNameToNode[item.second]->unResolve(););
     lineTemplate->unResolve();
@@ -2451,9 +2439,6 @@ void SimpleView::GraphTemplate::resolve(std::function<void(int, int, const char*
 }
 
 void SimpleView::GraphTemplate::unResolve(bool retract) {
-    if (not resolved) {
-        return;
-    }
     spdlog::get(ErrorManager::DebugTag)->info("unresolve graph template: {}; {}", valName.data(), innerValName.data());
     FOR_EACH_ITEM(lineInstances, item->unResolve(););
     resolved = false;
@@ -2896,9 +2881,6 @@ void SimpleView::GraphInstance::resolve(std::function<void(int, int, const char*
 }
 
 void SimpleView::GraphInstance::unResolve(bool retract) {
-    if (not resolved) {
-        return;
-    }
     spdlog::get(ErrorManager::DebugTag)->info("unresolve graph instance: {}; {}", valName.data(), innerValName.data());
     FOR_EACH_ITEM(paramNameToArgName, SimpleViewToGraphConverter::valNameToNode[item.second]->unResolve(););
     graphTemplate->unResolve();
@@ -2924,6 +2906,8 @@ CompoundTerm* SimpleView::GraphInstance::getTerm(Term* classScopeValName, Term* 
 }
 
 void SimpleView::Searcher::startSearching(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable) {
+    classScope->unResolve();
+    onQueryFinished();
     classScope->resolveForRuntime(updateAddressable);
     classScope->loadRuntime(updateUnaddressable);
     prepareQuery(classScope, updateAddressable);

@@ -96,17 +96,16 @@ int PrologWrapper::queryCount(CompoundTerm* term) {
         Term* arg = term->args[i];
         av[i].unify_term(*arg->toPlTerm());
     }
-    int count = 0;
     try {
         PlQuery q(term->head->toString(), av);
         while (q.next_solution()) {
-            count++;
+            PlTerm plT = av[1];
+            return convertPlTermToTerm(&plT)->integer;
         }
     } catch (PlException& e) {
         easyPrint(e.as_string());
         exit(1);
     }
-    return count;
 }
 
 void PrologWrapper::queryLoadedTypeKeys(list<string>& loadedTypeKeys) {

@@ -563,6 +563,10 @@ CompoundTerm* CompoundTerm::getGraphTerm(Term* graphValName, Term* classScopeVal
     return makeTerm(HEAD_GRAPH, graphValName, classScopeValName, output);
 }
 
+CompoundTerm* CompoundTerm::getCountTerm(Term* term, Term* count) {
+    return makeTerm(HEAD_COUNT, term, count);
+}
+
 void CompoundTerm::retractAllGraphTerm() {
     PrologWrapper::retractAllFact(HEAD_GRAPH->toString(), 3);
 }

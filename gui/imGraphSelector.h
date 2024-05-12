@@ -130,7 +130,7 @@ namespace shishan {
 
                         set<const char*> addressableKey;
                         for (auto& nodeNameI : nodeNameSelectedIndex) {
-                            auto& node = SimpleView::SimpleViewToGraphConverter::valNameToNode[nodeName];
+                            auto& node = SimpleView::SimpleViewToGraphConverter::valNameToNode[nodeNameI];
                             node->resolve(&loadingAddressableProgress);
                             FOR_EACH_ITEM(node->resolvedList, addressableKey.insert(item.data()););
                         }

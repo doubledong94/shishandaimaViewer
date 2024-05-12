@@ -33,4 +33,6 @@ instanceOf(ClassKey1,ClassKey2,InstanceKey):-
     parameterOfClass(ClassKey1,InstanceKey),instanceOf(InstanceKey,ClassKey2).
 instanceOf(ClassKey1,ClassKey2,InstanceKey):-
     returnOfClass(ClassKey1,InstanceKey),instanceOf(InstanceKey,ClassKey2).
-    
+
+count(P,Count):-
+    findall(1,P,L),length(L,Count).

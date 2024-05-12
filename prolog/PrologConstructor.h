@@ -143,6 +143,7 @@ static Term* TERM_NEXT_LINE = new Term("nl", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_MEMBER = new Term("member", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LENGTH = new Term("length", Term::TERM_TYPE_ATOM);
+static Term* HEAD_COUNT = new Term("count", Term::TERM_TYPE_ATOM);
 
 static map<Term*, int> addressableMultiFileFunctorName2ArgCount;
 
@@ -267,6 +268,8 @@ public:
     static CompoundTerm* getRuntimeTerm(Term* methodKey, Term* key, Term* runtimeKey, Term* keyType);
 
     static CompoundTerm* getGraphTerm(Term* graphValName, Term* classScopeValName, Term* output);
+
+    static CompoundTerm* getCountTerm(Term* term, Term* count);
 
     static void retractAllGraphTerm();
 
