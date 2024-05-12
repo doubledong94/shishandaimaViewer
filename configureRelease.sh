@@ -9,6 +9,7 @@ mkdir -p build/data/prolog/unaddressable
 cp prolog/base_rules.pl build/config/
 cp fonts/* build/fonts/
 cp resource/* build/resource/
+cp simpleView.config build/config/
 cd external/imgui/
 git checkout origin/features/shadows
 cd ../..
