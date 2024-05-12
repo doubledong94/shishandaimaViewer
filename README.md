@@ -48,7 +48,7 @@ git clone https://github.com/doubledong94/shishandaimaViewer.git
 cd shishandaimaViewer/
 ```  
 ```
-git submodule update --init --remote –recursive
+git submodule update --init --remote --recursive
 ```    
 上面这个命令（git submodule......）如果卡住或者报错，导致你想重新执行时，需要把矢山项目删除，从[第三步](#3-下载矢山项目代码与子项目代码)的开头开始执行
 ### 4. 编译
