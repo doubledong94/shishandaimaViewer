@@ -6,11 +6,11 @@ mkdir -p build/data
 mkdir -p build/data/prolog 
 mkdir -p build/data/prolog/addressable 
 mkdir -p build/data/prolog/unaddressable
-cp prolog/base_rules.pl build/config/
-cp fonts/* build/fonts/
-cp resource/* build/resource/
-cp simpleView.config build/config/
-cd external/imgui/
+cp -n prolog/base_rules.pl build/config/
+cp -n fonts/* build/fonts/
+cp -n resource/* build/resource/
+cp -n simpleView.config build/config/
+cd -n external/imgui/
 git checkout origin/features/shadows
 cd ../..
 cd external/threepp/
