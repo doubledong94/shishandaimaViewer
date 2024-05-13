@@ -200,6 +200,8 @@ public:
 
     void mapGroupForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId);
 
+    void mapNodeIdFromOldToNew(set<int>& oldIds, igraph_vector_int_t* mapFromOldToNewNodeId);
+
     void searchNodeInGraph(char* searchStr, vector<const char*>& searchResult);
 
     void searchNodeByMethodOfRuntime(set<const char*>& methodOfRuntime, vector<const char*>& searchResult);
@@ -265,7 +267,10 @@ public:
     NeedToBeUpdated<igraph_matrix_t> distanceToBottom;
     NeedToBeUpdated<igraph_matrix_t> distance;
 
-    bool shouldRemoveNode = false;
+    // 0 for remove nothing
+    // 1 for remove selected node
+    // 2 for remove unselected node
+    int removeNodeType = 0;
     int lastClickedNodeId = -1;
     bool nodeClickedForTheFirstTime = true;
 

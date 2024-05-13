@@ -93,13 +93,13 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {REVERSE_SELECT, "reverse selection", 0xffff6e03,SINGLE_CLICK},
     {SHOW_SEARCHED_LINE_AND_GRAPH,"show searched line and graph",0xffffff2c,SINGLE_CLICK},
     {SELECT_PATH_IN_BETWEEN, "select path in between", 0xffffff3b,SINGLE_CLICK},
-    {SELECT_BY_DEGREE, "select by degree", 0xffff6a05,SINGLE_CLICK},
-    {SELECT_BY_IN_DEGREE, "select by in degree", 0xffff6c05,SINGLE_CLICK},
-    {SELECT_BY_OUT_DEGREE, "select by out degree", 0xffff6d05,SINGLE_CLICK},
+    {SELECT_BY_DEGREE, "select by degree", 0xffff6a01,SINGLE_CLICK},
+    {SELECT_BY_IN_DEGREE, "select by in degree", 0xffff6c01,SINGLE_CLICK},
+    {SELECT_BY_OUT_DEGREE, "select by out degree", 0xffff6d01,SINGLE_CLICK},
     {SELECT_UPWARD, "select upward", 0xffffff6c,SINGLE_CLICK},
     {SELECT_DOWNWARD, "select downward", 0xffffff6d,SINGLE_CLICK},
     {SELECT_BY_COMPONENT, "select by component", 0xffffff32,SINGLE_CLICK},
-    {SELECT_BY_GROUP, "select by group", 0xffff3203,SINGLE_CLICK},
+    {SELECT_BY_GROUP, "select by group", 0xffff3201,SINGLE_CLICK},
     // layout
     {START_OR_STOP_LAYOUT_ANIM, "start/stop layout animiation", 0xffffff3c,SINGLE_CLICK},
     {TO_2D_LAYOUT,"2D layout",0xffffff52, SINGLE_CLICK},
@@ -133,8 +133,8 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {FLOW_COLOR_MAP, "color by flow", 0xffff3801,SINGLE_CLICK},
     {CLEAR_ALL_COLOR, "clear all color", 0xff380501,SINGLE_CLICK},
     // explore mode
-    {SEARCH_DOWNWARD, "search downward", 0xffff6d01,SINGLE_CLICK},
-    {SEARCH_UPWARD, "search upward", 0xffff6c01,SINGLE_CLICK},
+    {SEARCH_DOWNWARD, "search downward", 0xffff6d03,SINGLE_CLICK},
+    {SEARCH_UPWARD, "search upward", 0xffff6c03,SINGLE_CLICK},
     
     // for next round
     {SAVE_SELECTED_NODE, "save selected node", 0xffff3401,SINGLE_CLICK},

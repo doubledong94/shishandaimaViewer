@@ -515,9 +515,9 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
                 reCreateLayout(nodesOrderedByNodeId.size(), is2D, dimensionChanged);
                 invalidateAllGraphInfo();
             }
-            if (shouldRemoveNode) {
+            if (removeNodeType) {
                 removeSelectedNodesImpl();
-                shouldRemoveNode = false;
+                removeNodeType = 0;
             }
             for (auto& group : groups) {
                 for (int i : group) {
@@ -1250,54 +1250,73 @@ void BoundedIncrementalGraph::prepareDistance() {
 }
 
 void BoundedIncrementalGraph::clearSpecifiedColor() {
-    nodesObj->colorSpecified.clear();
+    set<int> tobeCleard;
+    for (auto i : nodesObj->colorSpecified) {
+        if (not nodesObj->selected.count(i)) {
+            tobeCleard.insert(i);
+        }
+    }
+    FOR_EACH_ITEM(tobeCleard, nodesObj->colorSpecified.erase(item););
     onNodeColorChanged();
 }
 
 void BoundedIncrementalGraph::removeSelectedNodes() {
-    shouldRemoveNode = true;
+    removeNodeType = 1;
     layoutAnimating = true;
 }
 
 void BoundedIncrementalGraph::removeAllNodes() {
-    selectAll();
-    shouldRemoveNode = true;
+    removeNodeType = 2;
     layoutAnimating = true;
 }
 
 void BoundedIncrementalGraph::removeSelectedNodesImpl() {
+    // stop loading text
+    textLoading.clear();
+    bool removeSelected = removeNodeType == 1;
+    set<int> tobeRemoved;
+    for (int i = 0;i < points.size();i++) {
+        bool selected = nodesObj->selected.count(i);
+        if (not (removeSelected ^ selected)) {
+            tobeRemoved.insert(i);
+        }
+    }
     igraph_vs_t vertices;
     igraph_vector_int_t vertices_;
-    igraph_vector_int_init(&vertices_, nodesObj->selected.size());
+    igraph_vector_int_init(&vertices_, tobeRemoved.size());
     // when node count is over 4000, delete all nodes will crash this app
     // malloc_consolidate(): unaligned fastbin chunk detected
     // I can not solve this problem, so I'm not allowing delete all nodes
-    if (nodesObj->selected.size() == points.size()) {
-        nodesObj->selected.erase(1);
+    if (tobeRemoved.size() == points.size()) {
+        tobeRemoved.erase(1);
     }
     int c = 0;
-    for (int i : nodesObj->selected) {
+    for (int i : tobeRemoved) {
         VECTOR(vertices_)[c] = i;
         c++;
     }
     igraph_vs_vector(&vertices, &vertices_);
+    igraph_vector_int_t mapFromOldToNewNodeId;
+    igraph_vector_int_init(&mapFromOldToNewNodeId, 0);
     igraph_vector_int_t mapFromNewToOldNodeId;
     igraph_vector_int_init(&mapFromNewToOldNodeId, 0);
-    igraph_delete_vertices_idx(theOriginalGraph, vertices, NULL, &mapFromNewToOldNodeId);
+    igraph_delete_vertices_idx(theOriginalGraph, vertices, &mapFromOldToNewNodeId, &mapFromNewToOldNodeId);
 
     // less node
-    for (int i : nodesObj->selected) {
+    for (int i : tobeRemoved) {
         points.pop_back();
     }
     // remove existing node record
-    for (int i : nodesObj->selected) {
+    for (int i : tobeRemoved) {
         removeExistingNodeRecord(i);
     }
     // remove added text
     for (int i : textAdded) {
-        remove(*textMesh[i]);
+        if (tobeRemoved.count(i)) {
+            remove(*textMesh[i]);
+        }
     }
-    textLoading.clear();
+    mapNodeIdFromOldToNew(textLoaded, &mapFromOldToNewNodeId);
     // update node id in node info
     // remove node info
     mapNodeInfoForDeletion(&mapFromNewToOldNodeId);
@@ -1345,8 +1364,8 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     invalidateAllGraphInfo();
     nodesObj->mapNodeColorForDeletion(&mapFromNewToOldNodeId);
     // selected and textAdded must be clear at the same time
-    nodesObj->selected.clear();
-    textAdded.clear();
+    mapNodeIdFromOldToNew(textAdded, &mapFromOldToNewNodeId);
+    mapNodeIdFromOldToNew(nodesObj->selected, &mapFromOldToNewNodeId);
     onNodeColorChanged();
     resetLayoutBound(is2D);
 
@@ -1354,6 +1373,7 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
 
     igraph_vector_int_destroy(&vertices_);
     igraph_vs_destroy(&vertices);
+    igraph_vector_int_destroy(&mapFromOldToNewNodeId);
     igraph_vector_int_destroy(&mapFromNewToOldNodeId);
     igraph_vector_int_destroy(&result_edges);
 }
@@ -1361,20 +1381,15 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
 void BoundedIncrementalGraph::mapNodeInfoForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId) {
     vector<NodeInfo*> nodesOrderedByNodeId_left;
     vector<std::shared_ptr<threepp::Mesh>> textMesh_left;
-    set<int> textLoaded_left;
     for (int newIndex = 0; newIndex < igraph_vector_int_size(mapFromNewToOldNodeId); newIndex++) {
         int oldIndex = VECTOR(*mapFromNewToOldNodeId)[newIndex];
         auto& nodeInfo = nodesOrderedByNodeId[oldIndex];
         nodeInfo->nodeId = newIndex;
         nodesOrderedByNodeId_left.push_back(nodeInfo);
         textMesh_left.push_back(textMesh[oldIndex]);
-        if (textLoaded.count(oldIndex)) {
-            textLoaded_left.insert(newIndex);
-        }
     }
     nodesOrderedByNodeId = nodesOrderedByNodeId_left;
     textMesh = textMesh_left;
-    textLoaded = textLoaded_left;
 }
 
 void BoundedIncrementalGraph::mapGroupForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId) {
@@ -1392,6 +1407,17 @@ void BoundedIncrementalGraph::mapGroupForDeletion(igraph_vector_int_t* mapFromNe
         }
     }
     groups = groups_left;
+}
+
+void BoundedIncrementalGraph::mapNodeIdFromOldToNew(set<int>& oldIds, igraph_vector_int_t* mapFromOldToNewNodeId) {
+    set<int> newIds;
+    for (auto i : oldIds) {
+        if (VECTOR(*mapFromOldToNewNodeId)[i]) {
+            newIds.insert(VECTOR(*mapFromOldToNewNodeId)[i] - 1);
+        }
+    }
+    oldIds.clear();
+    oldIds.insert(newIds.begin(), newIds.end());
 }
 
 void BoundedIncrementalGraph::searchNodeInGraph(char* searchStr, vector<const char*>& searchResult) {
@@ -1601,7 +1627,13 @@ void BoundedIncrementalGraph::releasePosition() {
 }
 
 void BoundedIncrementalGraph::releaseAllPosition() {
-    nodesObj->positionFixed.clear();
+    set<int> tobeReleased;
+    for (auto& i : nodesObj->positionFixed) {
+        if (not nodesObj->selected.count(i)) {
+            tobeReleased.insert(i);
+        }
+    }
+    FOR_EACH_ITEM(tobeReleased, nodesObj->positionFixed.erase(item););
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     resetLayoutBound(is2D);
     onNodeColorChanged();
@@ -1692,7 +1724,13 @@ void BoundedIncrementalGraph::changeWeightForSelectedNode(bool increase) {
 }
 
 void BoundedIncrementalGraph::resetWeight() {
-    igraph_vector_fill(weights, 1);
+    for (int edgeId = 0;edgeId < igraph_ecount(theOriginalGraph);edgeId++) {
+        int edgeFrom = edgePairs[edgeId].first;
+        int edgeTo = edgePairs[edgeId].second;
+        if (not nodesObj->selected.count(edgeFrom) or not nodesObj->selected.count(edgeTo)) {
+            VECTOR(*weights)[edgeId] = 1;
+        }
+    }
     layoutAnimating = true;
 }
 
@@ -1732,7 +1770,13 @@ void BoundedIncrementalGraph::ungroupSelectedNodes() {
 
 void BoundedIncrementalGraph::ungroupAllNodes() {
     for (auto& group : groups) {
-        group.clear();
+        set<int> tobeUngrouped;
+        for (auto i : group) {
+            if (not nodesObj->selected.count(i)) {
+                tobeUngrouped.insert(i);
+            }
+        }
+        FOR_EACH_ITEM(tobeUngrouped, group.erase(item););
     }
     layoutAnimating = true;
 }
