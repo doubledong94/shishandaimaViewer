@@ -8,8 +8,6 @@
 #include "igraph.h"
 #include "Nodes.h"
 
-static int nodeCount = 0;
-
 Nodes::Nodes(int capacity, float initNodeSize) :threepp::InstancedMesh(NULL, NULL, capacity) {
     setCount(nodeCount);
     nodeSize = initNodeSize;

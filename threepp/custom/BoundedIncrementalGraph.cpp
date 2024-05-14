@@ -528,13 +528,14 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
                     }
                 }
             }
-            graphGenerateAndConsumeLock.unlock();
             // return sentence must not appear before unlock
             if (nodesOrderedByNodeId.empty()) {
                 nodesObj->setPointPositions({});
                 linesObj->setEdges({}, {});
+                graphGenerateAndConsumeLock.unlock();
                 return;
             }
+            graphGenerateAndConsumeLock.unlock();
             // time consumeing layout algorithm
             if (is2D) {
                 igraph_layout_fruchterman_reingold(theOriginalGraph, layoutMatrix, true, 1, temperature, IGRAPH_LAYOUT_NOGRID, weights, layoutBounds[0], layoutBounds[1], layoutBounds[2], layoutBounds[3]);
@@ -1281,6 +1282,9 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
             tobeRemoved.insert(i);
         }
     }
+    if (tobeRemoved.empty()) {
+        return;
+    }
     igraph_vs_t vertices;
     igraph_vector_int_t vertices_;
     igraph_vector_int_init(&vertices_, tobeRemoved.size());
@@ -1510,22 +1514,30 @@ void BoundedIncrementalGraph::refreshSimpleText() {
                 }
             } else {
                 if (textLoaded.count(i)) {
-                    add(textMesh[i]);
-                    textAdded.insert(i);
-                    updateTextPosAt(i);
+                    if (textMesh[i].get()) {
+                        add(textMesh[i]);
+                        textAdded.insert(i);
+                        updateTextPosAt(i);
+                    } else {
+                        textLoaded.erase(i);
+                    }
                 } else {
                     if (not textLoading.count(i)) {
-                        textLoading.insert(i);
-                        string& simpleName = nodesOrderedByNodeId[i]->getSimpleName();
-                        textLoaderThreadPool->submit([this, i, simpleName]() {
-                            if (textLoading.count(i)) {
+                        textLoading[i] = { i, nodesOrderedByNodeId[i]->getSimpleName() };
+                    }
+                    if (not textLoading.empty() and textLoaderThreadPool->empty()) {
+                        layoutThreadPool->clearTaskList();
+                        textLoaderThreadPool->submit([this]() {
+                            if (not textLoading.empty()) {
+                                TextLoadingItem& item = textLoading.begin()->second;
                                 std::shared_ptr<threepp::SpriteMaterial> textMaterial = threepp::SpriteMaterial::create();
                                 textMaterial->color = { 0.6f,0.6f,0.6f };
-                                textMesh[i] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), simpleName, textMaterial);
-                                textMesh[i]->geometry()->center();
-                                textMesh[i]->geometry()->scale(textSize, textSize, textSize);
-                                this->textLoading.erase(i);
-                                this->textLoaded.insert(i);
+                                textMesh[item.nodeId] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), item.text, textMaterial);
+                                textMesh[item.nodeId]->geometry()->center();
+                                textMesh[item.nodeId]->geometry()->scale(textSize, textSize, textSize);
+                                printf("item.nodeId: %d\n", item.nodeId);
+                                this->textLoaded.insert(item.nodeId);
+                                this->textLoading.erase(item.nodeId);
                             }
                             });
                     }

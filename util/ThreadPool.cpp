@@ -37,6 +37,18 @@ struct ThreadPool::Impl {
         cvWorker_.notify_one();
     }
 
+    bool empty() {
+        return workQueue_.empty();
+    }
+
+    void clearTaskList() {
+        std::unique_lock<std::mutex> lck(m_);
+        while (not workQueue_.empty()) {
+            workQueue_.pop();
+        }
+        lck.unlock();
+    }
+
     ~Impl() noexcept {
 
         std::unique_lock<std::mutex> lck(m_);
@@ -49,8 +61,6 @@ struct ThreadPool::Impl {
         }
     }
 
-    std::queue<std::function<void()>> workQueue_;
-    bool skipTaskToClearQueue = false;
     std::function<void()> onEnd = nullptr;
 private:
     bool done_;
@@ -59,6 +69,7 @@ private:
     unsigned int pendingTasks_;
 
     std::vector<std::thread> threads_;
+    std::queue<std::function<void()>> workQueue_;
 
     std::condition_variable cvWorker_;
     std::condition_variable cv_finished_;
@@ -71,7 +82,7 @@ private:
 
             // If no work is available, block the thread here
             cvWorker_.wait(lck, [this]() { return done_ || !workQueue_.empty(); });
-            if (!workQueue_.empty() and !skipTaskToClearQueue) {
+            if (!workQueue_.empty()) {
 
                 ++pendingTasks_;
 
@@ -109,11 +120,7 @@ void ThreadPool::submit(const std::function<void()> &f) {
 }
 
 void ThreadPool::clearTaskList() {
-    pimpl_->skipTaskToClearQueue = true;
-    while (not pimpl_->workQueue_.empty()) {
-        pimpl_->workQueue_.pop();
-    }
-    pimpl_->skipTaskToClearQueue = false;
+    pimpl_->clearTaskList();
 }
 
 void ThreadPool::onThreadEnd(const std::function<void()>& f) {
@@ -121,7 +128,7 @@ void ThreadPool::onThreadEnd(const std::function<void()>& f) {
 }
 
 bool ThreadPool::empty() {
-    return pimpl_->workQueue_.empty();
+    return pimpl_->empty();
 }
 
 void ThreadPool::wait() {

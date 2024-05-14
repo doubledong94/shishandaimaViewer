@@ -42,6 +42,8 @@ public:
     set<int> colorSpecified;
 
     set<int> positionFixed;
+
+    int nodeCount = 0;
 private:
     threepp::Matrix4 tmpMatrix;
     threepp::Matrix4 tmpMatrix2;

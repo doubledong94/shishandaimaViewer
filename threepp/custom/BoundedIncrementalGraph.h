@@ -30,6 +30,11 @@ struct NeedToBeUpdated {
 
 class GraphDragNodeMouseListener;
 
+struct TextLoadingItem {
+    int nodeId;
+    string text;
+};
+
 class BoundedIncrementalGraph : public threepp::Group {
 public:
 
@@ -63,7 +68,7 @@ public:
     ThreadPool* layoutThreadPool = NULL;
     ThreadPool* textLoaderThreadPool = NULL;
     bool showSimpleText = true;
-    set<int> textLoading;
+    map<int, TextLoadingItem> textLoading;
     set<int> textLoaded;
     set<int> textAdded;
     vector<set<int>> groups;
