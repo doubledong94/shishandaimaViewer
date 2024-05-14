@@ -10,7 +10,7 @@ cp -n prolog/base_rules.pl build/config/
 cp -n fonts/* build/fonts/
 cp -n resource/* build/resource/
 cp -n simpleView.config build/config/
-cd -n external/imgui/
+cd external/imgui/
 git checkout origin/features/shadows
 cd ../..
 cd external/threepp/
