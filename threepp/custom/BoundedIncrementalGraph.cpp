@@ -118,7 +118,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     threepp::Vector3 dragStart;
     threepp::Vector3 dragEnd;
     threepp::Vector3 dragDelta;
-    int draggingItemId = -1;
+    set<int> draggingGroup;
 
     GraphDragNodeMouseListener(BoundedIncrementalGraph* scope, threepp::Camera* camera) {
         this->scope = scope;
@@ -137,7 +137,8 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
         auto clickedItem = scope->raycaster->intersectObjects({ scope });
         bool is2D = scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D or scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D_UNFINISHED;
         if (not clickedItem.empty()) {
-            draggingItemId = clickedItem.front().instanceId.value();
+            int draggingItemId = clickedItem.front().instanceId.value();
+            scope->getGroupIfGrouped(draggingItemId, draggingGroup);
             if (is2D) {
                 scope->twoDControls->enabled = false;
             } else {
@@ -151,7 +152,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
             float distance = -plane.distanceToPoint(point);
             plane.set(dir, distance);
         } else {
-            draggingItemId = -1;
+            draggingGroup.clear();
             if (is2D) {
                 scope->twoDControls->enabled = true;
             } else {
@@ -163,7 +164,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseUp(int button, const threepp::Vector2& pos) override {
-        draggingItemId = -1;
+        draggingGroup.clear();
         bool is2D = scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D or scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D_UNFINISHED;
         if (is2D) {
             scope->twoDControls->enabled = true;
@@ -174,7 +175,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseMove(const threepp::Vector2& pos) override {
-        if (draggingItemId > -1 and dragConsumed) {
+        if (not draggingGroup.empty() and dragConsumed) {
             auto size = scope->canvas->size();
             threepp::Vector2 moveMouse{ -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
             moveMouse.x = (pos.x / static_cast<float>(size.width)) * 2 - 1;
@@ -189,8 +190,8 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void reactOnMouseEvent() override {
-        if (draggingItemId > -1 and not dragConsumed) {
-            scope->onDrag(draggingItemId, dragDelta.x, dragDelta.y, dragDelta.z);
+        if (not draggingGroup.empty() and not dragConsumed) {
+            scope->onDrag(draggingGroup, dragDelta.x, dragDelta.y, dragDelta.z);
             dragConsumed = true;
         }
     }
@@ -555,14 +556,14 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
         graphGenerateAndConsumeLock.lock();
         if (layoutState == LAYOUT_STATE_2D) {
             for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
-                if (node_id_iter != dragMouseListener->draggingItemId) {
+                if (not dragMouseListener->draggingGroup.count(node_id_iter)) {
                     points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), 0);
                 }
             }
         }
         if (layoutState == LAYOUT_STATE_3D) {
             for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
-                if (node_id_iter != dragMouseListener->draggingItemId) {
+                if (not dragMouseListener->draggingGroup.count(node_id_iter)) {
                     points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), MATRIX(*layoutMatrix, node_id_iter, 2));
                 }
             }
@@ -601,7 +602,7 @@ void BoundedIncrementalGraph::alterPosByGroup() {
         for (int i : group) {
             threepp::Vector3 dir;
             dir.subVectors(middlePos, points[i]).divideScalar(2);
-            if (i != dragMouseListener->draggingItemId) {
+            if (not dragMouseListener->draggingGroup.count(i)) {
                 points[i].add(dir);
             }
         }
@@ -823,18 +824,30 @@ void BoundedIncrementalGraph::resetLayoutBound(bool is2D) {
     }
 }
 
-void BoundedIncrementalGraph::onDrag(int id, float deltaX, float deltaY, float deltaZ) {
+void BoundedIncrementalGraph::onDrag(set<int> ids, float deltaX, float deltaY, float deltaZ) {
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
-    points[id].x += deltaX;
-    points[id].y += deltaY;
-    VECTOR(*layoutBounds[0])[id] = points[id].x;
-    VECTOR(*layoutBounds[1])[id] = points[id].x;
-    VECTOR(*layoutBounds[2])[id] = points[id].y;
-    VECTOR(*layoutBounds[3])[id] = points[id].y;
-    if (not is2D) {
-        points[id].z += deltaZ;
-        VECTOR(*layoutBounds[4])[id] = points[id].z;
-        VECTOR(*layoutBounds[5])[id] = points[id].z;
+    for (int id : ids) {
+        points[id].x += deltaX;
+        points[id].y += deltaY;
+        VECTOR(*layoutBounds[0])[id] = points[id].x;
+        VECTOR(*layoutBounds[1])[id] = points[id].x;
+        VECTOR(*layoutBounds[2])[id] = points[id].y;
+        VECTOR(*layoutBounds[3])[id] = points[id].y;
+        if (not is2D) {
+            points[id].z += deltaZ;
+            VECTOR(*layoutBounds[4])[id] = points[id].z;
+            VECTOR(*layoutBounds[5])[id] = points[id].z;
+        }
+    }
+}
+
+void BoundedIncrementalGraph::getGroupIfGrouped(int id, set<int>& ids) {
+    ids.clear();
+    ids.insert(id);
+    for (auto& group : groups) {
+        if (group.count(id)) {
+            FOR_EACH_ITEM(group, ids.insert(item););
+        }
     }
 }
 

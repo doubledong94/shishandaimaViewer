@@ -2865,7 +2865,9 @@ void SimpleView::GraphInstance::prepareQuery(ClassScope* classScope, std::functi
 
 void SimpleView::GraphInstance::onQueryFinished() {
     CompoundTerm::retractAllGraphTerm();
-    LineInstance::retractAllLineInstanceRule(lineInstances[0]->intersectionTerms.size());
+    for (auto& lineInstance : lineInstances) {
+        LineInstance::retractAllLineInstanceRule(lineInstance->intersectionTerms.size());
+    }
     CompoundTerm::retractAllResolveTerm();
     unResolve();
 }
