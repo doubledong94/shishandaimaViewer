@@ -2870,6 +2870,7 @@ void SimpleView::GraphInstance::onQueryFinished() {
     }
     CompoundTerm::retractAllResolveTerm();
     unResolve();
+    lineInstances.clear();
 }
 
 void SimpleView::GraphInstance::resolve(std::function<void(int, int, const char*)>* updateAddressable) {
@@ -2886,6 +2887,7 @@ void SimpleView::GraphInstance::unResolve(bool retract) {
     spdlog::get(ErrorManager::DebugTag)->info("unresolve graph instance: {}; {}", valName.data(), innerValName.data());
     FOR_EACH_ITEM(paramNameToArgName, SimpleViewToGraphConverter::valNameToNode[item.second]->unResolve(););
     graphTemplate->unResolve();
+    FOR_EACH_ITEM(lineInstances, item->unResolve(retract););
     resolved = false;
 }
 

@@ -803,8 +803,8 @@ int app::Application::ApplicationMain() {
                 ImGui::Text("edge count  %d", boundedGraph->getEdgeCount());
                 ImGui::Text("node size  %.3f", boundedGraph->getNodeSize());
                 ImGui::Text("edge width   %.3f", boundedGraph->getEdgeWidth());
-                ImGui::Text("unselected alpha %.2f", boundedGraph->getAlphaForUnselected());
                 ImGui::Text("selected alpha %.2f", boundedGraph->getAlphaForSelected());
+                ImGui::Text("unselected alpha %.2f", boundedGraph->getAlphaForUnselected());
                 ImGui::Text("layout temperature %.3f", boundedGraph->getLayoutTemperature());
                 ImGui::Text("layout animation %s", boundedGraph->layoutAnimating ? "on" : "off");
                 ImGui::Text(StringRes::singleton->getHint_press1ToShowHotkey());
