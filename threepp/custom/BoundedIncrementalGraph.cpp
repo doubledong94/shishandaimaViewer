@@ -1535,7 +1535,6 @@ void BoundedIncrementalGraph::refreshSimpleText() {
                                 textMesh[item.nodeId] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), item.text, textMaterial);
                                 textMesh[item.nodeId]->geometry()->center();
                                 textMesh[item.nodeId]->geometry()->scale(textSize, textSize, textSize);
-                                printf("item.nodeId: %d\n", item.nodeId);
                                 this->textLoaded.insert(item.nodeId);
                                 this->textLoading.erase(item.nodeId);
                             }
