@@ -824,7 +824,7 @@ void BoundedIncrementalGraph::resetLayoutBound(bool is2D) {
     }
 }
 
-void BoundedIncrementalGraph::onDrag(set<int> ids, float deltaX, float deltaY, float deltaZ) {
+void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, float deltaZ) {
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     for (int id : ids) {
         points[id].x += deltaX;

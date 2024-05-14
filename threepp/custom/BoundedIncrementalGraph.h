@@ -135,7 +135,7 @@ public:
 
     void onExitHover();
 
-    void onDrag(set<int> ids, float deltaX, float deltaY, float deltaZ);
+    void onDrag(set<int>& ids, float deltaX, float deltaY, float deltaZ);
 
     void getGroupIfGrouped(int id, set<int>& ids);
 
