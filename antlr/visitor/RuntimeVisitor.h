@@ -147,7 +147,7 @@ public:
 
     std::any visitLocalVariableDeclaration(JavaParser::LocalVariableDeclarationContext* ctx) override;
 
-    std::any addLocalVariable(VariableDeclaration& variableDeclarator, bool fromFor = false);
+    std::any addLocalVariable(VariableDeclaration& variableDeclarator, bool fromFor = false, ResolvingItem* initValueItem = NULL);
 
     std::any visitFieldDeclaration(JavaParser::FieldDeclarationContext* ctx) override;
 

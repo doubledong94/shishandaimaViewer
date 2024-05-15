@@ -47,11 +47,7 @@ void ResolvingItem::set(const string& variableKey, TypeInfo* typeInfo, const str
     this->runtimeKey += ';';
     this->runtimeKey += indexInsideStatement;
     this->runtimeKey += ')';
-    if (typeInfo and (keyType == GlobalInfo::KEY_TYPE_CLASS or
-        keyType == GlobalInfo::KEY_TYPE_FIELD or
-        keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN or
-        keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER
-        )) {
+    if (typeInfo) {
         this->referenceKey = typeInfo->typeKey + "-reference";
     }
     this->referenceRuntimeKey = referenceKey;

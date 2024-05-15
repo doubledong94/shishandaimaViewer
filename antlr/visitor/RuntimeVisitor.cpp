@@ -315,9 +315,8 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
         }
         NameAndRelatedExp name;
         name.name.push_back(ctx->forControl()->enhancedForControl()->variableDeclaratorId()->identifier()->getText());
-        name.initExpression = ctx->forControl()->enhancedForControl()->expression();
         variableDeclarator.nameAndValueCount.push_back(name);
-        statementVisitor->addLocalVariable(variableDeclarator, true);
+        statementVisitor->addLocalVariable(variableDeclarator, true, arrayLikeItem);
         StatementVisitor::returnToPool(statementVisitor);
     }
     visitConditionFor(ctx->forControl(), codeBlock);
@@ -440,7 +439,7 @@ void StructuralVisitor::visitConditionElseWithoutIf(CodeBlock* codeBlock) {
 
 void StructuralVisitor::visitConditionFor(JavaParser::ForControlContext* ctx, CodeBlock* codeBlock) {
     if (ctx->enhancedForControl() != nullptr) {
-        visitCondition(methodScopeAndEnv->methodForEachKey, ctx->enhancedForControl()->expression(), codeBlock);
+        visitCondition(methodScopeAndEnv->methodForEachKey, NULL, codeBlock);
     } else {
         if (ctx->forCondition() != nullptr) {
             visitCondition(methodScopeAndEnv->methodForKey, ctx->forCondition()->expression(), codeBlock);
@@ -576,7 +575,7 @@ std::any StatementVisitor::visitLocalVariableDeclaration(JavaParser::LocalVariab
     return 0;
 }
 
-std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclarator, bool fromFor) {
+std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclarator, bool fromFor, ResolvingItem* initValueItem) {
     bool isTypeVar = variableDeclarator.typeType.typeName.front() == "var";
     TypeInfo* typeInfo = NULL;
     if (not isTypeVar) {
@@ -612,13 +611,16 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
                 }
                 methodScopeAndEnv->lv2typeParam2typeArg[lvKey] = typeParam2typeArg;
             }
-            if (variableDeclaratorI.initExpression) {
+            if (variableDeclaratorI.initExpression or fromFor) {
                 abort = false;
-                const any& itemOrNull = variableDeclaratorI.initExpression->accept(this);
-                if (abort) {
-                    continue;
+                any itemOrNull = NULL;
+                if (variableDeclaratorI.initExpression) {
+                    itemOrNull = variableDeclaratorI.initExpression->accept(this);
+                    if (abort) {
+                        continue;
+                    }
                 }
-                auto* valueItem = any_cast<ResolvingItem*>(itemOrNull);
+                auto* valueItem = fromFor ? initValueItem : any_cast<ResolvingItem*>(itemOrNull);
                 if (isTypeVar) {
                     if (fromFor) {
                         if (TypeCheckAndInference::isAssignable(valueItem->typeInfo, AddressableInfo::iterableTypeInfo)) {
