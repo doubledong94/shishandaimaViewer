@@ -120,20 +120,35 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
     // data flow of this relation
     prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
     // use lvToLastWrittenKeys to generate data flow
-    if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
-        if (codeBlock->lvToLastWrittenKeys.count(read->variableKey) > 0) {
-            FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, relation->read->runtimeKey)););
-        } else {
-            // todo
-            // easyPrint("error: local variable read before write: " + read->variableKey);
-        }
-    }
+    genDataFlowForLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // mark local variable
     if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
         codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
         codeBlock->updatedLvKeys.insert(writen->variableKey);
     }
+}
+
+void DataFlowVisitor::genDataFlowForLastWrittenLvs(const string& methodKey, ResolvingItem* read, CodeBlock* codeBlock, list<string>& prologLines) {
+    if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+        if (codeBlock->lvToLastWrittenKeys.count(read->variableKey) > 0) {
+            FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, read->runtimeKey)););
+        } else {
+            if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE) {
+                spdlog::get(ErrorManager::DebugTag)->warn("local variable {} read before write in {}", read->variableKey, methodKey);
+            }
+        }
+    }
+    if (read->referencedBy) {
+        genDataFlowForLastWrittenLvs(methodKey, read->referencedBy, codeBlock, prologLines);
+    }
+}
+
+void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
+    if (codeBlock->toConditionValue) {
+        genDataFlowForLastWrittenLvs(methodKey, codeBlock->toConditionValue, codeBlock, prologLines);
+    }
+    GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
 }
 
 void LogicFlowVisitor::genToCondition(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
@@ -185,10 +200,10 @@ void TimingFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBl
         prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, relation->read->runtimeKey, stepKey));
     }
 
-    if (!GlobalInfo::isOptrKeyType(relation->read->keyType)) {
+    if (!(GlobalInfo::isOptrKeyType(relation->read->keyType) or relation->read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or relation->read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
         relation->read->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
     }
-    if (!GlobalInfo::isOptrKeyType(relation->writen->keyType)) {
+    if (!(GlobalInfo::isOptrKeyType(relation->writen->keyType) or relation->writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or relation->writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
         relation->writen->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
     }
 }

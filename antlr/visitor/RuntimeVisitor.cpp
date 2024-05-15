@@ -302,7 +302,7 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
         const any& itemOrNull = ctx->forControl()->enhancedForControl()->expression()->accept(statementVisitor);
         ResolvingItem* arrayLikeItem = NULL;
         if (statementVisitor->abort) {
-            arrayLikeItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + ctx->forControl()->enhancedForControl()->expression()->getText(),
+            arrayLikeItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->forControl()->enhancedForControl()->expression()->getText()),
                 AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
         } else {
             arrayLikeItem = any_cast<ResolvingItem*>(itemOrNull);
@@ -616,11 +616,16 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
                 any itemOrNull = NULL;
                 if (variableDeclaratorI.initExpression) {
                     itemOrNull = variableDeclaratorI.initExpression->accept(this);
-                    if (abort) {
-                        continue;
-                    }
                 }
-                auto* valueItem = fromFor ? initValueItem : any_cast<ResolvingItem*>(itemOrNull);
+                ResolvingItem* valueItem = NULL; 
+                if (fromFor) {
+                    valueItem = initValueItem;
+                } else if (abort) {
+                    valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()),
+                        AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                } else {
+                    valueItem = any_cast<ResolvingItem*>(itemOrNull);
+                }
                 if (isTypeVar) {
                     if (fromFor) {
                         if (TypeCheckAndInference::isAssignable(valueItem->typeInfo, AddressableInfo::iterableTypeInfo)) {
@@ -683,10 +688,13 @@ std::any StatementVisitor::visitFieldDeclaration(JavaParser::FieldDeclarationCon
             if (variableDeclaratorI.initExpression != nullptr) {
                 abort = false;
                 const any& itemOrNull = variableDeclaratorI.initExpression->accept(this);
+                ResolvingItem* valueItem = NULL; 
                 if (abort) {
-                    continue;
+                    valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()), 
+                    AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                } else {
+                    valueItem = any_cast<ResolvingItem*>(itemOrNull);
                 }
-                auto* valueItem = any_cast<ResolvingItem*>(itemOrNull);
                 new Relation(getSentence(), valueItem, varItem);
             } else {
                 // field default value
@@ -1497,10 +1505,14 @@ void StatementVisitor::iterNDimArrayRecur(ResolvingItem* superDimItem, JavaParse
     if (dim == 1 or (not ctx->variableInitializer().empty() and ctx->variableInitializer(0)->arrayInitializer() == nullptr)) {
         for (auto* varInit : ctx->variableInitializer()) {
             const any& itemOrNull = varInit->expression()->accept(this);
+            ResolvingItem* valueItem = NULL;
             if (abort) {
-                continue;
+                valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(varInit->expression()->getText()),
+                        AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+            } else {
+                valueItem = any_cast<ResolvingItem*>(itemOrNull);
             }
-            new Relation(getSentence(), any_cast<ResolvingItem*>(itemOrNull), superDimItem);
+            new Relation(getSentence(), valueItem, superDimItem);
         }
     } else {
         for (int i = 0;i < ctx->variableInitializer().size();i++) {
