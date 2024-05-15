@@ -38,6 +38,7 @@ public:
 };
 class ScopeFlowVisitor : public GenDataVisitor {
 public:
+    void visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) override;
     void visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) override;
 };
 class StepVisitor :public GenDataVisitor {

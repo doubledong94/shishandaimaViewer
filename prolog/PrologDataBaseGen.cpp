@@ -52,10 +52,10 @@ void PrologDataBaseGen::genPrologDataBase(list<string>& prologLines) {
     // ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, codeOrderVisitor, prologLines);
     prologLines.emplace_back("\% runtime key start");
     ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeKeyVisitor, prologLines);
-    prologLines.emplace_back("\% runtime read start");
-    ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeReadVisitor, prologLines);
-    prologLines.emplace_back("\% runtime write start");
-    ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeWriteVisitor, prologLines);
+    // prologLines.emplace_back("\% runtime read start");
+    // ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeReadVisitor, prologLines);
+    // prologLines.emplace_back("\% runtime write start");
+    // ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeWriteVisitor, prologLines);
 }
 
 void DataFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) {
@@ -168,6 +168,12 @@ void TimingFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* 
     for (auto* subCodeBlock : splitCodeBlocks->blocks) {
         // super condition to sub condition
         subCodeBlock->conditionItem->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
+        if (subCodeBlock->toConditionValue) {
+            subCodeBlock->toConditionValue->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
+        }
+        if (subCodeBlock->elseValue) {
+            subCodeBlock->elseValue->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
+        }
         visitCodeBlock(methodKey, subCodeBlock, prologLines);
     }
 }
@@ -185,6 +191,13 @@ void TimingFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBl
     if (!GlobalInfo::isOptrKeyType(relation->writen->keyType)) {
         relation->writen->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
     }
+}
+
+void ScopeFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
+    if (codeBlock->toConditionValue) {
+        codeBlock->toConditionValue->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
+    }
+    GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
 }
 
 void ScopeFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) {
@@ -262,6 +275,9 @@ void CodeOrderVisitor::visitSentence(const string& methodKey, CodeBlock* codeBlo
 
 void RuntimeKeyVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
     codeBlock->conditionItem->addRuntimeProlog(CompoundTerm::getRuntimeFact, methodKey, prologLines);
+    if (codeBlock->toConditionValue) {
+        codeBlock->toConditionValue->addRuntimeProlog(CompoundTerm::getRuntimeFact, methodKey, prologLines);
+    }
     if (codeBlock->elseValue) {
         codeBlock->elseValue->addRuntimeProlog(CompoundTerm::getRuntimeFact, methodKey, prologLines);
     }

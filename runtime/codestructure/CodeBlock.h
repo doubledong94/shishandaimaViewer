@@ -2,7 +2,7 @@
 class CodeBlock : public CodeStructure {
 public:
     ResolvingItem *conditionItem = nullptr;
-    ResolvingItem *elseConditionValue = NULL;
+    ResolvingItem *elseConditionValue = NULL; // this is lastCodeBlock->conditionItem
     ResolvingItem* elseValue = NULL;
     ResolvingItem *toConditionValue = NULL;
     string structure_key;
