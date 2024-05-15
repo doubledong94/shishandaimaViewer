@@ -535,7 +535,6 @@ MethodScopeAndEnv* MethodScopeAndEnv::createMethodScopeAndEnv(const string& meth
     pMethodScopeAndEnv->methodForKey = AddressableInfo::makeMethodForKey(methodKey);
     pMethodScopeAndEnv->methodWhileKey = AddressableInfo::makeMethodWhileKey(methodKey);
     pMethodScopeAndEnv->methodCaseKey = AddressableInfo::makeMethodCaseKey(methodKey);
-    pMethodScopeAndEnv->methodSwitchKey = AddressableInfo::makeMethodSwitchKey(methodKey);
     pMethodScopeAndEnv->methodForEachKey = AddressableInfo::makeMethodForEachKey(methodKey);
     pMethodScopeAndEnv->methodTryKey = AddressableInfo::makeMethodTryKey(methodKey);
     pMethodScopeAndEnv->methodCatchKey = AddressableInfo::makeMethodCatchKey(methodKey);

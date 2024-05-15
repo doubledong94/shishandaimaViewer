@@ -153,7 +153,6 @@ public:
     string methodForKey;
     string methodWhileKey;
     string methodCaseKey;
-    string methodSwitchKey;
     string methodForEachKey;
     string methodTryKey;
     string methodCatchKey;

@@ -62,10 +62,6 @@ string AddressableInfo::makeMethodCaseKey(const string& methodKey) {
     return "case";
 }
 
-string AddressableInfo::makeMethodSwitchKey(const string& methodKey) {
-    return "switch";
-}
-
 string AddressableInfo::makeTypeParameterKey(const string& typeKey, const string& typeParamName) {
     return "<" + typeParamName + ">" + typeKey;
 }

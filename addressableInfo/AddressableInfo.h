@@ -121,8 +121,6 @@ public:
 
     static string makeMethodCaseKey(const string& methodKey);
 
-    static string makeMethodSwitchKey(const string& methodKey);
-
     static string makeMethodForEachKey(const string& methodKey);
 
     static string makeMethodTryKey(const string& methodKey);

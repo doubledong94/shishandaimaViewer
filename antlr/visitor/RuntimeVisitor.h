@@ -101,9 +101,7 @@ public:
 
     void visitConditionDoWhile(JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock);
 
-    void visitConditionSwitch(JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock);
-
-    void visitConditionCase(JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock, int caseIndex);
+    void visitConditionCase(JavaParser::ExpressionContext* ctx, ResolvingItem* switchItem, CodeBlock* codeBlock, int caseIndex);
 
     void visitConditionDefault(CodeBlock* codeBlock);
 

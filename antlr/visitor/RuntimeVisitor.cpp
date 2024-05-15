@@ -347,9 +347,20 @@ std::any StructuralVisitor::visitStatementDoWhile(JavaParser::StatementDoWhileCo
 std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchContext* ctx) {
     auto* splitCodeBlocks = new SplitCodeBlocks(outerCodeBlock, outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock);
     splitCodeBlocks->splitType = SplitCodeBlocks::SPLIT_TYPE_SWITCH;
-    auto* codeBlock = new CodeBlock(splitCodeBlocks, CodeBlock::makeStructureKey(outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock, 1, false), false);
-    visitConditionSwitch(ctx->parExpression()->expression(), codeBlock);
-    int branchIndex = 2;
+    ResolvingItem* switchItem = NULL;
+    auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
+    statementVisitor->codeBlock = outerCodeBlock;
+    statementVisitor->sentenceIndex = sentenceIndexInOuterCodeBlock;
+    const any& itemOrNull = ctx->parExpression()->expression()->accept(statementVisitor);
+    if (!statementVisitor->abort) {
+        switchItem = any_cast<ResolvingItem*>(itemOrNull);
+    }
+    if (not switchItem) {
+        switchItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->parExpression()->expression()->getText()),
+            AddressableInfo::errorTypeInfo, outerCodeBlock->structure_key, "0", "0", GlobalInfo::KEY_TYPE_ERROR);
+    }
+    StatementVisitor::returnToPool(statementVisitor);
+    int branchIndex = 1;
     for (auto* group : ctx->switchBlockStatementGroup()) {
         bool closed = false;
         for (auto* switchLabel : group->switchLabel()) {
@@ -362,7 +373,7 @@ std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchCont
         for (auto* switchLabel : group->switchLabel()) {
             if (switchLabel->CASE() != nullptr) {
                 caseIndex--;
-                visitConditionCase(switchLabel->expression(), caseCodeBlock, caseIndex);
+                visitConditionCase(switchLabel->expression(), switchItem, caseCodeBlock, caseIndex);
             } else if (switchLabel->DEFAULT() != nullptr) {
                 visitConditionDefault(caseCodeBlock);
             }
@@ -447,12 +458,29 @@ void StructuralVisitor::visitConditionDoWhile(JavaParser::ExpressionContext* ctx
     visitCondition(methodScopeAndEnv->methodWhileKey, ctx, codeBlock);
 }
 
-void StructuralVisitor::visitConditionSwitch(JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock) {
-    visitCondition(methodScopeAndEnv->methodSwitchKey, ctx, codeBlock);
-}
-
-void StructuralVisitor::visitConditionCase(JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock, int caseIndex) {
-    visitCondition(methodScopeAndEnv->methodCaseKey, ctx, codeBlock, caseIndex);
+void StructuralVisitor::visitConditionCase(JavaParser::ExpressionContext* ctx, ResolvingItem* switchItem, CodeBlock* codeBlock, int caseIndex) {
+    if (codeBlock->conditionItem == nullptr) {
+        codeBlock->conditionItem = ResolvingItem::getInstance2(methodScopeAndEnv->methodCaseKey, NULL, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_CONDITION);
+    }
+    if (ctx != nullptr) {
+        auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
+        statementVisitor->codeBlock = codeBlock;
+        statementVisitor->sentenceIndex = caseIndex;
+        const any& itemOrNull = ctx->accept(statementVisitor);
+        ResolvingItem* caseItem = NULL;
+        if (!statementVisitor->abort) {
+            caseItem = any_cast<ResolvingItem*>(itemOrNull);
+        }
+        if (not caseItem) {
+            caseItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()),
+                AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
+        }
+        ResolvingItem* logicItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, "==");
+        new Relation(statementVisitor->getSentence(), switchItem, logicItem);
+        new Relation(statementVisitor->getSentence(), caseItem, logicItem);
+        codeBlock->toConditionValue = logicItem;
+        StatementVisitor::returnToPool(statementVisitor);
+    }
 }
 
 void StructuralVisitor::visitConditionDefault(CodeBlock* codeBlock) {
@@ -1847,7 +1875,6 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 methodScopeAndEnv->methodForKey = AddressableInfo::makeMethodForKey(methodInfo->methodKey);
                 methodScopeAndEnv->methodWhileKey = AddressableInfo::makeMethodWhileKey(methodInfo->methodKey);
                 methodScopeAndEnv->methodCaseKey = AddressableInfo::makeMethodCaseKey(methodInfo->methodKey);
-                methodScopeAndEnv->methodSwitchKey = AddressableInfo::makeMethodSwitchKey(methodInfo->methodKey);
                 methodScopeAndEnv->methodForEachKey = AddressableInfo::makeMethodForEachKey(methodInfo->methodKey);
                 methodScopeAndEnv->methodTryKey = AddressableInfo::makeMethodTryKey(methodInfo->methodKey);
                 methodScopeAndEnv->methodCatchKey = AddressableInfo::makeMethodCatchKey(methodInfo->methodKey);
@@ -1926,7 +1953,6 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
     methodScopeAndEnv->methodForKey = AddressableInfo::makeMethodForKey(methodInfo->methodKey);
     methodScopeAndEnv->methodWhileKey = AddressableInfo::makeMethodWhileKey(methodInfo->methodKey);
     methodScopeAndEnv->methodCaseKey = AddressableInfo::makeMethodCaseKey(methodInfo->methodKey);
-    methodScopeAndEnv->methodSwitchKey = AddressableInfo::makeMethodSwitchKey(methodInfo->methodKey);
     methodScopeAndEnv->methodForEachKey = AddressableInfo::makeMethodForEachKey(methodInfo->methodKey);
     methodScopeAndEnv->methodTryKey = AddressableInfo::makeMethodTryKey(methodInfo->methodKey);
     methodScopeAndEnv->methodCatchKey = AddressableInfo::makeMethodCatchKey(methodInfo->methodKey);
