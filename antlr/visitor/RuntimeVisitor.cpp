@@ -176,7 +176,7 @@ any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMeth
             spdlog::get(ErrorManager::DebugTag)->warn("visitInterfaceMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
         }
         parameterTypes.push_back(paramTypeName);
-        );
+            );
         const string& methodKey = AddressableInfo::makeMethodKey(
             typeKeyStack.back(), ctx->interfaceCommonBodyDeclaration()->identifier()->getText(), joinList(parameterTypes, ","));
         auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
@@ -211,7 +211,7 @@ std::any ClassLevelVisitor::visitMethodDeclaration(JavaParser::MethodDeclaration
             spdlog::get(ErrorManager::DebugTag)->warn("visitMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
         }
         parameterTypes.push_back(paramTypeName);
-        );
+            );
         const string& methodKey = AddressableInfo::makeMethodKey(
             typeKeyStack.back(), ctx->identifier()->getText(), joinList(parameterTypes, ","));
         auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
@@ -617,7 +617,7 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
                 if (variableDeclaratorI.initExpression) {
                     itemOrNull = variableDeclaratorI.initExpression->accept(this);
                 }
-                ResolvingItem* valueItem = NULL; 
+                ResolvingItem* valueItem = NULL;
                 if (fromFor) {
                     valueItem = initValueItem;
                 } else if (abort) {
@@ -688,10 +688,10 @@ std::any StatementVisitor::visitFieldDeclaration(JavaParser::FieldDeclarationCon
             if (variableDeclaratorI.initExpression != nullptr) {
                 abort = false;
                 const any& itemOrNull = variableDeclaratorI.initExpression->accept(this);
-                ResolvingItem* valueItem = NULL; 
+                ResolvingItem* valueItem = NULL;
                 if (abort) {
-                    valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()), 
-                    AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                    valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()),
+                        AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
                 } else {
                     valueItem = any_cast<ResolvingItem*>(itemOrNull);
                 }
@@ -1508,7 +1508,7 @@ void StatementVisitor::iterNDimArrayRecur(ResolvingItem* superDimItem, JavaParse
             ResolvingItem* valueItem = NULL;
             if (abort) {
                 valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(varInit->expression()->getText()),
-                        AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                    AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
             } else {
                 valueItem = any_cast<ResolvingItem*>(itemOrNull);
             }
@@ -1593,7 +1593,9 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
     } else {
         methodInfo = TypeCheckAndInference::findBestMethod(methodInfos, argValueResolvingItems);
     }
-    handleMethodInfo(methodInfo, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
+    if (methodInfo->returnInfo->typeInfo != AddressableInfo::voidTypeInfo) {
+        handleMethodInfo(methodInfo, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
+    }
 }
 
 void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
@@ -1675,7 +1677,7 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
                 spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
             }
             parameterTypes.push_back(paramTypeName);
-            );
+                );
             const string& methodKey = AddressableInfo::makeMethodKey(
                 classLevelVisitor->typeKeyStack.back(), ctx->identifier()->getText(), joinList(parameterTypes, ","));
             auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
