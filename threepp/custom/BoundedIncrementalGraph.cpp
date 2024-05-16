@@ -1746,7 +1746,8 @@ list<tuple<string, string, string, int>> BoundedIncrementalGraph::getSelectedRun
 }
 
 void BoundedIncrementalGraph::changeWeightForSelectedNode(bool increase) {
-    for (int edgeId = 0;edgeId < igraph_ecount(theOriginalGraph);edgeId++) {
+    int edgeCount = igraph_ecount(theOriginalGraph);
+    for (int edgeId = 0;edgeId < edgeCount;edgeId++) {
         int from = IGRAPH_FROM(theOriginalGraph, edgeId);
         int to = IGRAPH_TO(theOriginalGraph, edgeId);
         if (nodesObj->selected.count(from) and nodesObj->selected.count(to)) {
@@ -1757,10 +1758,11 @@ void BoundedIncrementalGraph::changeWeightForSelectedNode(bool increase) {
 }
 
 void BoundedIncrementalGraph::resetWeight() {
-    for (int edgeId = 0;edgeId < igraph_ecount(theOriginalGraph);edgeId++) {
-        int edgeFrom = edgePairs[edgeId].first;
-        int edgeTo = edgePairs[edgeId].second;
-        if (not nodesObj->selected.count(edgeFrom) or not nodesObj->selected.count(edgeTo)) {
+    int edgeCount = igraph_ecount(theOriginalGraph);
+    for (int edgeId = 0;edgeId < edgeCount;edgeId++) {
+        int from = IGRAPH_FROM(theOriginalGraph, edgeId);
+        int to = IGRAPH_TO(theOriginalGraph, edgeId);
+        if (not nodesObj->selected.count(from) or not nodesObj->selected.count(to)) {
             VECTOR(*weights)[edgeId] = 1;
         }
     }
