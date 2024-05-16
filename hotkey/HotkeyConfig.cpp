@@ -92,6 +92,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {UNSELECT_ALL, "unselect all node", 0xffffff3e,SINGLE_CLICK},
     {REVERSE_SELECT, "reverse selection", 0xffff6e03,SINGLE_CLICK},
     {SHOW_SEARCHED_LINE_AND_GRAPH,"show searched line and graph",0xffffff2c,SINGLE_CLICK},
+    {SELECT_BY_KEY_TYPE,"select by key type",0xffff3a01,SINGLE_CLICK},
     {SELECT_PATH_IN_BETWEEN, "select path in between", 0xffffff3b,SINGLE_CLICK},
     {SELECT_BY_DEGREE, "select by degree", 0xffff6a01,SINGLE_CLICK},
     {SELECT_BY_IN_DEGREE, "select by in degree", 0xffff6c01,SINGLE_CLICK},
@@ -196,6 +197,7 @@ void HotkeyConfig::init() {
     hotkeyMap[CHOOSE_GRAPH_INSTANCE_TO_SEARCH]->functionName = StringRes::singleton->getHotKeyTitle_chooseGraph();
     hotkeyMap[START_SEARCHING]->functionName = StringRes::singleton->getHotKeyTitle_startSearch();
     hotkeyMap[SHOW_SEARCHED_LINE_AND_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByPosition();
+    hotkeyMap[SELECT_BY_KEY_TYPE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByKeyType();
     hotkeyMap[SHOW_EDIT_LINE_AND_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_editLineAndGraph();
     hotkeyMap[PARSE_FILE]->functionName = StringRes::singleton->getHotKeyTitle_parseSrc();
     hotkeyMap[TO_2D_LAYOUT]->functionName = StringRes::singleton->getHotKeyTitle_2DLayout();

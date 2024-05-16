@@ -82,6 +82,9 @@ char* ChineseStringRes::getHotKeyTitle_deleteAllNode() {
     return hotKeyTitle_deleteAllNode.data();
 }
 char* ChineseStringRes::getHotKeyTitle_selectNodeByPosition() { return hotKeyTitle_selectNodeByPosition.data(); }
+char* ChineseStringRes::getHotKeyTitle_selectNodeByKeyType() {
+    return hotKeyTitle_selectByKeyType.data();
+}
 char* ChineseStringRes::getHotKeyTitle_selectAllNode() { return hotKeyTitle_selectAllNode.data(); }
 char* ChineseStringRes::getHotKeyTitle_unselectAllNode() { return hotKeyTitle_unselectAllNode.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeUpward() { return hotKeyTitle_selectNodeUpward.data(); }
@@ -199,6 +202,9 @@ char* EnglishStringRes::getHotKeyTitle_deleteAllNode() {
     return hotKeyTitle_deleteAllNode.data();
 }
 char* EnglishStringRes::getHotKeyTitle_selectNodeByPosition() { return hotKeyTitle_selectNodeByPosition.data(); }
+char* EnglishStringRes::getHotKeyTitle_selectNodeByKeyType() {
+    return hotKeyTitle_selectByKeyType.data();
+}
 char* EnglishStringRes::getHotKeyTitle_selectAllNode() { return hotKeyTitle_selectAllNode.data(); }
 char* EnglishStringRes::getHotKeyTitle_unselectAllNode() { return hotKeyTitle_unselectAllNode.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeUpward() { return hotKeyTitle_selectNodeUpward.data(); }

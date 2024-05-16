@@ -858,6 +858,15 @@ void BoundedIncrementalGraph::onNodeColorChanged() {
     linesObj->setColors(colors, edgePairs);
 }
 
+void BoundedIncrementalGraph::selectByKeyType(int keyType) {
+    for (auto& nodeInfo : nodesOrderedByNodeId) {
+        if (nodeInfo->keyType == keyType) {
+            nodesObj->selected.insert(nodeInfo->nodeId);
+        }
+    }
+    onNodeColorChanged();
+}
+
 void BoundedIncrementalGraph::selectAll() {
     for (int i = 0;i < points.size();i++) {
         nodesObj->selected.insert(i);

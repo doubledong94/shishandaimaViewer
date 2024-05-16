@@ -140,6 +140,7 @@ int app::Application::ApplicationMain() {
     static bool selectByDegreePopupOpen = false;
     static bool selectByComponentPopupOpen = false;
     static bool selectByGroupPopupOpen = false;
+    static bool selectByKeyTypePopupOpen = false;
     static bool showColorSelectorWindow = false;
     static bool openParsingProgress = false;
     static bool openPopupForSaveNodes = false;
@@ -159,6 +160,7 @@ int app::Application::ApplicationMain() {
     static int graph_instance_starting_count = -1;
     static char* graphAndGraphInstanceNames[500];
     static char saveNodeName[100];
+    static char* nodeType[] = { "Field","Constructor","Method","Parameter","Return","CalledMethod","CalledParameter","CalledReturn","Condition","Else","Reference","Step" };
 
     // all hotkey functions
     HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {hotkeyPopupOpen = !hotkeyPopupOpen;};
@@ -301,6 +303,9 @@ int app::Application::ApplicationMain() {
         if (not parser->parsing and not FileManager::srcPath.empty() and not openParsingProgress) {
             aboutToParseFile = true;
         }
+        };
+    HotkeyConfig::functionEnumToFunction[SELECT_BY_KEY_TYPE] = [&]() {
+        selectByKeyTypePopupOpen = true;
         };
 
     Canvas canvas(StringRes::singleton->getAppName(), { {"antialiasing", 4} ,{"exitOnKeyEscape", false} });
@@ -673,6 +678,19 @@ int app::Application::ApplicationMain() {
                 string s = to_string(i) + "  [" + to_string(boundedGraph->groups[i].size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(boundedGraph->groups[i]);
+                }
+            }
+            ImGui::EndPopup();
+        }
+        if (selectByKeyTypePopupOpen) {
+            ImGui::OpenPopup("selectByKeyTypePopupOpen");
+            selectByKeyTypePopupOpen = false;
+        }
+        if (ImGui::BeginPopup("selectByKeyTypePopupOpen")) {
+            ImGui::SeparatorText("select by key type");
+            for (int i = 0;i < 12;i++) {
+                if (ImGui::Selectable(nodeType[i])) {
+                    boundedGraph->selectByKeyType(i+1);
                 }
             }
             ImGui::EndPopup();

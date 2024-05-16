@@ -116,6 +116,7 @@ enum HotkeyFunction {
     GROUP,
     UNGROUP,
     SELECT_BY_GROUP,
+    SELECT_BY_KEY_TYPE,
     SAVE_SELECTED_NODE,
     UNFIX_ALL_NODE,
     UNGROUP_ALL_NODE,

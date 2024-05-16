@@ -141,6 +141,8 @@ public:
 
     void onNodeColorChanged();
 
+    void selectByKeyType(int keyType);
+
     void selectAll();
 
     void unselectAll();
