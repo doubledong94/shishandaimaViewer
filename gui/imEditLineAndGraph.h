@@ -98,7 +98,7 @@ namespace shishan {
     static int classScopeSelectedIndex = -1;
     static int classScopeKeyDownIndex = -1;
     static int classScopeEditingIndex = -1;
-    static char classScopeEditingName[100];
+    static char classScopeEditingName[1000];
     static int classScopeEditingTypeIndex = -1;
     const static char* classScopeTypes[] = { "full path","list","in package","used by","use","super","sub","intersection","union","difference","var" };
     static vector<const char*> classScopeEditValues;
@@ -108,7 +108,7 @@ namespace shishan {
     static int nodeSelectedIndex = -1;
     static int nodeKeyDownIndex = -1;
     static int nodeEditingIndex = -1;
-    static char nodeEditingName[100];
+    static char nodeEditingName[1000];
     static int nodeEditingTypeIndex = -1;
     const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","creatorOf","parameterOf","returnOf","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
     static vector<const char*> nodeEditValues;
@@ -121,7 +121,7 @@ namespace shishan {
     static int lineKeyDownIndex = -1;
     static int lineEditingIndex = -1;
     static SimpleView::LineInstance* lineNewFinalInstance = NULL;
-    static char lineEditingName[100];
+    static char lineEditingName[1000];
     static int lineEditingTypeIndex = -1;
     // todo ,"code order"
     const static char* lineTypes[] = { "segment","line" };
@@ -135,7 +135,7 @@ namespace shishan {
     static int graphKeyDownIndex = -1;
     static int graphEditingIndex = -1;
     static SimpleView::GraphInstance* graphNewInstance = NULL;
-    static char graphEditingName[100];
+    static char graphEditingName[1000];
     static map<int, int> lineInGraphIdMap;
 
     // line instance in graph
@@ -145,7 +145,7 @@ namespace shishan {
     static SimpleView::LineInstance* editingLineInstance = NULL;
     static vector<const char*> lineInstanceArgEditValues;
     static int lineInstanceArgSelectedIndex = 0;
-    static char lineInstanceArgParaName[100];
+    static char lineInstanceArgParaName[1000];
 
     // intersection point editing
     static int intersectionPointEditingIndex = -1;
@@ -156,7 +156,8 @@ namespace shishan {
     static int lineFinalInstanceEditingIndex = -1;
     static int lineFinalInstanceArgSelectedIndex = 0;
     static int lineFinalInstanceNameEditingIndex = -1;
-    static char lineFinalInstanceEditingName[100];
+    static char lineFinalInstanceEditingName[1000];
+    static char lineNewFinalInstanceName[1000];
 
     // graph instance
     static int graphInstanceSelectedIndex = -1;
@@ -164,7 +165,8 @@ namespace shishan {
     static int graphInstanceEditingIndex = -1;
     static int graphInstanceArgSelectedIndex = 0;
     static int graphInstanceNameEditingIndex = -1;
-    static char graphInstanceEditingName[100];
+    static char graphInstanceEditingName[1000];
+    static char graphNewInstanceName[1000];
 
     // edit constraints
     class DependencyConstraint {
@@ -491,9 +493,18 @@ namespace shishan {
         delete graphInstance;
     }
 
+    template<typename T>
+    static T changeNameOfNameOrderAndValNameTo(vector<string>& orderedName, map<string, T>& valNameTo, int index, char* newName) {
+        T item = valNameTo[orderedName[index]];
+        valNameTo.erase(orderedName[index]);
+        orderedName[index] = newName;
+        valNameTo[orderedName[index]] = item;
+        return item;
+    }
+
     static void addClassEditItem(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##editingClassScopName", "", classScopeEditingName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
+        ImGui::InputTextEx("##editingClassScopName", "", classScopeEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
         ImGui::Text("type: "); ImGui::SameLine();
         ImGui::SetNextItemWidth(6 * fontSize);
         if (ImGui::Combo("##editingClassScopType", &classScopeEditingTypeIndex, classScopeTypes, IM_ARRAYSIZE(classScopeTypes))) {
@@ -537,16 +548,9 @@ namespace shishan {
             }
             if (not classScopeNameIsWrong and not classScopeValueIsWrong) {
                 // commit change
-                auto classScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[
-                    SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[classScopeEditingIndex]
-                ];
-                SimpleView::SimpleViewToGraphConverter::valNameToClassScope.erase(
-                    SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[classScopeEditingIndex]
+                auto classScope = changeNameOfNameOrderAndValNameTo<SimpleView::ClassScope*>(
+                    SimpleView::SimpleViewToGraphConverter::classScopeNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToClassScope, classScopeEditingIndex, classScopeEditingName
                 );
-                SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[classScopeEditingIndex] = classScopeEditingName;
-                SimpleView::SimpleViewToGraphConverter::valNameToClassScope[
-                    SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[classScopeEditingIndex]
-                ] = classScope;
                 classScope->resetValue(classScopeEditingName, classScopeEditingTypeIndex, classScopeEditValues);
                 if (classScope->editingNew) {
                     classScope->editingNew = false;
@@ -596,7 +600,7 @@ namespace shishan {
 
     static void addNodeEditItem(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##editingNodeName", "", nodeEditingName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
+        ImGui::InputTextEx("##editingNodeName", "", nodeEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
         ImGui::Text("type: "); ImGui::SameLine();
         ImGui::SetNextItemWidth(8 * fontSize);
         if (ImGui::Combo("##editingNodeType", &nodeEditingTypeIndex, nodeTypes, IM_ARRAYSIZE(nodeTypes))) {
@@ -653,16 +657,9 @@ namespace shishan {
                 nodeValueIsWrong = true;
             }
             if (not nodeNameIsWrong and not nodeValueIsWrong) {
-                auto node = SimpleView::SimpleViewToGraphConverter::valNameToNode[
-                    SimpleView::SimpleViewToGraphConverter::nodeNameOrder[nodeEditingIndex]
-                ];
-                SimpleView::SimpleViewToGraphConverter::valNameToNode.erase(
-                    SimpleView::SimpleViewToGraphConverter::nodeNameOrder[nodeEditingIndex]
+                auto node = changeNameOfNameOrderAndValNameTo<SimpleView::Node*>(
+                    SimpleView::SimpleViewToGraphConverter::nodeNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToNode, nodeEditingIndex, nodeEditingName
                 );
-                SimpleView::SimpleViewToGraphConverter::nodeNameOrder[nodeEditingIndex] = nodeEditingName;
-                SimpleView::SimpleViewToGraphConverter::valNameToNode[
-                    SimpleView::SimpleViewToGraphConverter::nodeNameOrder[nodeEditingIndex]
-                ] = node;
                 node->resetValue(nodeEditingName, nodeEditingTypeIndex, nodeEditValues, typeKeyForNodeKey);
                 if (node->editingNew) {
                     node->editingNew = false;
@@ -745,7 +742,7 @@ namespace shishan {
 
     static void addLineEditItem(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##editingLineName", "", lineEditingName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
+        ImGui::InputTextEx("##editingLineName", "", lineEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
         ImGui::Text("type: "); ImGui::SameLine();
         ImGui::SetNextItemWidth(6 * fontSize);
         if (ImGui::Combo("##linegNodeType", &lineEditingTypeIndex, lineTypes, IM_ARRAYSIZE(lineTypes))) {
@@ -779,16 +776,9 @@ namespace shishan {
                 lineValueIsWrong = true;
             }
             if (not lineNameIsWrong and not lineValueIsWrong) {
-                auto line = SimpleView::SimpleViewToGraphConverter::valNameToLine[
-                    SimpleView::SimpleViewToGraphConverter::lineNameOrder[lineEditingIndex]
-                ];
-                SimpleView::SimpleViewToGraphConverter::valNameToLine.erase(
-                    SimpleView::SimpleViewToGraphConverter::lineNameOrder[lineEditingIndex]
+                auto line = changeNameOfNameOrderAndValNameTo<SimpleView::LineTemplate*>(
+                    SimpleView::SimpleViewToGraphConverter::lineNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToLine, lineEditingIndex, lineEditingName
                 );
-                SimpleView::SimpleViewToGraphConverter::lineNameOrder[lineEditingIndex] = lineEditingName;
-                SimpleView::SimpleViewToGraphConverter::valNameToLine[
-                    SimpleView::SimpleViewToGraphConverter::lineNameOrder[lineEditingIndex]
-                ] = line;
                 if (line->resetValue(lineEditingName, lineEditingTypeIndex, lineEditValues, lineEditRepeatTypes)) {
                     if (line->editingNew) {
                         line->editingNew = false;
@@ -821,7 +811,7 @@ namespace shishan {
             onExitEditMode();
         } else {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
-            static char paraName[100] = "";
+            static char paraName[1000] = "";
             if (lineEditingTypeIndex != SimpleView::LineTemplate::LINE_TYPE_SEGMENT) {
                 // add parameter node
                 if (ImGui::Button("Parameter##lineParameterNameEditor")) {
@@ -841,7 +831,7 @@ namespace shishan {
                     }
                 }
                 ImGui::SameLine();
-                ImGui::InputTextEx("##addParameterNameInput", "parameter name", paraName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
+                ImGui::InputTextEx("##addParameterNameInput", "parameter name", paraName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
             }
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             if (ImGui::Button("Any##specialNodeAny")) {
@@ -970,21 +960,14 @@ namespace shishan {
     static void addGraphNameEditItem(float fontSize) {
         static bool graphNameIsWrong = false;
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##editingGraphName", "", graphEditingName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##editingGraphName", "", graphEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
         if (ImGui::Button("OK##graphEditOK", { fontSize * 3,searchBarHeight })) {
             graphNameIsWrong = not checkValName(graphEditingName, graphEditingIndex, 4);
             if (not graphNameIsWrong) {
-                auto graph = SimpleView::SimpleViewToGraphConverter::valNameToGraph[
-                    SimpleView::SimpleViewToGraphConverter::graphNameOrder[graphEditingIndex]
-                ];
-                SimpleView::SimpleViewToGraphConverter::valNameToGraph.erase(
-                    SimpleView::SimpleViewToGraphConverter::graphNameOrder[graphEditingIndex]
+                auto graph = changeNameOfNameOrderAndValNameTo<SimpleView::GraphTemplate*>(
+                    SimpleView::SimpleViewToGraphConverter::graphNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToGraph, graphEditingIndex, graphEditingName
                 );
-                SimpleView::SimpleViewToGraphConverter::graphNameOrder[graphEditingIndex] = graphEditingName;
-                SimpleView::SimpleViewToGraphConverter::valNameToGraph[
-                    SimpleView::SimpleViewToGraphConverter::graphNameOrder[graphEditingIndex]
-                ] = graph;
                 graph->valName = graphEditingName;
                 graph->updateDisplayName();
                 FOR_EACH_ITEM(graphInstanceDependencyConstraint.dependencyHigher,
@@ -1022,7 +1005,7 @@ namespace shishan {
             }
         }
         ImGui::SameLine();
-        ImGui::InputTextEx("##editingLineInstanceArgParamName", "", lineInstanceArgParaName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##editingLineInstanceArgParamName", "", lineInstanceArgParaName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         int lineInstanceArgSelectableCount = 0;
         for (int i = 0; i < lineInstanceArgEditValues.size();i++) {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
@@ -1051,18 +1034,22 @@ namespace shishan {
 
     static void addNewLineFinalInstance(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##lineNewFinalInstanceName", "", lineNewFinalInstance->valName.data(), 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##lineNewFinalInstanceName", "", lineNewFinalInstanceName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 2 * fontSize);
         static bool lineNewFinalInstanceNameIsWrong = false;
         static bool lineNewFinalInstanceArgNameIsWrong = false;
         if (ImGui::Button("OK##lineNewFinalInstanceOK", { fontSize * 3,searchBarHeight })) {
-            lineNewFinalInstanceNameIsWrong = not checkValName(lineNewFinalInstance->valName.data(), 0, 6);
+            lineNewFinalInstanceNameIsWrong = not checkValName(lineNewFinalInstanceName, 0, 6);
             if (not lineNewFinalInstanceNameIsWrong) {
                 FOR_EACH_ITEM(lineNewFinalInstance->paramNameToArgName,
                     lineNewFinalInstanceArgNameIsWrong = lineNewFinalInstanceArgNameIsWrong or not checkValNameCommon(item.second.data());
                     );
                 if (not lineNewFinalInstanceArgNameIsWrong) {
+                    changeNameOfNameOrderAndValNameTo<SimpleView::LineInstance*>(
+                        SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToLineInstance, 0, lineNewFinalInstanceName
+                    );
+                    lineNewFinalInstance->valName = lineNewFinalInstanceName;
                     lineNewFinalInstance->editingNew = false;
                     lineNewFinalInstance->updateDisplayName();
                     lineNewFinalInstance = NULL;
@@ -1098,21 +1085,18 @@ namespace shishan {
 
     static void addLineFinalInstanceNameEdit(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##lineFinalInstanceNameEdit", "", lineFinalInstanceEditingName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##lineFinalInstanceNameEdit", "", lineFinalInstanceEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 2 * fontSize);
         static bool lineFinalInstanceNameIsWrong = false;
         if (ImGui::Button("OK##lineFinalInstanceNameEditOK", { fontSize * 3,searchBarHeight })) {
             lineFinalInstanceNameIsWrong = not checkValName(lineFinalInstanceEditingName, lineFinalInstanceNameEditingIndex, 6);
             if (not lineFinalInstanceNameIsWrong) {
-                auto lineInstance = SimpleView::SimpleViewToGraphConverter::valNameToLineInstance[
-                    SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder[lineFinalInstanceNameEditingIndex]
-                ];
-                SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder[lineFinalInstanceNameEditingIndex] = lineFinalInstanceEditingName;
-                SimpleView::SimpleViewToGraphConverter::valNameToLineInstance.erase(lineInstance->valName);
+                auto lineInstance = changeNameOfNameOrderAndValNameTo<SimpleView::LineInstance*>(
+                    SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToLineInstance, lineFinalInstanceNameEditingIndex, lineFinalInstanceEditingName
+                );
                 lineInstance->valName = lineFinalInstanceEditingName;
                 lineInstance->updateDisplayName();
-                SimpleView::SimpleViewToGraphConverter::valNameToLineInstance[lineInstance->valName] = lineInstance;
                 lineFinalInstanceNameEditingIndex = -1;
             }
         }
@@ -1127,17 +1111,21 @@ namespace shishan {
 
     static void addNewGraphInstance(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##graphNewInstanceName", "", graphNewInstance->valName.data(), 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##graphNewInstanceName", "", graphNewInstanceName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
         static bool graphNewInstanceNameIsWrong = false;
         static bool graphNewInstanceArgNameIsWrong = false;
         if (ImGui::Button("OK##graphNewInstanceOK", { fontSize * 3,searchBarHeight })) {
-            graphNewInstanceNameIsWrong = not checkValName(graphNewInstance->valName.data(), 0, 7);
+            graphNewInstanceNameIsWrong = not checkValName(graphNewInstanceName, 0, 7);
             if (not graphNewInstanceNameIsWrong) {
                 FOR_EACH_ITEM(graphNewInstance->paramNameToArgName,
                     graphNewInstanceArgNameIsWrong = graphNewInstanceArgNameIsWrong or not checkValNameCommon(item.second.data());
                     );
                 if (not graphNewInstanceArgNameIsWrong) {
+                    changeNameOfNameOrderAndValNameTo<SimpleView::GraphInstance*>(
+                        SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToGraphInstance, 0, graphNewInstanceName
+                    );
+                    graphNewInstance->valName = graphNewInstanceName;
                     graphNewInstance->editingNew = false;
                     graphNewInstance->updateDisplayName();
                     graphNewInstance = NULL;
@@ -1173,20 +1161,17 @@ namespace shishan {
 
     static void addGraphInstanceNameEdit(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##graphInstanceNameEdit", "", graphInstanceEditingName, 100, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##graphInstanceNameEdit", "", graphInstanceEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
         static bool graphInstanceNameIsWrong = false;
         if (ImGui::Button("OK##graphInstanceNameEditOK", { fontSize * 3,searchBarHeight })) {
             graphInstanceNameIsWrong = not checkValName(graphInstanceEditingName, graphInstanceNameEditingIndex, 7);
             if (not graphInstanceNameIsWrong) {
-                auto graphInstance = SimpleView::SimpleViewToGraphConverter::valNameToGraphInstance[
-                    SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder[graphInstanceNameEditingIndex]
-                ];
-                SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder[graphInstanceNameEditingIndex] = graphInstanceEditingName;
-                SimpleView::SimpleViewToGraphConverter::valNameToGraphInstance.erase(graphInstance->valName);
+                auto graphInstance = changeNameOfNameOrderAndValNameTo<SimpleView::GraphInstance*>(
+                    SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToGraphInstance, graphInstanceNameEditingIndex, graphInstanceEditingName
+                );
                 graphInstance->valName = graphInstanceEditingName;
                 graphInstance->updateDisplayName();
-                SimpleView::SimpleViewToGraphConverter::valNameToGraphInstance[graphInstance->valName] = graphInstance;
                 graphInstanceNameEditingIndex = -1;
             }
         }
@@ -1570,6 +1555,7 @@ namespace shishan {
             auto lineInstance = new SimpleView::LineInstance(lineTemplate, args);
             lineInstance->editingNew = true;
             lineInstance->valName = newInstanceName;
+            strcpy(lineNewFinalInstanceName, newInstanceName.data());
             SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder.insert(
                 SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder.begin(), newInstanceName
             );
@@ -1641,6 +1627,7 @@ namespace shishan {
             auto graphInstance = new SimpleView::GraphInstance(graphTemplate, args);
             graphInstance->editingNew = true;
             graphInstance->valName = newInstanceName;
+            strcpy(graphNewInstanceName, newInstanceName.data());
             SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder.insert(
                 SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder.begin(), newInstanceName
             );

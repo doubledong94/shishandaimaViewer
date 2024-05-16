@@ -210,7 +210,7 @@ int app::Application::ApplicationMain() {
         // search line instance
         if (selected_class_scope > -1 and selected_line_instance > -1) {
             bool isTemplate = selected_line_instance < line_instance_starting_count;
-            char* lineName = lineAndLineInstanceNames[isTemplate ? selected_line_instance : selected_line_instance - line_instance_starting_count];
+            char* lineName = lineAndLineInstanceNames[selected_line_instance];
             SimpleView::LineInstance* lineInstance = NULL;
             if (isTemplate) {
                 auto& lineTemplate = SimpleView::SimpleViewToGraphConverter::valNameToLine[lineName];
@@ -247,7 +247,7 @@ int app::Application::ApplicationMain() {
         // search graph instance
         if (selected_class_scope > -1 and selected_graph_instance > -1) {
             bool isTemplate = selected_graph_instance < graph_instance_starting_count;
-            char* graphName = graphAndGraphInstanceNames[isTemplate ? selected_graph_instance : selected_graph_instance - graph_instance_starting_count];
+            char* graphName = graphAndGraphInstanceNames[selected_graph_instance];
             SimpleView::GraphInstance* graphInstance = NULL;
             if (isTemplate) {
                 auto& graphTemplate = SimpleView::SimpleViewToGraphConverter::valNameToGraph[graphName];
