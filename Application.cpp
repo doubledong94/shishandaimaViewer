@@ -144,6 +144,7 @@ int app::Application::ApplicationMain() {
     static bool showColorSelectorWindow = false;
     static bool openParsingProgress = false;
     static bool openPopupForSaveNodes = false;
+    static bool showTooltip = false;
 
     static list<bool*> openedWindows;
 
@@ -163,14 +164,19 @@ int app::Application::ApplicationMain() {
     static char* nodeType[] = { "Field","Constructor","Method","Parameter","Return","CalledMethod","CalledParameter","CalledReturn","Condition","Else","Reference","Step" };
 
     // all hotkey functions
-    HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {hotkeyPopupOpen = !hotkeyPopupOpen;};
+    HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {
+        showTooltip = false;
+        hotkeyPopupOpen = !hotkeyPopupOpen;
+        };
     HotkeyConfig::functionEnumToFunction[CHOOOSE_CLASS_SCOPE] = [&]() {
+        showTooltip = false;
         chooseClassScopePopupOpen = true;
         for (int i = 0; i < SimpleView::SimpleViewToGraphConverter::classScopeNameOrder.size(); i++) {
             classScopeNames[i] = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[i].data();
         }
         };
     HotkeyConfig::functionEnumToFunction[CHOOSE_LINE_INSTANCE_TO_SEARCH] = [&]() {
+        showTooltip = false;
         chooseLineInstancePopupOpen = true;
         line_instance_starting_count = 0;
         for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
@@ -185,6 +191,7 @@ int app::Application::ApplicationMain() {
         }
         };
     HotkeyConfig::functionEnumToFunction[CHOOSE_GRAPH_INSTANCE_TO_SEARCH] = [&]() {
+        showTooltip = false;
         chooseGraphInstancePopupOpen = true;
         graph_instance_starting_count = 0;
         for (auto& graphTemplateName : SimpleView::SimpleViewToGraphConverter::graphNameOrder) {
@@ -279,6 +286,7 @@ int app::Application::ApplicationMain() {
     static vector<const char*> methodOfRuntimeForNodeSelection;
     static map<string, map<string, list<string>>> graphNameToLineNameToRegex;
     HotkeyConfig::functionEnumToFunction[SHOW_SEARCHED_LINE_AND_GRAPH] = [&]() {
+        showTooltip = false;
         shishan::showGraphList = false;
         shishan::forceRelayout();
         shishan::clearSelectedNode();
@@ -296,15 +304,18 @@ int app::Application::ApplicationMain() {
         }
         searchedLineAndGraphOpen = !searchedLineAndGraphOpen;};
     HotkeyConfig::functionEnumToFunction[SHOW_EDIT_LINE_AND_GRAPH] = [&]() {
+        showTooltip = false;
         shishan::showGraphList = false;
         shishan::forceRelayout();
         editLineAndGraphOpen = !editLineAndGraphOpen;};
     HotkeyConfig::functionEnumToFunction[PARSE_FILE] = [&]() {
         if (not parser->parsing and not FileManager::srcPath.empty() and not openParsingProgress) {
+            showTooltip = false;
             aboutToParseFile = true;
         }
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_KEY_TYPE] = [&]() {
+        showTooltip = false;
         selectByKeyTypePopupOpen = true;
         };
 
@@ -397,22 +408,27 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_IN_DEGREE] = [&]() {
         boundedGraph->prepareInDegreeMap();
+        showTooltip = false;
         selectByInDegreePopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_OUT_DEGREE] = [&]() {
         boundedGraph->prepareOutDegreeMap();
+        showTooltip = false;
         selectByOutDegreePopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_DEGREE] = [&]() {
         boundedGraph->prepareDegreeMap();
+        showTooltip = false;
         selectByDegreePopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_COMPONENT] = [&]() {
         boundedGraph->prepareComponent();
+        showTooltip = false;
         selectByComponentPopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_GROUP] = [&]() {
         boundedGraph->prepareGroup();
+        showTooltip = false;
         selectByGroupPopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[FLOW_COLOR_MAP] = [&]() {
@@ -469,10 +485,12 @@ int app::Application::ApplicationMain() {
         boundedGraph->ungroupAllNodes();
         };
     HotkeyConfig::functionEnumToFunction[SAVE_SELECTED_NODE] = [&]() {
+        showTooltip = false;
         openPopupForSaveNodes = true;
         };
     HotkeyConfig::functionEnumToFunction[SEARCH_DOWNWARD] = [&]() {
         if (selected_class_scope > -1) {
+            showTooltip = false;
             chooseLineDownPopupOpen = true;
             lineDownAndUpCount = 0;
             for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
@@ -486,6 +504,7 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[SEARCH_UPWARD] = [&]() {
         if (selected_class_scope > -1) {
+            showTooltip = false;
             chooseLineUpPopupOpen = true;
             lineDownAndUpCount = 0;
             for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
@@ -524,7 +543,6 @@ int app::Application::ApplicationMain() {
         camera->position.set(0, 0, camera->position.sub(boundedGraphPosition).sub(pos).length());
         camera.get()->lookAt({ 0,0,0 });
         };
-    static bool showTooltip = false;
     static string tip;
     boundedGraph->showTooltip = [&](string& s) {
         tip = s;
@@ -551,6 +569,22 @@ int app::Application::ApplicationMain() {
             HotkeyConfig::onFrame();
         }
 
+        if (showTooltip) {
+            showTooltip = not (
+                ImGui::IsPopupOpen("selectByInDegreePopupOpen") or
+                ImGui::IsPopupOpen("selectByOutDegreePopupOpen") or
+                ImGui::IsPopupOpen("selectByDegreePopupOpen") or
+                ImGui::IsPopupOpen("selectByComponentPopupOpen") or
+                ImGui::IsPopupOpen("selectByGroupPopupOpen") or
+                ImGui::IsPopupOpen("selectByKeyTypePopupOpen") or
+                ImGui::IsPopupOpen("chooseLineDownAndUpPopupOpen") or
+                ImGui::IsPopupOpen("chooseClassScopePopup") or
+                ImGui::IsPopupOpen("chooseLineInstancePopup") or
+                ImGui::IsPopupOpen("chooseGraphInstancePopup") or
+                ImGui::IsPopupOpen("parsingProgress") or
+                ImGui::IsPopupOpen("saveNodeNameInput")
+                );
+        }
         if (showTooltip) {
             ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always, ImVec2(0, 0));
             ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y), ImGuiCond_Always);
@@ -690,7 +724,7 @@ int app::Application::ApplicationMain() {
             ImGui::SeparatorText("select by key type");
             for (int i = 0;i < 12;i++) {
                 if (ImGui::Selectable(nodeType[i])) {
-                    boundedGraph->selectByKeyType(i+1);
+                    boundedGraph->selectByKeyType(i + 1);
                 }
             }
             ImGui::EndPopup();
