@@ -78,16 +78,11 @@ FlowLine::FlowLine(float initLineWidth) : threepp::Mesh(nullptr, nullptr) {
 
 void FlowLine::setEdges(const vector<threepp::Vector3>& points, const vector<pair<int, int>>& edges) {
     pointToEdge.clear();
-    int edgeCount = edges.size();
-    if (edgeCount > edgeCapacity) {
-        edgeCapacity = edgeCapacity * 2;
-        geometry_->dispose();
-        createGeometry();
-    }
+    int edgeCount = std::min(edgeCapacity, (int)edges.size());
     auto positionAttr = geometry_->getAttribute<float>("position");
     auto dirAttr = geometry_->getAttribute<float>("dir");
     threepp::Vector3 dir;
-    for (int i = 0;i < edges.size();i++) {
+    for (int i = 0;i < edgeCount;i++) {
         int startPoint = edges[i].first;
         int endPoint = edges[i].second;
         auto& startPos = points[startPoint];
@@ -118,7 +113,8 @@ void FlowLine::setEdges(const vector<threepp::Vector3>& points, const vector<pai
 
 void FlowLine::setColors(vector<threepp::Color>& colors, const vector<pair<int, int>>& edges) {
     auto colorAttr = geometry_->getAttribute<float>("color");
-    for (int i = 0;i < edges.size();i++) {
+    int edgeCount = std::min(edgeCapacity, (int)edges.size());
+    for (int i = 0;i < edgeCount;i++) {
         auto& startColor = colors[edges[i].first];
         auto& endColor = colors[edges[i].second];
         int startingIndex = i * 4;

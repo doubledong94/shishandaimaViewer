@@ -9,6 +9,7 @@
 #include "Nodes.h"
 
 Nodes::Nodes(int capacity, float initNodeSize) :threepp::InstancedMesh(NULL, NULL, capacity) {
+    nodeCapacity = capacity;
     setCount(nodeCount);
     nodeSize = initNodeSize;
     specifiedColors = vector<threepp::Color>(capacity);
@@ -40,7 +41,7 @@ Nodes::Nodes(int capacity, float initNodeSize) :threepp::InstancedMesh(NULL, NUL
 
 bool Nodes::setPointPositions(const vector<threepp::Vector3>& points) {
     int oldCount = nodeCount;
-    nodeCount = points.size();
+    nodeCount = std::min(nodeCapacity, (int)points.size());
     for (int i = 0;i < nodeCount;i++) {
         tmpMatrix.makeScale(nodeSize, nodeSize, nodeSize);
         tmpMatrix.setPosition(points[i].x, points[i].y, points[i].z);
@@ -155,6 +156,7 @@ std::shared_ptr<Nodes> Nodes::create(int capacity, float initNodeSize) {
 }
 
 void Nodes::setSpecifiedColorAt(int index, const threepp::Color& color, bool overwrite) {
+    index = std::min(nodeCapacity - 1, index);
     if (colorSpecified.count(index) and not overwrite) {
         return;
     }

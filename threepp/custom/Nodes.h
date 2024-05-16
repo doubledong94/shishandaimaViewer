@@ -44,6 +44,7 @@ public:
     set<int> positionFixed;
 
     int nodeCount = 0;
+    int nodeCapacity = 0;
 private:
     threepp::Matrix4 tmpMatrix;
     threepp::Matrix4 tmpMatrix2;
