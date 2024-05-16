@@ -118,7 +118,9 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepKey, writen->runtimeKey));
     }
     // data flow of this relation
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
+    if (not (writen->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN and writen->typeInfo == AddressableInfo::voidTypeInfo)) {
+        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
+    }
     // use lvToLastWrittenKeys to generate data flow
     genDataFlowForLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // mark local variable

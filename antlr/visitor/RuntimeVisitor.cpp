@@ -1624,9 +1624,7 @@ void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<Res
         }
     }
     // called method to called return
-    if (methodInfo->returnInfo->typeInfo != AddressableInfo::voidTypeInfo) {
-        new Relation(getSentence(), calledMethodResolvingItem, returnResolvingItem);
-    }
+    new Relation(getSentence(), calledMethodResolvingItem, returnResolvingItem);
 }
 
 void StatementVisitor::getAllInterfaceRecurSuper(TypeInfo* interfaceInfo, list<TypeInfo*>& interfaceInfos) {

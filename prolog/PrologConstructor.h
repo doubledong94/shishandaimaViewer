@@ -140,6 +140,7 @@ static Term* HEAD_PRINT = new Term("print", Term::TERM_TYPE_ATOM);
 static Term* HEAD_TO_FILE = new Term("toFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_STATISTICS = new Term("statistics", Term::TERM_TYPE_ATOM);
 static Term* TERM_NEXT_LINE = new Term("nl", Term::TERM_TYPE_ATOM);
+static Term* TERM_IS_CALLED_METHD_RETURN_VOID = new Term("isCalledMethodReturnVoid", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_MEMBER = new Term("member", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LENGTH = new Term("length", Term::TERM_TYPE_ATOM);
@@ -376,6 +377,8 @@ public:
     static CompoundTerm* getToFileTerm(Term* content, Term* fileTerm);
 
     static CompoundTerm* getStatisticsTerm(Term* startOrStop);
+
+    static CompoundTerm* getIsCalledMethodReturnVoid(Term* MethodScope, Term* CalledMethod);
 
     string toString() const;
 

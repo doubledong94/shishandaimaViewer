@@ -36,3 +36,7 @@ instanceOf(ClassKey1,ClassKey2,InstanceKey):-
 
 count(P,Count):-
     findall(1,P,L),length(L,Count).
+
+isCalledMethodReturnVoid(MethodScope,CalledMethodRuntime):-
+    runtimeKey(MethodScope,CalledMethod,CalledMethodRuntime,_),calledMethod(Method,CalledMethod),return(Method,ReturnKey),instanceOf(ReturnKey,"void").
+    

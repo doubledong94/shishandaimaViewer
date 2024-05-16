@@ -801,6 +801,10 @@ CompoundTerm* CompoundTerm::getStatisticsTerm(Term* startOrStop) {
     return makeTerm(HEAD_STATISTICS, Term::getAtom("runtime"), Tail::getTailInstance(startOrStop, Term::getIgnoredVar()));
 }
 
+CompoundTerm* CompoundTerm::getIsCalledMethodReturnVoid(Term* MethodScope, Term* CalledMethod) {
+    return makeTerm(TERM_IS_CALLED_METHD_RETURN_VOID, MethodScope, CalledMethod);
+}
+
 void CompoundTerm::addArg(Term* arg) {
     args.push_back(arg);
 }
@@ -1065,11 +1069,14 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
         Term* calledMethod = Term::getVar("CalledMethod");
         ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledMethod));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledMethod, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)));
-        ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm));
+        ruleBody.push_back(new DisjunctionTerm(CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm),
+            CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)));
     } else {
-        ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledReturnTerm));
+        ruleBody.push_back(new DisjunctionTerm(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledReturnTerm),
+            CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)));
     }
-    ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)));
+    ruleBody.push_back(new DisjunctionTerm(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
+        CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)));
     return Rule::getRuleInstance(CompoundTerm::getStepTerm(
         Tail::getInstanceByElements({ outerMethod,calledParameterOrCalledMethod }),
         step,
