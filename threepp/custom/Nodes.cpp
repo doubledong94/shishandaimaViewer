@@ -168,6 +168,7 @@ void Nodes::setSpecifiedColorAt(int index, const threepp::Color& color, bool ove
 }
 
 void Nodes::mapNodeColorForDeletion(igraph_vector_int_t* mapForDeleteNodes) {
+    // unsolved crash: malloc(): mismatching next->prev_size
     set<int> oldColorSpecified = colorSpecified;
     vector<threepp::Color> oldSpecifiedColors = specifiedColors;
     set<int> oldPositionFixed = positionFixed;
