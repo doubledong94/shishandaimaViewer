@@ -1,3 +1,4 @@
+:- multifile simpleName/2.
 :- dynamic addressableLoaded/1.
 :- dynamic unaddressableLoaded/1.
 
@@ -39,4 +40,5 @@ count(P,Count):-
 
 isCalledMethodReturnVoid(MethodScope,CalledMethodRuntime):-
     runtimeKey(MethodScope,CalledMethod,CalledMethodRuntime,_),calledMethod(Method,CalledMethod),return(Method,ReturnKey),instanceOf(ReturnKey,"void").
-    
+
+simpleName("[Array].length","length").
