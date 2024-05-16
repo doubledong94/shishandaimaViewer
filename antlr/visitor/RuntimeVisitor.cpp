@@ -304,6 +304,7 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
         if (statementVisitor->abort) {
             arrayLikeItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->forControl()->enhancedForControl()->expression()->getText()),
                 AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
+            statementVisitor->abort = false;
         } else {
             arrayLikeItem = any_cast<ResolvingItem*>(itemOrNull);
         }
@@ -623,6 +624,7 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
                 } else if (abort) {
                     valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()),
                         AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                    abort = false;
                 } else {
                     valueItem = any_cast<ResolvingItem*>(itemOrNull);
                 }
@@ -692,6 +694,7 @@ std::any StatementVisitor::visitFieldDeclaration(JavaParser::FieldDeclarationCon
                 if (abort) {
                     valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()),
                         AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                    abort = false;
                 } else {
                     valueItem = any_cast<ResolvingItem*>(itemOrNull);
                 }
@@ -1509,6 +1512,7 @@ void StatementVisitor::iterNDimArrayRecur(ResolvingItem* superDimItem, JavaParse
             if (abort) {
                 valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(varInit->expression()->getText()),
                     AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                abort = false;
             } else {
                 valueItem = any_cast<ResolvingItem*>(itemOrNull);
             }
@@ -1553,10 +1557,14 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
             }
             const any& itemOrNull = expression->accept(this);
             expectingTypeInfo.clear();
+            ResolvingItem* argResolvingItem = NULL;
             if (abort) {
-                return;
+                argResolvingItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(expression->getText()),
+                    AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+                abort = false;
+            } else {
+                argResolvingItem = any_cast<ResolvingItem*>(itemOrNull);
             }
-            auto* argResolvingItem = any_cast<ResolvingItem*>(itemOrNull);
             for (auto& methodInfo : methodInfos) {
                 if (not methodInfo->isVariableParameter) {
                     if (methodInfo->parameterInfos[paramIndex]->typeInfo->isTypeParam) {
