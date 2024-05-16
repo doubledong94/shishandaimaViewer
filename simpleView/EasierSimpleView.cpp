@@ -1132,7 +1132,6 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_REFERENCE
         and nodeType != NODE_TYPE_CONDITION
         and nodeType != NODE_TYPE_ELSE
-        and nodeType != NODE_TYPE_PARAM_OF_LINE_AND_GRAPH
         and nodeType != NODE_TYPE_STEP;
 }
 
@@ -1330,7 +1329,7 @@ string SimpleView::NodeAndRepeatType::getRepeatTypeString() {
 }
 
 // todo countResolved:-findall(X,resolved(5,X),L),length(L,N).
-int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int> nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName) {
+int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int> &nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName) {
     if (repeatType != LineTemplate::REPEAT_TYPE_ONE) {
         return INT_MAX;
     }
@@ -1350,12 +1349,14 @@ int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int> nodeToRuntimeCoun
                 if (node->nodeType == SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH) {
                     innerName = SimpleView::SimpleViewToGraphConverter::valNameToNode[paramNameToArgName[node->displayName]]->innerValName;
                 }
-                return PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getResolveRuntimeTerm(
+                int ret = PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getResolveRuntimeTerm(
                     Term::getStr(innerName),
                     Term::getStr(classScope->innerValName),
                     Term::getIgnoredVar(),
                     Term::getVar("RuntimeNode"),
                     Term::getIgnoredVar(), Term::getIgnoredVar()), Term::getVar("C")));
+                nodeToRuntimeCount[node] = ret;
+                return ret;
             } else {
                 return INT_MAX;
             }

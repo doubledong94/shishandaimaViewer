@@ -208,7 +208,7 @@ namespace SimpleView {
 
         void unResolve(bool retract = false) override;
 
-        int countForMin(map<Node*, int> nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName);
+        int countForMin(map<Node*, int> &nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName);
 
         bool isParamNode();
 
