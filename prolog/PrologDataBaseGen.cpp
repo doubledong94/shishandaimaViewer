@@ -186,10 +186,7 @@ void TimingFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* 
         // super condition to sub condition
         subCodeBlock->conditionItem->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
         if (subCodeBlock->toConditionValue) {
-            subCodeBlock->toConditionValue->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
-        }
-        if (subCodeBlock->elseValue) {
-            subCodeBlock->elseValue->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
+            addTimingFlow(methodKey, superCodeBlock, subCodeBlock->toConditionValue, prologLines);
         }
         visitCodeBlock(methodKey, subCodeBlock, prologLines);
     }
@@ -201,12 +198,16 @@ void TimingFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBl
         string stepKey = AddressableInfo::makeStepKey(relation->read->variableKey);
         prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, relation->read->runtimeKey, stepKey));
     }
+    addTimingFlow(methodKey, codeBlock, relation->read, prologLines);
+    addTimingFlow(methodKey, codeBlock, relation->writen, prologLines);
+}
 
-    if (!(GlobalInfo::isOptrKeyType(relation->read->keyType) or relation->read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or relation->read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
-        relation->read->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
+void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBlock, ResolvingItem* item, list<string>& prologLines) {
+    if (item->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or item->keyType == GlobalInfo::KEY_TYPE_FIELD) {
+        item->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
     }
-    if (!(GlobalInfo::isOptrKeyType(relation->writen->keyType) or relation->writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or relation->writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
-        relation->writen->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
+    if (item->referencedBy) {
+        addTimingFlow(methodKey, codeBlock, item->referencedBy, prologLines);
     }
 }
 
