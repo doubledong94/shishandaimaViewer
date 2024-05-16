@@ -1593,9 +1593,7 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
     } else {
         methodInfo = TypeCheckAndInference::findBestMethod(methodInfos, argValueResolvingItems);
     }
-    if (methodInfo->returnInfo->typeInfo != AddressableInfo::voidTypeInfo) {
-        handleMethodInfo(methodInfo, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
-    }
+    handleMethodInfo(methodInfo, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
 }
 
 void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
@@ -1626,7 +1624,9 @@ void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<Res
         }
     }
     // called method to called return
-    new Relation(getSentence(), calledMethodResolvingItem, returnResolvingItem);
+    if (methodInfo->returnInfo->typeInfo != AddressableInfo::voidTypeInfo) {
+        new Relation(getSentence(), calledMethodResolvingItem, returnResolvingItem);
+    }
 }
 
 void StatementVisitor::getAllInterfaceRecurSuper(TypeInfo* interfaceInfo, list<TypeInfo*>& interfaceInfos) {
