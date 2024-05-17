@@ -962,6 +962,8 @@ void BoundedIncrementalGraph::lookUpForCommonAncestor(int i, int j, set<int>& vi
         // there is a path in between, stop searching and add path to selected
         // when i==j, it is not a CommonAncestor result
         selected.insert(path.begin(), path.end());
+        set<int> eachOtherVisited;
+        lookEachOtherForPath(i, j, eachOtherVisited, selected);
     }
 
     path.erase(i);
@@ -995,6 +997,8 @@ void BoundedIncrementalGraph::lookDownForCommonChild(int i, int j, set<int>& vis
         // there is a path in between, stop searching and add path to selected
         // when i==j, it is not a CommonChild result
         selected.insert(path.begin(), path.end());
+        set<int> eachOtherVisited;
+        lookEachOtherForPath(j, i, eachOtherVisited, selected);
     }
 
     path.erase(i);
