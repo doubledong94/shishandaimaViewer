@@ -1329,7 +1329,7 @@ string SimpleView::NodeAndRepeatType::getRepeatTypeString() {
 }
 
 // todo countResolved:-findall(X,resolved(5,X),L),length(L,N).
-int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int> &nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName) {
+int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName) {
     if (repeatType != LineTemplate::REPEAT_TYPE_ONE) {
         return INT_MAX;
     }
@@ -2532,7 +2532,7 @@ void SimpleView::GraphTemplate::updateDisplayName() {
 
 bool SimpleView::GraphTemplate::hasLineAsLineInstance(string& lineName) {
     for (auto& lineInstance : lineInstances) {
-        if (strcmp(lineInstance->lineTemplate->name.data(), lineName.data()) == 0) {
+        if (strcmp(lineInstance->valName.data(), lineName.data()) == 0) {
             return true;
         }
     }
@@ -2576,6 +2576,14 @@ void SimpleView::GraphTemplate::addNewLine(LineTemplate* lineTemplate, int index
         intersectionPointsInLineI.insert(intersectionPointsInLineI.begin() + index, pLineInstance->lineTemplate->getPointInLine());
     }
     updateOrderedParam();
+    updateDisplayName();
+}
+
+void SimpleView::GraphTemplate::addNewLine(LineInstance* lineInstance, int index) {
+    lineInstances.insert(lineInstances.begin() + index, lineInstance);
+    for (auto& intersectionPointsInLineI : intersectionPointsInLine) {
+        intersectionPointsInLineI.insert(intersectionPointsInLineI.begin() + index, lineInstance->lineTemplate->getPointInLine());
+    }
     updateDisplayName();
 }
 

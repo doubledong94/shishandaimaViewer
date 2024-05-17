@@ -1190,6 +1190,7 @@ namespace shishan {
     // 2 for class scope name choose
     // 3 for node name choose
     // 4 for line name choose
+    // 5 for line instance name choose
     static void handleClassScopeOrNodeOrSegChoose(int index, int type) {
         if (classScopeEditingIndex > -1) {
             if (type == 3) {
@@ -1379,6 +1380,14 @@ namespace shishan {
                         pGraph->addNewLine(lineTemplate, lineInstanceNewIndex + 1);
                         lineInstanceNewIndex = -1;
                     }
+                }
+            }
+            if (type == 5) {
+                auto& lineInstance = SimpleView::SimpleViewToGraphConverter::valNameToLineInstance[SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder[index]];
+                auto& pGraph = SimpleView::SimpleViewToGraphConverter::valNameToGraph[SimpleView::SimpleViewToGraphConverter::graphNameOrder[graphSelectedIndex]];
+                if (not pGraph->hasLineAsLineInstance(lineInstance->valName)) {
+                    pGraph->addNewLine(lineInstance, lineInstanceNewIndex + 1);
+                    lineInstanceNewIndex = -1;
                 }
             }
         }
@@ -2247,6 +2256,7 @@ namespace shishan {
                         if (ImGui::Selectable(lineInstance->valName.data(), lineFinalInstanceSelectedIndex == lineInstanceSelectableCount)) {
                             unselectAll();
                             lineFinalInstanceSelectedIndex = lineInstanceSelectableCount;
+                            handleClassScopeOrNodeOrSegChoose(lineFinalInstanceSelectedIndex, 5);
                         }
                         ImGui::SetItemTooltip(lineInstance->displayName.data());
                     }

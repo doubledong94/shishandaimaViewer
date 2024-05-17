@@ -477,6 +477,8 @@ namespace SimpleView {
 
         void addNewLine(LineTemplate* lineTemplate, int index);
 
+        void addNewLine(LineInstance* lineInstance, int index);
+
         GraphTemplate* copy(const string& name);
     };
 
