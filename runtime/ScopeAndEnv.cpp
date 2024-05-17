@@ -335,7 +335,7 @@ TypeInfo* ClassScopeAndEnv::getTypeInfoWithFileScope(const list<string>& typeNam
         // after resolve one of type names, change scopeAndEnv
         if (typeInfoSoFar != nullptr) {
             scopeAndEnv = typeInfoSoFar->classScopeAndEnv;
-            addUsage(typeInfoSoFar->typeKey);
+            addUsage(typeInfoSoFar);
         } else {
             break;
         }
@@ -514,10 +514,21 @@ void ClassScopeAndEnv::getMethodInfoFromImports(const string& name, int paramCou
 
 }
 
-void ClassScopeAndEnv::addUsage(const string& usedTypeKey) {
+void ClassScopeAndEnv::addUsage(TypeInfo* usedTypeInfo) {
     GlobalInfo::addUsageLock.lock();
-    GlobalInfo::filePath2TypeKey2itUseTypeKeys[typeInfo->filePath][typeInfo->typeKey].insert(usedTypeKey);
+    bool exist = GlobalInfo::filePath2TypeKey2itUseTypeKeys[typeInfo->filePath][typeInfo->typeKey].count(usedTypeInfo->typeKey);
+    if (not exist) {
+        GlobalInfo::filePath2TypeKey2itUseTypeKeys[typeInfo->filePath][typeInfo->typeKey].insert(usedTypeInfo->typeKey);
+    }
     GlobalInfo::addUsageLock.unlock();
+    if (not exist) {
+        for (auto& superType : usedTypeInfo->superTypeInfos) {
+            addUsage(superType);
+        }
+        for (auto& interfaceType : usedTypeInfo->interfaceInfos) {
+            addUsage(interfaceType);
+        }
+    }
 }
 
 void ClassScopeAndEnv::release(ClassScopeAndEnv* toBeReleased) {
@@ -567,7 +578,7 @@ bool MethodScopeAndEnv::findIdWithFileScope(const string& name, string& key, Typ
         key = pTypeInfo->typeKey;
         typeInfo = pTypeInfo;
         keyType = GlobalInfo::KEY_TYPE_CLASS;
-        classScopeAndEnv->addUsage(pTypeInfo->typeKey);
+        classScopeAndEnv->addUsage(pTypeInfo);
         return true;
     }
     auto* fieldInfo = classScopeAndEnv->getFieldInfoFromImports(name);

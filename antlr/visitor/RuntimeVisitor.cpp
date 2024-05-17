@@ -965,7 +965,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         return nullptr;
     }
     auto* referencedScope = referencedBy->typeInfo->classScopeAndEnv;
-    classScopeAndEnv->addUsage(referencedBy->typeInfo->typeKey);
+    classScopeAndEnv->addUsage(referencedBy->typeInfo);
     auto* resolvingItem = ResolvingItem::getInstance();
     if (ctx->identifier() != nullptr) {
         if (!referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType)) {
@@ -1717,7 +1717,7 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
                         methodCall.name.clear();
                         splitStr(superTypeInfo->typeName, ".", methodCall.name);
                         pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
-                        classScopeAndEnv->addUsage(superFieldInfo->typeInfo->typeKey);
+                        classScopeAndEnv->addUsage(superFieldInfo->typeInfo);
                     } else {
                         spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find super for {}", classScopeAndEnv->typeInfo->typeKey);
                     }
@@ -1737,7 +1737,7 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
                         const TypeInfo* superTypeInfo = superFieldInfo->typeInfo;
                         splitStr(superTypeInfo->typeName, ".", methodCall.name);
                         pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
-                        classScopeAndEnv->addUsage(superFieldInfo->typeInfo->typeKey);
+                        classScopeAndEnv->addUsage(superFieldInfo->typeInfo);
                     } else {
                         spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find default super for {}", classScopeAndEnv->typeInfo->typeKey);
                     }

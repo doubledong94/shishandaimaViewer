@@ -131,7 +131,7 @@ public:
 
     void getMethodInfoFromImports(const string& name, int paramCount, list<MethodInfo*>& methodInfos);
 
-    void addUsage(const string& usedTypeKey);
+    void addUsage(TypeInfo* usedTypeInfo);
 
     static void release(ClassScopeAndEnv* toBeReleased);
 };
