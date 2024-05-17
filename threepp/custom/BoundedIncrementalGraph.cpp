@@ -876,6 +876,8 @@ void BoundedIncrementalGraph::selectAll() {
 
 void BoundedIncrementalGraph::unselectAll() {
     nodesObj->selected.clear();
+    // stop loading
+    textLoading.clear();
     onNodeColorChanged();
 }
 
