@@ -145,6 +145,7 @@ int app::Application::ApplicationMain() {
     static bool openParsingProgress = false;
     static bool openPopupForSaveNodes = false;
     static bool showTooltip = false;
+    static bool showTooltipSwitchOn = true;
 
     static list<bool*> openedWindows;
 
@@ -488,6 +489,9 @@ int app::Application::ApplicationMain() {
         showTooltip = false;
         openPopupForSaveNodes = true;
         };
+    HotkeyConfig::functionEnumToFunction[SHOW_AND_HIDE_TOOLTIP] = [&]() {
+        showTooltipSwitchOn = !showTooltipSwitchOn;
+        };
     HotkeyConfig::functionEnumToFunction[SEARCH_DOWNWARD] = [&]() {
         if (selected_class_scope > -1) {
             showTooltip = false;
@@ -546,7 +550,7 @@ int app::Application::ApplicationMain() {
     static string tip;
     boundedGraph->showTooltip = [&](string& s) {
         tip = s;
-        showTooltip = true;
+        showTooltip = showTooltipSwitchOn;
         };
     boundedGraph->hideTooltip = [&]() {
         showTooltip = false;

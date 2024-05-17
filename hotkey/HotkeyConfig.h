@@ -122,6 +122,7 @@ enum HotkeyFunction {
     UNGROUP_ALL_NODE,
     SEARCH_UPWARD,
     SEARCH_DOWNWARD,
+    SHOW_AND_HIDE_TOOLTIP,
 };
 
 enum ClickStyle {

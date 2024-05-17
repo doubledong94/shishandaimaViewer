@@ -118,6 +118,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {UNGROUP_ALL_NODE, "ungroup all nodes", 0xff390501,SINGLE_CLICK},
     // style
     {SHOW_AND_HIDE_TEXT, "show and hide text", 0xffff3a03,SINGLE_CLICK},
+    {SHOW_AND_HIDE_TOOLTIP, "show and hide tooltip", 0xffff2d03,SINGLE_CLICK},
     {INCREASE_NODE_TEXT_SIZE, "increase node text size", 0xffff663a,SINGLE_CLICK},
     {DECREASE_NODE_TEXT_SIZE, "decrease node text size", 0xffff653a,SINGLE_CLICK},
     {INCREASE_GUI_TEXT_SIZE, "increase GUI text size", 0xffff6601,SINGLE_CLICK},
@@ -227,6 +228,7 @@ void HotkeyConfig::init() {
     hotkeyMap[SELECT_BY_COMPONENT]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByComponent();
     hotkeyMap[FLOW_COLOR_MAP]->functionName = StringRes::singleton->getHotKeyTitle_ColorNodeByFlow();
     hotkeyMap[CLEAR_ALL_COLOR]->functionName = StringRes::singleton->getHotKeyTitle_ClearAllNodeColor();
+    hotkeyMap[SHOW_AND_HIDE_TOOLTIP]->functionName = StringRes::singleton->getHotKeyTitle_ShowAndHideTooltip();
     hotkeyMap[FIX_POSITION]->functionName = StringRes::singleton->getHotKeyTitle_FixedPositionOfSelected();
     hotkeyMap[RELEASE_POSITION]->functionName = StringRes::singleton->getHotKeyTitle_unFixedPositionOfSelected();
     hotkeyMap[SET_COLOR]->functionName = StringRes::singleton->getHotKeyTitle_ChooseColorForSelectedNode();

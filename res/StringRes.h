@@ -64,6 +64,7 @@ public:
     virtual char* getHotKeyTitle_SelectedNodeAlphaDecr() { return NULL; };
     virtual char* getHotKeyTitle_ColorNodeByFlow() { return NULL; };
     virtual char* getHotKeyTitle_ClearAllNodeColor() { return NULL; };
+    virtual char* getHotKeyTitle_ShowAndHideTooltip() { return NULL; };
     virtual char* getHotKeyTitle_ChooseColorForSelectedNode() { return NULL; };
     virtual char* getHotKeyTitle_NodeTextOnAndOff() { return NULL; };
     virtual char* getHotKeyTitle_NodeTextSizeIncr() { return NULL; };
@@ -144,6 +145,7 @@ private:
     string hotKeyTitle_SelectedNodeAlphaDecr = "选中的节点透明度－";
     string hotKeyTitle_ColorNodeByFlow = "给所有节点自动上色";
     string hotKeyTitle_ClearAllNodeColor = "清除所有未选中的节点颜色";
+    string hotKeyTitle_ShowAndHideTooltip = "显示隐藏节点详细信息";
     string hotKeyTitle_ChooseColorForSelectedNode = "给选中的节点选择颜色";
     string hotKeyTitle_NodeTextSizeIncr = "节点文字变大";
     string hotKeyTitle_NodeTextSizeDecr = "节点文字变小";
@@ -221,6 +223,7 @@ public:
     char* getHotKeyTitle_SelectedNodeAlphaDecr() override;
     char* getHotKeyTitle_ColorNodeByFlow() override;
     char* getHotKeyTitle_ClearAllNodeColor() override;
+    char* getHotKeyTitle_ShowAndHideTooltip() override;
     char* getHotKeyTitle_ChooseColorForSelectedNode() override;
     char* getHotKeyTitle_NodeTextOnAndOff() override;
     char* getHotKeyTitle_NodeTextSizeIncr() override;
@@ -300,6 +303,7 @@ private:
     string hotKeyTitle_SelectedNodeAlphaDecr = "选中的节点透明度－";
     string hotKeyTitle_ColorNodeByFlow = "给所有节点自动上色";
     string hotKeyTitle_ClearAllNodeColor = "清除所有未选中的节点颜色";
+    string hotKeyTitle_ShowAndHideTooltip = "显示隐藏节点详细信息";
     string hotKeyTitle_ChooseColorForSelectedNode = "给选中的节点选择颜色";
     string hotKeyTitle_NodeTextSizeIncr = "节点文字变大";
     string hotKeyTitle_NodeTextSizeDecr = "节点文字变小";
@@ -377,6 +381,7 @@ public:
     char* getHotKeyTitle_SelectedNodeAlphaDecr() override;
     char* getHotKeyTitle_ColorNodeByFlow() override;
     char* getHotKeyTitle_ClearAllNodeColor() override;
+    char* getHotKeyTitle_ShowAndHideTooltip() override;
     char* getHotKeyTitle_ChooseColorForSelectedNode() override;
     char* getHotKeyTitle_NodeTextOnAndOff() override;
     char* getHotKeyTitle_NodeTextSizeIncr() override;
