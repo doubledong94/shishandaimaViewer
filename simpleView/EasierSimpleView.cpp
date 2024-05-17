@@ -2190,6 +2190,7 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
     Term* nextPoint = Tail::getInstanceByElements({ nextMethodKeyTerm, nextKeyTerm });
     Term* outputAddressableKey = Term::getVar("OutputAddressableKey");
     Term* outputKeyType = Term::getVar("OutputKeyType");
+    Term* nodeValNameTerm = Term::getStr(node->innerValName);
     vector<Term*> ruleBody;
     int intersectionIndex = lineInstance->findIntersectionIndexByChar(regexChar[0]);
     bool isIntersection = intersectionIndex > -1;
@@ -2201,9 +2202,11 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
             // consuming intersection point
             ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
             ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
+            // check by node inner name
+            ruleBody.push_back(CompoundTerm::getResolveRuntimeCheckTerm(nodeValNameTerm, classScopeTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
         } else {
             // no specified value, generate with node val name
-            ruleBody.push_back(CompoundTerm::getResolveRuntimeTerm(Term::getStr(node->innerValName), classScopeTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
+            ruleBody.push_back(CompoundTerm::getResolveRuntimeTerm(nodeValNameTerm, classScopeTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
         }
     } else {
         // split point value is specified, the consuming(unification) is done by HalfLineTerm
