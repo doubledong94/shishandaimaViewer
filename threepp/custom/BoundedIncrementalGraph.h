@@ -247,9 +247,11 @@ public:
 
     void ungroupAllNodes();
 
+    void removeCircle();
+
     void transitiveReduction();
 
-    void removeEdge(int src, int dst);
+    void transitiveReductionImpl();
 
     list<pair<string, string>> getSelectedKey();
 
@@ -284,6 +286,7 @@ public:
     // 1 for remove selected node
     // 2 for remove unselected node
     int removeNodeType = 0;
+    bool shouldTransitiveReduction = false;
     int lastClickedNodeId = -1;
     bool nodeClickedForTheFirstTime = true;
 

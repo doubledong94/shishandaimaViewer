@@ -520,6 +520,10 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
                 removeSelectedNodesImpl();
                 removeNodeType = 0;
             }
+            if (shouldTransitiveReduction) {
+                transitiveReductionImpl();
+                shouldTransitiveReduction = false;
+            }
             for (auto& group : groups) {
                 for (int i : group) {
                     MATRIX(*layoutMatrix, i, 0) = points[i].x;
@@ -1822,31 +1826,53 @@ void BoundedIncrementalGraph::ungroupAllNodes() {
     layoutAnimating = true;
 }
 
+void BoundedIncrementalGraph::removeCircle() {
+    igraph_vector_int_t feedbackArcs;
+    igraph_vector_int_init(&feedbackArcs, 0);
+    igraph_feedback_arc_set(theOriginalGraph, &feedbackArcs, NULL, IGRAPH_FAS_APPROX_EADES);
+    igraph_es_t es;
+    igraph_es_vector(&es, &feedbackArcs);
+    igraph_delete_edges(theOriginalGraph, es);
+}
+
 void BoundedIncrementalGraph::transitiveReduction() {
+    shouldTransitiveReduction = true;
+    layoutAnimating = true;
+}
+
+void BoundedIncrementalGraph::transitiveReductionImpl() {
+    removeCircle();
     prepareDistance();
     list<pair<int, int>> toBeRemovedEdges;
     for (int nodeId = 0; nodeId < nodesOrderedByNodeId.size();nodeId++) {
         igraph_vector_int_t nextIds;
         igraph_vector_int_init(&nextIds, 0);
         igraph_neighbors(theOriginalGraph, &nextIds, nodeId, IGRAPH_OUT);
-        for (int nextIdIndex = 0; nextIdIndex < igraph_vector_int_size(&nextIds); nextIdIndex++) {
-            igraph_integer_t nextId = VECTOR(nextIds)[nextIdIndex];
-            for (int reachableNodeId = 0; reachableNodeId < nodesOrderedByNodeId.size();reachableNodeId++) {
+        for (int i = 0; i < igraph_vector_int_size(&nextIds); i++) {
+            igraph_integer_t nextId = VECTOR(nextIds)[i];
+            for (int j = 0; j < igraph_vector_int_size(&nextIds); j++) {
+                igraph_integer_t reachableNodeId = VECTOR(nextIds)[j];
                 if (reachableNodeId != nodeId and reachableNodeId != nextId and
                     not std::isinf(MATRIX(distance.data, nextId, reachableNodeId))) {
-                    igraph_bool_t conn;
-                    igraph_are_connected(theOriginalGraph, nodeId, reachableNodeId, &conn);
-                    if (conn) {
-                        toBeRemovedEdges.push_back({ nodeId,reachableNodeId });
-                    }
+                    toBeRemovedEdges.push_back({ nodeId,reachableNodeId });
                 }
             }
         }
         igraph_vector_int_destroy(&nextIds);
     }
+    igraph_integer_t edgesArray[toBeRemovedEdges.size() * 2];
+    int i = 0;
     for (auto& edge : toBeRemovedEdges) {
-        removeEdge(edge.first, edge.second);
+        edgesArray[i * 2] = edge.first;
+        edgesArray[i * 2 + 1] = edge.second;
+        i++;
     }
+    igraph_vector_int_t toBeRemovedEdges_;
+    igraph_vector_int_view(&toBeRemovedEdges_, edgesArray, toBeRemovedEdges.size() * 2);
+    igraph_es_t es;
+    igraph_es_pairs(&es, &toBeRemovedEdges_, true);
+    igraph_delete_edges(theOriginalGraph, es);
+
     // get edge list
     edgePairs.clear();
     igraph_vector_int_t result_edges;
@@ -1861,11 +1887,5 @@ void BoundedIncrementalGraph::transitiveReduction() {
     weights = new igraph_vector_t();
     igraph_vector_init(weights, igraph_ecount(theOriginalGraph));
     igraph_vector_fill(weights, 1);
-    layoutAnimating = true;
-}
-
-void BoundedIncrementalGraph::removeEdge(int src, int dst) {
-    igraph_integer_t eid;
-    igraph_get_eid(theOriginalGraph, &eid, src, dst, IGRAPH_DIRECTED, 0);
-    igraph_delete_edges(theOriginalGraph, igraph_ess_1(eid));
+    invalidateAllGraphInfo();
 }
