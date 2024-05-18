@@ -27,6 +27,7 @@ public:
     virtual char* getHotKeyTitle_startSearch() { return NULL; };
     virtual char* getHotKeyTitle_deleteNode() { return NULL; };
     virtual char* getHotKeyTitle_deleteAllNode() { return NULL; };
+    virtual char* getHotKeyTitle_transitiveReduction() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByPosition() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByKeyType() { return NULL; };
     virtual char* getHotKeyTitle_selectAllNode() { return NULL; };
@@ -93,7 +94,7 @@ private:
 
     string hotKeyTitle_cate_prepare1 = "准备1";
     string hotKeyTitle_cate_prepare2 = "准备2";
-    string hotKeyTitle_cate_add_and_delete_node = "添加删除节点";
+    string hotKeyTitle_cate_add_and_delete_node = "添加删除节点和边";
     string hotKeyTitle_cate_select_node = "选择节点";
     string hotKeyTitle_cate_layout = "布局";
     string hotKeyTitle_cate_style = "样式";
@@ -108,6 +109,7 @@ private:
     string hotKeyTitle_startSearch = "开始搜索（添加节点）";
     string hotKeyTitle_deleteNode = "删除选中的节点";
     string hotKeyTitle_deleteAllNode = "删除所有未选中的节点";
+    string hotKeyTitle_transitiveReduction = "Transitive Reduction";
     string hotKeyTitle_selectNodeByPosition = "按照在line中的位置选择节点";
     string hotKeyTitle_selectByKeyType = "按照节点类型选择";
     string hotKeyTitle_selectAllNode = "选择所有节点";
@@ -186,6 +188,7 @@ public:
     char* getHotKeyTitle_startSearch() override;
     char* getHotKeyTitle_deleteNode() override;
     char* getHotKeyTitle_deleteAllNode() override;
+    char* getHotKeyTitle_transitiveReduction() override;
     char* getHotKeyTitle_selectNodeByPosition() override;
     char* getHotKeyTitle_selectNodeByKeyType() override;
     char* getHotKeyTitle_selectAllNode() override;
@@ -251,7 +254,7 @@ private:
 
     string hotKeyTitle_cate_prepare1 = "准备1";
     string hotKeyTitle_cate_prepare2 = "准备2";
-    string hotKeyTitle_cate_add_and_delete_node = "添加删除节点";
+    string hotKeyTitle_cate_add_and_delete_node = "添加删除节点和边";
     string hotKeyTitle_cate_select_node = "选择节点";
     string hotKeyTitle_cate_layout = "布局";
     string hotKeyTitle_cate_style = "样式";
@@ -266,6 +269,7 @@ private:
     string hotKeyTitle_startSearch = "开始搜索（添加节点）";
     string hotKeyTitle_deleteNode = "删除选中的节点";
     string hotKeyTitle_deleteAllNode = "删除所有未选中的节点";
+    string hotKeyTitle_transitiveReduction = "Transitive Reduction";
     string hotKeyTitle_selectNodeByPosition = "按照在line中的位置选择节点";
     string hotKeyTitle_selectByKeyType = "按照节点类型选择";
     string hotKeyTitle_selectAllNode = "选择所有节点";
@@ -344,6 +348,7 @@ public:
     char* getHotKeyTitle_startSearch() override;
     char* getHotKeyTitle_deleteNode() override;
     char* getHotKeyTitle_deleteAllNode() override;
+    char* getHotKeyTitle_transitiveReduction() override;
     char* getHotKeyTitle_selectNodeByPosition() override;
     char* getHotKeyTitle_selectNodeByKeyType() override;
     char* getHotKeyTitle_selectAllNode() override;

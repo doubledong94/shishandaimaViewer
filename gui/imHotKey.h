@@ -244,19 +244,19 @@ namespace ImHotKey {
                 if (i == 6) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_add_and_delete_node());
                 }
-                if (i == 9) {
+                if (i == 10) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_select_node());
                 }
-                if (i == 22) {
+                if (i == 23) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_layout());
                 }
-                if (i == 36) {
+                if (i == 37) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_style());
                 }
-                if (i == 53) {
+                if (i == 54) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_explore());
                 }
-                if (i == 55) {
+                if (i == 56) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_next_round());
                 }
                 addHotKeySelectable(hotkey[i], i);

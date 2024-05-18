@@ -1821,3 +1821,51 @@ void BoundedIncrementalGraph::ungroupAllNodes() {
     }
     layoutAnimating = true;
 }
+
+void BoundedIncrementalGraph::transitiveReduction() {
+    prepareDistance();
+    list<pair<int, int>> toBeRemovedEdges;
+    for (int nodeId = 0; nodeId < nodesOrderedByNodeId.size();nodeId++) {
+        igraph_vector_int_t nextIds;
+        igraph_vector_int_init(&nextIds, 0);
+        igraph_neighbors(theOriginalGraph, &nextIds, nodeId, IGRAPH_OUT);
+        for (int nextIdIndex = 0; nextIdIndex < igraph_vector_int_size(&nextIds); nextIdIndex++) {
+            igraph_integer_t nextId = VECTOR(nextIds)[nextIdIndex];
+            for (int reachableNodeId = 0; reachableNodeId < nodesOrderedByNodeId.size();reachableNodeId++) {
+                if (reachableNodeId != nodeId and reachableNodeId != nextId and
+                    not std::isinf(MATRIX(distance.data, nextId, reachableNodeId))) {
+                    igraph_bool_t conn;
+                    igraph_are_connected(theOriginalGraph, nodeId, reachableNodeId, &conn);
+                    if (conn) {
+                        toBeRemovedEdges.push_back({ nodeId,reachableNodeId });
+                    }
+                }
+            }
+        }
+        igraph_vector_int_destroy(&nextIds);
+    }
+    for (auto& edge : toBeRemovedEdges) {
+        removeEdge(edge.first, edge.second);
+    }
+    // get edge list
+    edgePairs.clear();
+    igraph_vector_int_t result_edges;
+    igraph_vector_int_init(&result_edges, 0);
+    igraph_get_edgelist(theOriginalGraph, &result_edges, 0);
+    for (int i = 0; i < igraph_vector_int_size(&result_edges); i += 2) {
+        igraph_integer_t source = VECTOR(result_edges)[i];
+        igraph_integer_t target = VECTOR(result_edges)[i + 1];
+        edgePairs.push_back({ source,target });
+    }
+    // recreate weights
+    weights = new igraph_vector_t();
+    igraph_vector_init(weights, igraph_ecount(theOriginalGraph));
+    igraph_vector_fill(weights, 1);
+    layoutAnimating = true;
+}
+
+void BoundedIncrementalGraph::removeEdge(int src, int dst) {
+    igraph_integer_t eid;
+    igraph_get_eid(theOriginalGraph, &eid, src, dst, IGRAPH_DIRECTED, 0);
+    igraph_delete_edges(theOriginalGraph, igraph_ess_1(eid));
+}

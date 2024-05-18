@@ -123,6 +123,7 @@ enum HotkeyFunction {
     SEARCH_UPWARD,
     SEARCH_DOWNWARD,
     SHOW_AND_HIDE_TOOLTIP,
+    TRANSITIVE_REDUCTION,
 };
 
 enum ClickStyle {

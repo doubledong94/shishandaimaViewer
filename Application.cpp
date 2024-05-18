@@ -520,6 +520,9 @@ int app::Application::ApplicationMain() {
             }
         }
         };
+    HotkeyConfig::functionEnumToFunction[TRANSITIVE_REDUCTION] = [&]() {
+        boundedGraph->transitiveReduction();
+    };
 
     canvas.onWindowResize([&](WindowSize size) {
         camera->aspect = size.aspect();

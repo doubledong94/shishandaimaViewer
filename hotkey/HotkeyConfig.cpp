@@ -87,6 +87,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {START_SEARCHING,"start searching",0xffff3601,SINGLE_CLICK},
     {REMOVE_SELECTED_NODES, "remove selected node", 0xffff6e01,SINGLE_CLICK},
     {REMOVE_ALL_NODES, "remove all node", 0xff6e0501,SINGLE_CLICK},
+    {TRANSITIVE_REDUCTION, "transitive reduction", 0xffff2c01,SINGLE_CLICK},
     // select node
     {SELECT_ALL_NODE, "select all node", 0xffff3301,SINGLE_CLICK},
     {UNSELECT_ALL, "unselect all node", 0xffffff3e,SINGLE_CLICK},
@@ -218,6 +219,7 @@ void HotkeyConfig::init() {
     hotkeyMap[UNSELECT_ALL]->functionName = StringRes::singleton->getHotKeyTitle_unselectAllNode();
     hotkeyMap[REMOVE_SELECTED_NODES]->functionName = StringRes::singleton->getHotKeyTitle_deleteNode();
     hotkeyMap[REMOVE_ALL_NODES]->functionName = StringRes::singleton->getHotKeyTitle_deleteAllNode();
+    hotkeyMap[TRANSITIVE_REDUCTION]->functionName = StringRes::singleton->getHotKeyTitle_transitiveReduction();
     hotkeyMap[SELECT_UPWARD]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeUpward();
     hotkeyMap[SELECT_DOWNWARD]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeDownward();
     hotkeyMap[REVERSE_SELECT]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeBackward();

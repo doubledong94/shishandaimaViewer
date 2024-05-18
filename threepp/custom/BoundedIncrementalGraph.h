@@ -247,6 +247,10 @@ public:
 
     void ungroupAllNodes();
 
+    void transitiveReduction();
+
+    void removeEdge(int src, int dst);
+
     list<pair<string, string>> getSelectedKey();
 
     list<tuple<string, string, string, int>> getSelectedRuntime();
