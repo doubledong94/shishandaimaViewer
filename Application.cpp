@@ -428,7 +428,9 @@ int app::Application::ApplicationMain() {
         selectByComponentPopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_GROUP] = [&]() {
-        boundedGraph->prepareGroup();
+        boundedGraph->clearEmptyGroup(boundedGraph->groups);
+        boundedGraph->clearEmptyGroup(boundedGraph->xCoordFixed);
+        boundedGraph->clearEmptyGroup(boundedGraph->yCoordFixed);
         showTooltip = false;
         selectByGroupPopupOpen = true;
         };
@@ -477,13 +479,13 @@ int app::Application::ApplicationMain() {
         boundedGraph->resetWeight();
         };
     HotkeyConfig::functionEnumToFunction[GROUP] = [&]() {
-        boundedGraph->groupSelectedNodes();
+        boundedGraph->groupSelectedNodes(boundedGraph->groups);
         };
     HotkeyConfig::functionEnumToFunction[UNGROUP] = [&]() {
-        boundedGraph->ungroupSelectedNodes();
+        boundedGraph->ungroupSelectedNodes(boundedGraph->groups);
         };
     HotkeyConfig::functionEnumToFunction[UNGROUP_ALL_NODE] = [&]() {
-        boundedGraph->ungroupAllNodes();
+        boundedGraph->ungroupAllNodes(boundedGraph->groups);
         };
     HotkeyConfig::functionEnumToFunction[SAVE_SELECTED_NODE] = [&]() {
         showTooltip = false;
@@ -522,6 +524,24 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[TRANSITIVE_REDUCTION] = [&]() {
         boundedGraph->transitiveReduction();
+    };
+    HotkeyConfig::functionEnumToFunction[FIX_X_COORD] = [&]() {
+        boundedGraph->groupSelectedNodes(boundedGraph->xCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[RELEASE_X_COORD] = [&]() {
+        boundedGraph->ungroupSelectedNodes(boundedGraph->xCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[RELEASE_ALL_X_COORD] = [&]() {
+        boundedGraph->ungroupAllNodes(boundedGraph->xCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[FIX_Y_COORD] = [&]() {
+        boundedGraph->groupSelectedNodes(boundedGraph->yCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[RELEASE_Y_COORD] = [&]() {
+        boundedGraph->ungroupSelectedNodes(boundedGraph->yCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[RELEASE_ALL_Y_COORD] = [&]() {
+        boundedGraph->ungroupAllNodes(boundedGraph->yCoordFixed);
     };
 
     canvas.onWindowResize([&](WindowSize size) {
@@ -715,10 +735,23 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByGroupPopupOpen")) {
             ImGui::SeparatorText("select by group");
-            for (int i = 0;i < boundedGraph->groups.size();i++) {
+            int i = 0;
+            for (;i < boundedGraph->groups.size();i++) {
                 string s = to_string(i) + "  [" + to_string(boundedGraph->groups[i].size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(boundedGraph->groups[i]);
+                }
+            }
+            for (;i < boundedGraph->xCoordFixed.size();i++) {
+                string s = to_string(i) + "  [" + to_string(boundedGraph->xCoordFixed[i].size()) + "]";
+                if (ImGui::Selectable(s.data())) {
+                    boundedGraph->select(boundedGraph->xCoordFixed[i]);
+                }
+            }
+            for (;i < boundedGraph->yCoordFixed.size();i++) {
+                string s = to_string(i) + "  [" + to_string(boundedGraph->yCoordFixed[i].size()) + "]";
+                if (ImGui::Selectable(s.data())) {
+                    boundedGraph->select(boundedGraph->yCoordFixed[i]);
                 }
             }
             ImGui::EndPopup();

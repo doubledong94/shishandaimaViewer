@@ -72,13 +72,17 @@ public:
     set<int> textLoaded;
     set<int> textAdded;
     vector<set<int>> groups;
+    vector<set<int>> xCoordFixed;
+    vector<set<int>> yCoordFixed;
     vector<std::shared_ptr<threepp::Mesh>> textMesh;
     threepp::Font font;
     void updateGraph();
     void reCreateLayout(int nodeCount, bool is2D, bool dimensionChanged = false, igraph_vector_int_t* mapFromNewToOldNodeId = NULL);
     void updateAnim(threepp::Camera& camera);
 
-    void alterPosByGroup();
+    bool updatePosByGroup(vector<set<int>>& groups, int which);
+
+    void applyPosByGroup(vector<set<int>>& groups);
 
     void set2DLayout(bool use2DLayout);
 
@@ -137,7 +141,11 @@ public:
 
     void onDrag(set<int>& ids, float deltaX, float deltaY, float deltaZ);
 
-    void getGroupIfGrouped(int id, set<int>& ids);
+    void onDragX(set<int>& ids, float deltaX);
+
+    void onDragY(set<int>& ids, float deltaY);
+
+    void getGroupIfGrouped(int id, set<int>& ids, vector<set<int>>& groups);
 
     void onNodeColorChanged();
 
@@ -179,7 +187,7 @@ public:
 
     void prepareComponent();
 
-    void prepareGroup();
+    void clearEmptyGroup(vector<set<int>>& groups);
 
     void flowColor();
 
@@ -207,7 +215,7 @@ public:
 
     void mapNodeInfoForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId);
 
-    void mapGroupForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId);
+    void mapGroupForDeletion(vector<set<int>>& groups, igraph_vector_int_t* mapFromNewToOldNodeId);
 
     void mapNodeIdFromOldToNew(set<int>& oldIds, igraph_vector_int_t* mapFromOldToNewNodeId);
 
@@ -241,11 +249,11 @@ public:
 
     void resetWeight();
 
-    void groupSelectedNodes();
+    void groupSelectedNodes(vector<set<int>>& groups);
 
-    void ungroupSelectedNodes();
+    void ungroupSelectedNodes(vector<set<int>>& groups);
 
-    void ungroupAllNodes();
+    void ungroupAllNodes(vector<set<int>>& groups);
 
     void removeCircle();
 

@@ -119,6 +119,8 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     threepp::Vector3 dragEnd;
     threepp::Vector3 dragDelta;
     set<int> draggingGroup;
+    set<int> draggingGroupX;
+    set<int> draggingGroupY;
 
     GraphDragNodeMouseListener(BoundedIncrementalGraph* scope, threepp::Camera* camera) {
         this->scope = scope;
@@ -138,7 +140,9 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
         bool is2D = scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D or scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D_UNFINISHED;
         if (not clickedItem.empty()) {
             int draggingItemId = clickedItem.front().instanceId.value();
-            scope->getGroupIfGrouped(draggingItemId, draggingGroup);
+            scope->getGroupIfGrouped(draggingItemId, draggingGroup, scope->groups);
+            scope->getGroupIfGrouped(draggingItemId, draggingGroupX, scope->xCoordFixed);
+            scope->getGroupIfGrouped(draggingItemId, draggingGroupY, scope->yCoordFixed);
             if (is2D) {
                 scope->twoDControls->enabled = false;
             } else {
@@ -153,6 +157,8 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
             plane.set(dir, distance);
         } else {
             draggingGroup.clear();
+            draggingGroupX.clear();
+            draggingGroupY.clear();
             if (is2D) {
                 scope->twoDControls->enabled = true;
             } else {
@@ -165,6 +171,8 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
 
     void onMouseUp(int button, const threepp::Vector2& pos) override {
         draggingGroup.clear();
+        draggingGroupX.clear();
+        draggingGroupY.clear();
         bool is2D = scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D or scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D_UNFINISHED;
         if (is2D) {
             scope->twoDControls->enabled = true;
@@ -175,7 +183,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseMove(const threepp::Vector2& pos) override {
-        if (not draggingGroup.empty() and dragConsumed) {
+        if (not (draggingGroup.empty() and draggingGroupX.empty() and draggingGroupY.empty()) and dragConsumed) {
             auto size = scope->canvas->size();
             threepp::Vector2 moveMouse{ -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
             moveMouse.x = (pos.x / static_cast<float>(size.width)) * 2 - 1;
@@ -190,6 +198,14 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void reactOnMouseEvent() override {
+        if (draggingGroupX.size() > 1 and not dragConsumed) {
+            scope->onDragX(draggingGroupX, dragDelta.x);
+            dragConsumed = true;
+        }
+        if (draggingGroupY.size() > 1 and not dragConsumed) {
+            scope->onDragY(draggingGroupY, dragDelta.y);
+            dragConsumed = true;
+        }
         if (not draggingGroup.empty() and not dragConsumed) {
             scope->onDrag(draggingGroup, dragDelta.x, dragDelta.y, dragDelta.z);
             dragConsumed = true;
@@ -524,15 +540,9 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
                 transitiveReductionImpl();
                 shouldTransitiveReduction = false;
             }
-            for (auto& group : groups) {
-                for (int i : group) {
-                    MATRIX(*layoutMatrix, i, 0) = points[i].x;
-                    MATRIX(*layoutMatrix, i, 1) = points[i].y;
-                    if (not is2D) {
-                        MATRIX(*layoutMatrix, i, 2) = points[i].z;
-                    }
-                }
-            }
+            applyPosByGroup(groups);
+            applyPosByGroup(xCoordFixed);
+            applyPosByGroup(yCoordFixed);
             // return sentence must not appear before unlock
             if (nodesOrderedByNodeId.empty()) {
                 nodesObj->setPointPositions({});
@@ -560,19 +570,29 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
         graphGenerateAndConsumeLock.lock();
         if (layoutState == LAYOUT_STATE_2D) {
             for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
-                if (not dragMouseListener->draggingGroup.count(node_id_iter)) {
+                if (not (dragMouseListener->draggingGroup.count(node_id_iter) or
+                    dragMouseListener->draggingGroupX.count(node_id_iter) or
+                    dragMouseListener->draggingGroupY.count(node_id_iter))) {
                     points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), 0);
                 }
             }
         }
         if (layoutState == LAYOUT_STATE_3D) {
             for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
-                if (not dragMouseListener->draggingGroup.count(node_id_iter)) {
+                if (not (dragMouseListener->draggingGroup.count(node_id_iter) or
+                    dragMouseListener->draggingGroupX.count(node_id_iter) or
+                    dragMouseListener->draggingGroupY.count(node_id_iter))) {
                     points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), MATRIX(*layoutMatrix, node_id_iter, 2));
                 }
             }
         }
-        alterPosByGroup();
+        bool groupAnimating = false;
+        groupAnimating |= updatePosByGroup(groups, 0);
+        groupAnimating |= updatePosByGroup(xCoordFixed, 1);
+        groupAnimating |= updatePosByGroup(yCoordFixed, 2);
+        if (groupAnimating) {
+            resetLayoutBound(layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED);
+        }
         bool nodeCountChanged = nodesObj->setPointPositions(points);
         if (nodeCountChanged) {
             onNodeColorChanged();
@@ -593,7 +613,11 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     graphGenerateAndConsumeLock.unlock();
 }
 
-void BoundedIncrementalGraph::alterPosByGroup() {
+// 0 for groups
+// 1 for x fixed
+// 2 for y fixed
+bool BoundedIncrementalGraph::updatePosByGroup(vector<set<int>>& groups, int which) {
+    bool animating = false;
     for (auto& group : groups) {
         if (group.empty()) {
             continue;
@@ -606,8 +630,69 @@ void BoundedIncrementalGraph::alterPosByGroup() {
         for (int i : group) {
             threepp::Vector3 dir;
             dir.subVectors(middlePos, points[i]).divideScalar(2);
-            if (not dragMouseListener->draggingGroup.count(i)) {
-                points[i].add(dir);
+            if (which == 0) {
+                if (not dragMouseListener->draggingGroup.count(i)) {
+                    points[i].add(dir);
+                    animating |= dir.length() > 0.0001;
+                }
+            }
+            if (which == 1) {
+                if (not dragMouseListener->draggingGroupX.count(i)) {
+                    points[i].x += dir.x;
+                    animating |= dir.x > 0.0001;
+                    igraph_vector_int_t neighbors;
+                    igraph_vector_int_init(&neighbors, 0);
+                    igraph_neighbors(theOriginalGraph, &neighbors, i, IGRAPH_ALL);
+                    if (igraph_vector_int_size(&neighbors)) {
+                        float posY = 0;
+                        float posZ = 0;
+                        for (int index = 0; index < igraph_vector_int_size(&neighbors); ++index) {
+                            posY += points[VECTOR(neighbors)[index]].y;
+                            posZ += points[VECTOR(neighbors)[index]].z;
+                        }
+                        posY /= igraph_vector_int_size(&neighbors);
+                        posZ /= igraph_vector_int_size(&neighbors);
+                        points[i].y = posY;
+                        points[i].z = posZ;
+                    }
+                    igraph_vector_int_destroy(&neighbors);
+                }
+            }
+            if (which == 2) {
+                if (not dragMouseListener->draggingGroupY.count(i)) {
+                    points[i].y += dir.y;
+                    animating |= dir.y > 0.0001;
+                    igraph_vector_int_t neighbors;
+                    igraph_vector_int_init(&neighbors, 0);
+                    igraph_neighbors(theOriginalGraph, &neighbors, i, IGRAPH_ALL);
+                    if (igraph_vector_int_size(&neighbors)) {
+                        float posX = 0;
+                        float posZ = 0;
+                        for (int index = 0; index < igraph_vector_int_size(&neighbors); ++index) {
+                            posX += points[VECTOR(neighbors)[index]].x;
+                            posZ += points[VECTOR(neighbors)[index]].z;
+                        }
+                        posX /= igraph_vector_int_size(&neighbors);
+                        posZ /= igraph_vector_int_size(&neighbors);
+                        points[i].x = posX;
+                        points[i].z = posZ;
+                    }
+                    igraph_vector_int_destroy(&neighbors);
+                }
+            }
+        }
+    }
+    return animating;
+}
+
+void BoundedIncrementalGraph::applyPosByGroup(vector<set<int>>& groups) {
+    bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
+    for (auto& group : groups) {
+        for (int i : group) {
+            MATRIX(*layoutMatrix, i, 0) = points[i].x;
+            MATRIX(*layoutMatrix, i, 1) = points[i].y;
+            if (not is2D) {
+                MATRIX(*layoutMatrix, i, 2) = points[i].z;
             }
         }
     }
@@ -744,8 +829,8 @@ void BoundedIncrementalGraph::startFlowFrom(int nodeInstanceId) {
     igraph_vector_int_t neighbors;
     igraph_vector_int_init(&neighbors, 0);
     igraph_neighbors(theOriginalGraph, &neighbors, nodeInstanceId, IGRAPH_OUT);
-    for (int parentIndex = 0; parentIndex < igraph_vector_int_size(&neighbors); ++parentIndex) {
-        igraph_integer_t neighbor = VECTOR(neighbors)[parentIndex];
+    for (int index = 0; index < igraph_vector_int_size(&neighbors); index++) {
+        igraph_integer_t neighbor = VECTOR(neighbors)[index];
         if (nodesObj->selected.count(neighbor)) {
             linesObj->startFlowingEdge(nodeInstanceId, neighbor);
         }
@@ -815,6 +900,31 @@ void BoundedIncrementalGraph::resetLayoutBound(bool is2D) {
         float bound = i % 2 == 0 ? -std::numeric_limits<float>::infinity() : std::numeric_limits<float>::infinity();
         igraph_vector_fill(layoutBounds[i], bound);
     }
+    for (auto& group : groups) {
+        for (int i : group) {
+            auto& pos = points[i];
+            VECTOR(*layoutBounds[0])[i] = pos.x;
+            VECTOR(*layoutBounds[1])[i] = pos.x;
+            VECTOR(*layoutBounds[2])[i] = pos.y;
+            VECTOR(*layoutBounds[3])[i] = pos.y;
+            if (not is2D) {
+                VECTOR(*layoutBounds[4])[i] = pos.z;
+                VECTOR(*layoutBounds[5])[i] = pos.z;
+            }
+        }
+    }
+    for (auto& xFixGroup : xCoordFixed) {
+        for (int i : xFixGroup) {
+            VECTOR(*layoutBounds[0])[i] = points[i].x;
+            VECTOR(*layoutBounds[1])[i] = points[i].x;
+        }
+    }
+    for (auto& yFixGroup : yCoordFixed) {
+        for (int i : yFixGroup) {
+            VECTOR(*layoutBounds[2])[i] = points[i].y;
+            VECTOR(*layoutBounds[3])[i] = points[i].y;
+        }
+    }
     for (int i : nodesObj->positionFixed) {
         auto& pos = points[i];
         VECTOR(*layoutBounds[0])[i] = pos.x;
@@ -845,7 +955,23 @@ void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, 
     }
 }
 
-void BoundedIncrementalGraph::getGroupIfGrouped(int id, set<int>& ids) {
+void BoundedIncrementalGraph::onDragX(set<int>& ids, float deltaX) {
+    for (int id : ids) {
+        points[id].x += deltaX;
+        VECTOR(*layoutBounds[0])[id] = points[id].x;
+        VECTOR(*layoutBounds[1])[id] = points[id].x;
+    }
+}
+
+void BoundedIncrementalGraph::onDragY(set<int>& ids, float deltaY) {
+    for (int id : ids) {
+        points[id].y += deltaY;
+        VECTOR(*layoutBounds[2])[id] = points[id].y;
+        VECTOR(*layoutBounds[3])[id] = points[id].y;
+    }
+}
+
+void BoundedIncrementalGraph::getGroupIfGrouped(int id, set<int>& ids, vector<set<int>>& groups) {
     ids.clear();
     ids.insert(id);
     for (auto& group : groups) {
@@ -957,8 +1083,8 @@ void BoundedIncrementalGraph::lookUpForCommonAncestor(int i, int j, set<int>& vi
         igraph_vector_int_t neighbors;
         igraph_vector_int_init(&neighbors, 0);
         igraph_neighbors(theOriginalGraph, &neighbors, i, IGRAPH_IN);
-        for (int parentIndex = 0; parentIndex < igraph_vector_int_size(&neighbors); ++parentIndex) {
-            igraph_integer_t neighbor = VECTOR(neighbors)[parentIndex];
+        for (int index = 0; index < igraph_vector_int_size(&neighbors); index++) {
+            igraph_integer_t neighbor = VECTOR(neighbors)[index];
             if (visited.find(neighbor) == visited.end()) {
                 lookUpForCommonAncestor(neighbor, j, visited, path, selected);
             }
@@ -992,8 +1118,8 @@ void BoundedIncrementalGraph::lookDownForCommonChild(int i, int j, set<int>& vis
         igraph_vector_int_t neighbors;
         igraph_vector_int_init(&neighbors, 0);
         igraph_neighbors(theOriginalGraph, &neighbors, i, IGRAPH_OUT);
-        for (int childIndex = 0; childIndex < igraph_vector_int_size(&neighbors); ++childIndex) {
-            igraph_integer_t neighbor = VECTOR(neighbors)[childIndex];
+        for (int index = 0; index < igraph_vector_int_size(&neighbors); index++) {
+            igraph_integer_t neighbor = VECTOR(neighbors)[index];
             if (visited.find(neighbor) == visited.end()) {
                 lookDownForCommonChild(neighbor, j, visited, path, selected);
             }
@@ -1026,8 +1152,8 @@ void BoundedIncrementalGraph::lookEachOtherForPath(int i, int j, set<int>& visit
         igraph_vector_int_t neighbors;
         igraph_vector_int_init(&neighbors, 0);
         igraph_neighbors(theOriginalGraph, &neighbors, i, IGRAPH_OUT);
-        for (int childIndex = 0; childIndex < igraph_vector_int_size(&neighbors); ++childIndex) {
-            igraph_integer_t neighbor = VECTOR(neighbors)[childIndex];
+        for (int index = 0; index < igraph_vector_int_size(&neighbors); index++) {
+            igraph_integer_t neighbor = VECTOR(neighbors)[index];
             if (visited.find(neighbor) == visited.end()) {
                 lookEachOtherForPath(neighbor, j, visited, selected);
             }
@@ -1148,7 +1274,7 @@ void BoundedIncrementalGraph::prepareComponent() {
     }
 }
 
-void BoundedIncrementalGraph::prepareGroup() {
+void BoundedIncrementalGraph::clearEmptyGroup(vector<set<int>>& groups) {
     list<int> toBeRemoved;
     for (int i = 0;i < groups.size();i++) {
         if (groups[i].size() < 2) {
@@ -1219,6 +1345,16 @@ float BoundedIncrementalGraph::maxDistanceToBottom(int nodeId) {
 
 bool BoundedIncrementalGraph::isNodeGrouped(int nodeId) {
     for (auto& group : groups) {
+        if (group.size() > 1 and group.count(nodeId)) {
+            return true;
+        }
+    }
+    for (auto& group : xCoordFixed) {
+        if (group.size() > 1 and group.count(nodeId)) {
+            return true;
+        }
+    }
+    for (auto& group : yCoordFixed) {
         if (group.size() > 1 and group.count(nodeId)) {
             return true;
         }
@@ -1356,7 +1492,9 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     // update node id in node info
     // remove node info
     mapNodeInfoForDeletion(&mapFromNewToOldNodeId);
-    mapGroupForDeletion(&mapFromNewToOldNodeId);
+    mapGroupForDeletion(groups, &mapFromNewToOldNodeId);
+    mapGroupForDeletion(xCoordFixed, &mapFromNewToOldNodeId);
+    mapGroupForDeletion(yCoordFixed, &mapFromNewToOldNodeId);
 
     // save old node to edge
     map<int, map<int, int>> oldPointIDToOldEdge;
@@ -1428,7 +1566,7 @@ void BoundedIncrementalGraph::mapNodeInfoForDeletion(igraph_vector_int_t* mapFro
     textMesh = textMesh_left;
 }
 
-void BoundedIncrementalGraph::mapGroupForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId) {
+void BoundedIncrementalGraph::mapGroupForDeletion(vector<set<int>>& groups, igraph_vector_int_t* mapFromNewToOldNodeId) {
     vector<set<int>> groups_left;
     for (auto& group : groups) {
         set<int> group_left;
@@ -1779,9 +1917,13 @@ void BoundedIncrementalGraph::resetWeight() {
     layoutAnimating = true;
 }
 
-void BoundedIncrementalGraph::groupSelectedNodes() {
+void BoundedIncrementalGraph::groupSelectedNodes(vector<set<int>>& groups) {
     if (nodesObj->selected.size() < 2) {
         return;
+    }
+    // release selected position
+    for (int i : nodesObj->selected) {
+        nodesObj->positionFixed.erase(i);
     }
     set<int>* reusedGroup = NULL;
     for (auto& group : groups) {
@@ -1798,10 +1940,13 @@ void BoundedIncrementalGraph::groupSelectedNodes() {
         reusedGroup = &(groups.back());
     }
     reusedGroup->insert(nodesObj->selected.begin(), nodesObj->selected.end());
+    bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
+    resetLayoutBound(is2D);
+    onNodeColorChanged();
     layoutAnimating = true;
 }
 
-void BoundedIncrementalGraph::ungroupSelectedNodes() {
+void BoundedIncrementalGraph::ungroupSelectedNodes(vector<set<int>>& groups) {
     for (auto& group : groups) {
         for (int i : nodesObj->selected) {
             group.erase(i);
@@ -1810,10 +1955,13 @@ void BoundedIncrementalGraph::ungroupSelectedNodes() {
             group.clear();
         }
     }
+    bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
+    resetLayoutBound(is2D);
+    onNodeColorChanged();
     layoutAnimating = true;
 }
 
-void BoundedIncrementalGraph::ungroupAllNodes() {
+void BoundedIncrementalGraph::ungroupAllNodes(vector<set<int>>& groups) {
     for (auto& group : groups) {
         set<int> tobeUngrouped;
         for (auto i : group) {
@@ -1823,6 +1971,9 @@ void BoundedIncrementalGraph::ungroupAllNodes() {
         }
         FOR_EACH_ITEM(tobeUngrouped, group.erase(item););
     }
+    bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
+    resetLayoutBound(is2D);
+    onNodeColorChanged();
     layoutAnimating = true;
 }
 

@@ -111,6 +111,12 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {FIX_POSITION, "fix position", 0xffff3f01,SINGLE_CLICK},
     {RELEASE_POSITION, "unfix position", 0xffff3f03,SINGLE_CLICK},
     {UNFIX_ALL_NODE, "unfix all position", 0xff3f0501,SINGLE_CLICK},
+    {FIX_X_COORD, "fix x coord", 0xffff3d01,SINGLE_CLICK},
+    {RELEASE_X_COORD, "fix x coord", 0xffff3d03,SINGLE_CLICK},
+    {RELEASE_ALL_X_COORD, "fix x coord", 0xff3d0501,SINGLE_CLICK},
+    {FIX_Y_COORD, "fix y coord", 0xffff2e01,SINGLE_CLICK},
+    {RELEASE_Y_COORD, "fix y coord", 0xffff2e03,SINGLE_CLICK},
+    {RELEASE_ALL_Y_COORD, "fix y coord", 0xff2e0501,SINGLE_CLICK},
     {INCREASE_WEIGHT, "increase graph weight", 0xffff662a,SINGLE_CLICK},
     {DECREASE_WEIGHT, "decrease graph weight", 0xffff652a,SINGLE_CLICK},
     {RESET_WEIGHT, "reset graph weight", 0xff2a0501,SINGLE_CLICK},
@@ -128,10 +134,10 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SMALLER_NODE, "smaller node", 0xffff6531,SINGLE_CLICK},
     {WIDER_LINE, "wider line", 0xffff6630,SINGLE_CLICK},
     {THINNER_LINE, "thinner line", 0xffff6530,SINGLE_CLICK},
-    {INCREASE_ALPHA_FOR_SELECTED, "less transparency for selected", 0xffff6641,SINGLE_CLICK},
-    {DECREASE_ALPHA_FOR_SELECTED, "more transparency for selected", 0xffff6541,SINGLE_CLICK},
-    {INCREASE_ALPHA_FOR_UNSELECTED, "less transparency for unselected", 0xffff6642,SINGLE_CLICK},
-    {DECREASE_ALPHA_FOR_UNSELECTED, "more transparency for unselected", 0xffff6542,SINGLE_CLICK},
+    {INCREASE_ALPHA_FOR_UNSELECTED, "less transparency for unselected", 0xffff6641,SINGLE_CLICK},
+    {DECREASE_ALPHA_FOR_UNSELECTED, "more transparency for unselected", 0xffff6541,SINGLE_CLICK},
+    {INCREASE_ALPHA_FOR_SELECTED, "less transparency for selected", 0xffff6642,SINGLE_CLICK},
+    {DECREASE_ALPHA_FOR_SELECTED, "more transparency for selected", 0xffff6542,SINGLE_CLICK},
     {SET_COLOR, "set color", 0xffffff38,SINGLE_CLICK},
     {FLOW_COLOR_MAP, "color by flow", 0xffff3801,SINGLE_CLICK},
     {CLEAR_ALL_COLOR, "clear all color", 0xff380501,SINGLE_CLICK},
@@ -250,6 +256,12 @@ void HotkeyConfig::init() {
     hotkeyMap[UNGROUP_ALL_NODE]->functionName = StringRes::singleton->getHotKeyTitle_unGroupAllNode();
     hotkeyMap[SEARCH_UPWARD]->functionName = StringRes::singleton->getHotKeyTitle_searchUpward();
     hotkeyMap[SEARCH_DOWNWARD]->functionName = StringRes::singleton->getHotKeyTitle_searchDownward();
+    hotkeyMap[FIX_X_COORD]->functionName = StringRes::singleton->getHotKeyTitle_FixedXCoordOfSelected();
+    hotkeyMap[RELEASE_X_COORD]->functionName = StringRes::singleton->getHotKeyTitle_unFixedXCoordOfSelected();
+    hotkeyMap[RELEASE_ALL_X_COORD]->functionName = StringRes::singleton->getHotKeyTitle_unFixedXCoordOfAllNode();
+    hotkeyMap[FIX_Y_COORD]->functionName = StringRes::singleton->getHotKeyTitle_FixedYCoordOfSelected();
+    hotkeyMap[RELEASE_Y_COORD]->functionName = StringRes::singleton->getHotKeyTitle_unFixedYCoordOfOfSelected();
+    hotkeyMap[RELEASE_ALL_Y_COORD]->functionName = StringRes::singleton->getHotKeyTitle_unFixedYCoordOfOfAllNode();
 }
 
 void HotkeyConfig::saveHotkeyConfig(const string& filePath) {

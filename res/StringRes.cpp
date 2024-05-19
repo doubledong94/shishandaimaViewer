@@ -101,6 +101,12 @@ char* ChineseStringRes::getHotKeyTitle_LayoutTempDecr() { return hotKeyTitle_Lay
 char* ChineseStringRes::getHotKeyTitle_FixedPositionOfSelected() { return hotKeyTitle_FixedPositionOfSelected.data(); }
 char* ChineseStringRes::getHotKeyTitle_unFixedPositionOfSelected() { return hotKeyTitle_unFixedPositionOfSelected.data(); }
 char* ChineseStringRes::getHotKeyTitle_unFixedPositionOfAllNode() { return hotKeyTitle_unFixedPositionOfAllNode.data(); }
+char* ChineseStringRes::getHotKeyTitle_FixedXCoordOfSelected() { return hotKeyTitle_FixedXCoordOfSelected.data(); }
+char* ChineseStringRes::getHotKeyTitle_unFixedXCoordOfSelected() { return hotKeyTitle_unFixedXCoordOfSelected.data(); }
+char* ChineseStringRes::getHotKeyTitle_unFixedXCoordOfAllNode() { return hotKeyTitle_unFixedXCoordOfAllNode.data(); }
+char* ChineseStringRes::getHotKeyTitle_FixedYCoordOfSelected() { return hotKeyTitle_FixedYCoordOfSelected.data(); }
+char* ChineseStringRes::getHotKeyTitle_unFixedYCoordOfOfSelected() { return hotKeyTitle_unFixedYCoordOfOfSelected.data(); }
+char* ChineseStringRes::getHotKeyTitle_unFixedYCoordOfOfAllNode() { return hotKeyTitle_unFixedYCoordOfOfAllNode.data(); }
 char* ChineseStringRes::getHotKeyTitle_LayoutWeightOfSelectedIncr() { return hotKeyTitle_LayoutWeightOfSelectedIncr.data(); }
 char* ChineseStringRes::getHotKeyTitle_LayoutWeightOfSelectedDecr() { return hotKeyTitle_LayoutWeightOfSelectedDecr.data(); }
 char* ChineseStringRes::getHotKeyTitle_ResetLayoutWeightOfAllNode() { return hotKeyTitle_ResetLayoutWeightOfAllNode.data(); }
@@ -219,6 +225,12 @@ char* EnglishStringRes::getHotKeyTitle_LayoutTempDecr() { return hotKeyTitle_Lay
 char* EnglishStringRes::getHotKeyTitle_FixedPositionOfSelected() { return hotKeyTitle_FixedPositionOfSelected.data(); }
 char* EnglishStringRes::getHotKeyTitle_unFixedPositionOfSelected() { return hotKeyTitle_unFixedPositionOfSelected.data(); }
 char* EnglishStringRes::getHotKeyTitle_unFixedPositionOfAllNode() { return hotKeyTitle_unFixedPositionOfAllNode.data(); }
+char* EnglishStringRes::getHotKeyTitle_FixedXCoordOfSelected() { return hotKeyTitle_FixedXCoordOfSelected.data(); }
+char* EnglishStringRes::getHotKeyTitle_unFixedXCoordOfSelected() { return hotKeyTitle_unFixedXCoordOfSelected.data(); }
+char* EnglishStringRes::getHotKeyTitle_unFixedXCoordOfAllNode() { return hotKeyTitle_unFixedXCoordOfAllNode.data(); }
+char* EnglishStringRes::getHotKeyTitle_FixedYCoordOfSelected() { return hotKeyTitle_FixedYCoordOfSelected.data(); }
+char* EnglishStringRes::getHotKeyTitle_unFixedYCoordOfOfSelected() { return hotKeyTitle_unFixedYCoordOfOfSelected.data(); }
+char* EnglishStringRes::getHotKeyTitle_unFixedYCoordOfOfAllNode() { return hotKeyTitle_unFixedYCoordOfOfAllNode.data(); }
 char* EnglishStringRes::getHotKeyTitle_LayoutWeightOfSelectedIncr() { return hotKeyTitle_LayoutWeightOfSelectedIncr.data(); }
 char* EnglishStringRes::getHotKeyTitle_LayoutWeightOfSelectedDecr() { return hotKeyTitle_LayoutWeightOfSelectedDecr.data(); }
 char* EnglishStringRes::getHotKeyTitle_ResetLayoutWeightOfAllNode() { return hotKeyTitle_ResetLayoutWeightOfAllNode.data(); }
