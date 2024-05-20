@@ -324,13 +324,12 @@ void GenDataVisitor::visitMethod(const string& methodKey, CodeBlock* codeBlock, 
 }
 
 void GenDataVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
-    if (codeBlock->toConditionSentence) {
-        visitToConditionSentence(methodKey, codeBlock, codeBlock->toConditionSentence, prologLines);
-    }
     for (auto* sentence : codeBlock->sentences) {
         int structureType = sentence->structure_type;
         if (structureType == CodeStructure::STRUCTURE_TYPE_SENTENCE) {
-            if (sentence != codeBlock->toConditionSentence) {
+            if (sentence == codeBlock->toConditionSentence) {
+                visitToConditionSentence(methodKey, codeBlock, codeBlock->toConditionSentence, prologLines);
+            } else {
                 visitSentence(methodKey, codeBlock, sentence, prologLines);
             }
         } else if (structureType == CodeStructure::STRUCTURE_TYPE_SPLIT_CODE_BLOCKS or structureType == CodeStructure::STRUCTURE_TYPE_LOOP_CODE_BLOCKS) {
