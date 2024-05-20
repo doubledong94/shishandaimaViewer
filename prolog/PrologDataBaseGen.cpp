@@ -185,9 +185,6 @@ void TimingFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* 
     for (auto* subCodeBlock : splitCodeBlocks->blocks) {
         // super condition to sub condition
         subCodeBlock->conditionItem->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
-        if (subCodeBlock->toConditionValue) {
-            addTimingFlow(methodKey, superCodeBlock, subCodeBlock->toConditionValue, prologLines);
-        }
         visitCodeBlock(methodKey, subCodeBlock, prologLines);
     }
 }
@@ -200,6 +197,9 @@ void TimingFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBl
     }
     addTimingFlow(methodKey, codeBlock, relation->read, prologLines);
     addTimingFlow(methodKey, codeBlock, relation->writen, prologLines);
+}
+
+void TimingFlowVisitor::visitToConditionSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) {
 }
 
 void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBlock, ResolvingItem* item, list<string>& prologLines) {
@@ -324,10 +324,15 @@ void GenDataVisitor::visitMethod(const string& methodKey, CodeBlock* codeBlock, 
 }
 
 void GenDataVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
+    if (codeBlock->toConditionSentence) {
+        visitToConditionSentence(methodKey, codeBlock, codeBlock->toConditionSentence, prologLines);
+    }
     for (auto* sentence : codeBlock->sentences) {
         int structureType = sentence->structure_type;
         if (structureType == CodeStructure::STRUCTURE_TYPE_SENTENCE) {
-            visitSentence(methodKey, codeBlock, sentence, prologLines);
+            if (sentence != codeBlock->toConditionSentence) {
+                visitSentence(methodKey, codeBlock, sentence, prologLines);
+            }
         } else if (structureType == CodeStructure::STRUCTURE_TYPE_SPLIT_CODE_BLOCKS or structureType == CodeStructure::STRUCTURE_TYPE_LOOP_CODE_BLOCKS) {
             visitSplitCodeBlock(methodKey, codeBlock, dynamic_cast<SplitCodeBlocks*>(sentence), prologLines);
         }
@@ -337,6 +342,12 @@ void GenDataVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBloc
 void GenDataVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks, list<string>& prologLines) {
     for (auto* subCodeBlock : splitCodeBlocks->blocks) {
         visitCodeBlock(methodKey, subCodeBlock, prologLines);
+    }
+}
+
+void GenDataVisitor::visitToConditionSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) {
+    for (Relation*& relation : sentence->relations) {
+        visitRelation(methodKey, codeBlock, relation, prologLines);
     }
 }
 

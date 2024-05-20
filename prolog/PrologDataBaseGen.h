@@ -6,6 +6,7 @@ public:
     virtual void visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines);
     virtual void visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines);
     virtual void visitSplitCodeBlock(const string& methodKey, CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks, list<string>& prologLines);
+    virtual void visitToConditionSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines);
     virtual void visitSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines);
     virtual void visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines);
 };
@@ -39,6 +40,8 @@ public:
     void visitSplitCodeBlock(const string& methodKey, CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks, list<string>& prologLines) override;
 
     void visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) override;
+
+    void visitToConditionSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) override;
 
     void addTimingFlow(const string& methodKey, CodeBlock* codeBlock, ResolvingItem* item, list<string>& prologLines);
 };

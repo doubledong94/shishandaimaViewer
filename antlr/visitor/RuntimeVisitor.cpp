@@ -425,6 +425,7 @@ void StructuralVisitor::visitCondition(string& conditionKey, JavaParser::Express
         const any& itemOrNull = ctx->accept(statementVisitor);
         if (!statementVisitor->abort) {
             codeBlock->toConditionValue = any_cast<ResolvingItem*>(itemOrNull);
+            codeBlock->toConditionSentence = statementVisitor->getSentence();
         }
         StatementVisitor::returnToPool(statementVisitor);
     }
@@ -479,6 +480,7 @@ void StructuralVisitor::visitConditionCase(JavaParser::ExpressionContext* ctx, R
         new Relation(statementVisitor->getSentence(), switchItem, logicItem);
         new Relation(statementVisitor->getSentence(), caseItem, logicItem);
         codeBlock->toConditionValue = logicItem;
+        codeBlock->toConditionSentence = statementVisitor->getSentence();
         StatementVisitor::returnToPool(statementVisitor);
     }
 }
