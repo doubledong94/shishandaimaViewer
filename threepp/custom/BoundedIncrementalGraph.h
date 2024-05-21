@@ -132,7 +132,7 @@ public:
 
     void increaseDecreaseAlphaForSelected(bool increase);
 
-    void startFlowFrom(int nodeInstanceId);
+    void startFlowFrom(int nodeInstanceId, bool backward);
 
     void onNodeRightClicked(int nodeInstanceId);
 

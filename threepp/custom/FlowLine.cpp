@@ -126,7 +126,15 @@ void FlowLine::setColors(vector<threepp::Color>& colors, const vector<pair<int, 
     colorAttr->needsUpdate();
 }
 
-void FlowLine::startFlowingEdge(int startPoint, int endPoint) {
+void FlowLine::startFlowingEdge(int startPoint, int endPoint, bool backward) {
+    if (backward) {
+        startFlowingEdgeImpl(startPoint, endPoint, backwardFlowingEdges, backward);
+    } else {
+        startFlowingEdgeImpl(startPoint, endPoint, flowingEdges, backward);
+    }
+}
+
+void FlowLine::startFlowingEdgeImpl(int startPoint, int endPoint, map<int, map<int, float>>& flowingEdges, bool backward) {
     if (not flowingEdges.count(startPoint)) {
         flowingEdges[startPoint] = map<int, float>();
     }
@@ -134,14 +142,15 @@ void FlowLine::startFlowingEdge(int startPoint, int endPoint) {
         // the edge is flowing now, ignore 
         return;
     }
-    flowingEdges[startPoint][endPoint] = 0;
+    flowingEdges[startPoint][endPoint] = backward ? 1 : 0;
 }
 
 void FlowLine::stopFlowing() {
-    if (flowingEdges.empty()) {
+    if (flowingEdges.empty() and backwardFlowingEdges.empty()) {
         return;
     }
     flowingEdges.clear();
+    backwardFlowingEdges.clear();
     auto flowAttr = geometry_->getAttribute<float>("flow");
     for (int i = 0;i < edgeCapacity;i++) {
         int startingIndex = i * 4;
@@ -150,10 +159,16 @@ void FlowLine::stopFlowing() {
         flowAttr->setX(startingIndex + 2, -2);
         flowAttr->setX(startingIndex + 3, -2);
     }
-    onFlowChanged();
+    onFlowChanged(true);
+    onFlowChanged(false);
 }
 
-void FlowLine::updateFlow(const std::function<void(int)>& onAnimationFinished) {
+void FlowLine::updateFlow(const std::function<void(int, bool)>& onAnimationFinished) {
+    updateFlowImpl(onAnimationFinished, backwardFlowingEdges, true);
+    updateFlowImpl(onAnimationFinished, flowingEdges, false);
+}
+
+void FlowLine::updateFlowImpl(const std::function<void(int, bool)>& onAnimationFinished, map<int, map<int, float>>& flowingEdges, bool backward) {
     if (flowingEdges.empty()) {
         return;
     }
@@ -163,9 +178,10 @@ void FlowLine::updateFlow(const std::function<void(int)>& onAnimationFinished) {
         int startPoint = startAndEndPoint.first;
         for (auto& endPointAndFlow : startAndEndPoint.second) {
             int endPoint = endPointAndFlow.first;
-            flowingEdges[startPoint][endPoint] += 0.03;
+            flowingEdges[startPoint][endPoint] += backward ? -0.03 : 0.03;
 
-            if (flowingEdges[startPoint][endPoint] > 1) {
+            if ((not backward and flowingEdges[startPoint][endPoint] > 1) or
+                (backward and flowingEdges[startPoint][endPoint] < 0)) {
                 // animation finished
                 flowingEdges[startPoint].erase(endPoint);
                 if (flowingEdges[startPoint].empty()) {
@@ -173,7 +189,7 @@ void FlowLine::updateFlow(const std::function<void(int)>& onAnimationFinished) {
                 }
 
                 // trigger next animation
-                onAnimationFinished(endPoint);
+                onAnimationFinished(backward ? startPoint : endPoint, backward);
 
                 // restore glsl variable value, maybe not neccessary
                 int edgeIndex = pointToEdge[startPoint][endPoint];
@@ -185,10 +201,18 @@ void FlowLine::updateFlow(const std::function<void(int)>& onAnimationFinished) {
             }
         }
     }
-    onFlowChanged();
+    onFlowChanged(backward);
 }
 
-void FlowLine::onFlowChanged() {
+void FlowLine::onFlowChanged(bool backward) {
+    if (backward) {
+        onFlowChangedImpl(backwardFlowingEdges);
+    } else {
+        onFlowChangedImpl(flowingEdges);
+    }
+}
+
+void FlowLine::onFlowChangedImpl(map<int, map<int, float>>& flowingEdges) {
     auto flowAttr = geometry_->getAttribute<float>("flow");
 
     for (auto& startAndEndPoint : flowingEdges) {

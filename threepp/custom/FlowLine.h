@@ -16,13 +16,18 @@ public:
 
     void setColors(vector<threepp::Color>& colors, const vector<pair<int, int>>& edges);
 
-    void startFlowingEdge(int startPoint, int endPoint);
+    void startFlowingEdge(int startPoint, int endPoint, bool backward);
+
+    void startFlowingEdgeImpl(int startPoint, int endPoint, map<int, map<int, float>>& flowingEdges, bool backward);
 
     void stopFlowing();
 
-    void updateFlow(const std::function<void(int)>& onAnimationFinished);
+    void updateFlow(const std::function<void(int, bool)>& onAnimationFinished);
 
-    void onFlowChanged();
+    void updateFlowImpl(const std::function<void(int, bool)>& onAnimationFinished, map<int, map<int, float>>& flowingEdges, bool backward);
+
+    void onFlowChanged(bool backward);
+    void onFlowChangedImpl(map<int, map<int, float>>& flowingEdges);
 
     void updateLineWidth(float lineWidth);
 
@@ -46,6 +51,7 @@ private:
 
     map<int, map<int, int>> pointToEdge;
     map<int, map<int, float>> flowingEdges;
+    map<int, map<int, float>> backwardFlowingEdges;
 
     std::string vertexSource();
 

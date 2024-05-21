@@ -1,3 +1,4 @@
+#include "imgui.h"
 #include "igraph.h"
 #include "threepp/canvas/Canvas.hpp"
 #include "threepp/objects/InstancedMesh.hpp"
@@ -639,8 +640,8 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     nodesObj->setCameraDir(worldDir);
     nodesObj->matrixNeedUpdate();
     linesObj->setCameraDir(worldDir);
-    linesObj->updateFlow([&](int endNode) {
-        startFlowFrom(endNode);
+    linesObj->updateFlow([&](int endNode, bool backward) {
+        startFlowFrom(endNode, backward);
         });
     graphGenerateAndConsumeLock.lock();
     refreshSimpleText();
@@ -859,20 +860,25 @@ void BoundedIncrementalGraph::increaseDecreaseAlphaForSelected(bool increase) {
     nodesObj->updateAlphaSelected(alphaForSelected);
 }
 
-void BoundedIncrementalGraph::startFlowFrom(int nodeInstanceId) {
+void BoundedIncrementalGraph::startFlowFrom(int nodeInstanceId, bool backward) {
     igraph_vector_int_t neighbors;
     igraph_vector_int_init(&neighbors, 0);
-    igraph_neighbors(theOriginalGraph, &neighbors, nodeInstanceId, IGRAPH_OUT);
+    igraph_neighbors(theOriginalGraph, &neighbors, nodeInstanceId, backward ? IGRAPH_IN : IGRAPH_OUT);
     for (int index = 0; index < igraph_vector_int_size(&neighbors); index++) {
         igraph_integer_t neighbor = VECTOR(neighbors)[index];
         if (nodesObj->selected.count(neighbor)) {
-            linesObj->startFlowingEdge(nodeInstanceId, neighbor);
+            if (backward) {
+                linesObj->startFlowingEdge(neighbor, nodeInstanceId, backward);
+            } else {
+                linesObj->startFlowingEdge(nodeInstanceId, neighbor, backward);
+            }
         }
     }
 }
 
 void BoundedIncrementalGraph::onNodeRightClicked(int nodeInstanceId) {
-    startFlowFrom(nodeInstanceId);
+    bool shiftPressed = ImGui::IsKeyDown(ImGuiKey_LeftShift) or ImGui::IsKeyDown(ImGuiKey_RightShift);
+    startFlowFrom(nodeInstanceId, shiftPressed);
 }
 
 void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
