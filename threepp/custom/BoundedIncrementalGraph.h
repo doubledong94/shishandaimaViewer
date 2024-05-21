@@ -254,7 +254,11 @@ public:
 
     void groupSelectedNodes(vector<set<int>>& groups);
 
+    void groupNodes(set<int>& newGroup, vector<set<int>>& groups);
+
     void ungroupSelectedNodes(vector<set<int>>& groups);
+
+    void ungroupNodes(set<int>& ungroup, vector<set<int>>& groups);
 
     void ungroupAllNodes(vector<set<int>>& groups);
 
@@ -263,6 +267,8 @@ public:
     void transitiveReduction();
 
     void transitiveReductionImpl();
+
+    void grid(vector<set<int>> &toBeGruped);
 
     list<pair<string, string>> getSelectedKey();
 

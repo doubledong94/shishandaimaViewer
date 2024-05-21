@@ -130,6 +130,9 @@ enum HotkeyFunction {
     FIX_Y_COORD,
     RELEASE_Y_COORD,
     RELEASE_ALL_Y_COORD,
+    AUTO_GROUP_X,
+    AUTO_GROUP_Y,
+    AUTO_GROUP_XY,
 };
 
 enum ClickStyle {

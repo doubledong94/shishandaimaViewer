@@ -1961,16 +1961,22 @@ void BoundedIncrementalGraph::resetWeight() {
 }
 
 void BoundedIncrementalGraph::groupSelectedNodes(vector<set<int>>& groups) {
-    if (nodesObj->selected.size() < 2) {
+    ungroupNodes(nodesObj->selected, xCoordFixed);
+    ungroupNodes(nodesObj->selected, yCoordFixed);
+    groupNodes(nodesObj->selected, groups);
+}
+
+void BoundedIncrementalGraph::groupNodes(set<int>& newGroup, vector<set<int>>& groups) {
+    if (newGroup.size() < 2) {
         return;
     }
     // release selected position
-    for (int i : nodesObj->selected) {
+    for (int i : newGroup) {
         nodesObj->positionFixed.erase(i);
     }
     set<int>* reusedGroup = NULL;
     for (auto& group : groups) {
-        for (int i : nodesObj->selected) {
+        for (int i : newGroup) {
             group.erase(i);
         }
         if (group.empty()) {
@@ -1982,7 +1988,7 @@ void BoundedIncrementalGraph::groupSelectedNodes(vector<set<int>>& groups) {
         groups.push_back(newGroup);
         reusedGroup = &(groups.back());
     }
-    reusedGroup->insert(nodesObj->selected.begin(), nodesObj->selected.end());
+    reusedGroup->insert(newGroup.begin(), newGroup.end());
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     resetLayoutBound(is2D);
     onNodeColorChanged();
@@ -1990,8 +1996,12 @@ void BoundedIncrementalGraph::groupSelectedNodes(vector<set<int>>& groups) {
 }
 
 void BoundedIncrementalGraph::ungroupSelectedNodes(vector<set<int>>& groups) {
+    ungroupNodes(nodesObj->selected, groups);
+}
+
+void BoundedIncrementalGraph::ungroupNodes(set<int>& ungroup, vector<set<int>>& groups) {
     for (auto& group : groups) {
-        for (int i : nodesObj->selected) {
+        for (int i : ungroup) {
             group.erase(i);
         }
         if (group.size() == 1) {
@@ -2082,4 +2092,54 @@ void BoundedIncrementalGraph::transitiveReductionImpl() {
     igraph_vector_init(weights, igraph_ecount(theOriginalGraph));
     igraph_vector_fill(weights, 1);
     invalidateAllGraphInfo();
+}
+
+void BoundedIncrementalGraph::grid(vector<set<int>> &toBeGruped) {
+    map<int, set<int>*> groups;
+    for (int nodeId = 0;nodeId < points.size();nodeId++) {
+        igraph_vector_int_t neighborsIn;
+        igraph_vector_int_init(&neighborsIn, 0);
+        igraph_neighbors(theOriginalGraph, &neighborsIn, nodeId, IGRAPH_IN);
+        igraph_vector_int_t neighborsOut;
+        igraph_vector_int_init(&neighborsOut, 0);
+        igraph_neighbors(theOriginalGraph, &neighborsOut, nodeId, IGRAPH_OUT);
+        if (igraph_vector_int_size(&neighborsIn) == 1 and igraph_vector_int_size(&neighborsOut) == 1) {
+            int nodeIdIn = VECTOR(neighborsIn)[0];
+            int nodeIdOut = VECTOR(neighborsOut)[0];
+            bool nodeIdInGrouped = groups.count(nodeIdIn);
+            bool nodeIdOutGrouped = groups.count(nodeIdOut);
+            if (nodeIdInGrouped and nodeIdOutGrouped) {
+                // merge group
+                set<int>* outGroup = groups[nodeIdOut];
+                groups[nodeIdIn]->insert(outGroup->begin(), outGroup->end());
+                groups[nodeIdIn]->insert(nodeId);
+                groups[nodeIdOut] = groups[nodeIdIn];
+                groups[nodeId] = groups[nodeIdIn];
+            } else if (nodeIdInGrouped or nodeIdOutGrouped) {
+                if (nodeIdInGrouped) {
+                    groups[nodeIdIn]->insert(nodeId);
+                    groups[nodeId] = groups[nodeIdIn];
+                } else {
+                    groups[nodeIdOut]->insert(nodeId);
+                    groups[nodeId] = groups[nodeIdOut];
+                }
+            } else {
+                groups[nodeId] = new set<int>();
+                groups[nodeId]->insert(nodeId);
+            }
+        }
+        igraph_vector_int_destroy(&neighborsIn);
+        igraph_vector_int_destroy(&neighborsOut);
+    }
+    set<set<int>*> uniqueGroups;
+    for (auto& group : groups) {
+        uniqueGroups.insert(group.second);
+    }
+
+    for (auto& group : uniqueGroups) {
+        groupNodes(*group, toBeGruped);
+    }
+    for (auto& group : uniqueGroups) {
+        delete group;
+    }
 }

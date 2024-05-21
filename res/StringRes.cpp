@@ -107,6 +107,9 @@ char* ChineseStringRes::getHotKeyTitle_unFixedXCoordOfAllNode() { return hotKeyT
 char* ChineseStringRes::getHotKeyTitle_FixedYCoordOfSelected() { return hotKeyTitle_FixedYCoordOfSelected.data(); }
 char* ChineseStringRes::getHotKeyTitle_unFixedYCoordOfOfSelected() { return hotKeyTitle_unFixedYCoordOfOfSelected.data(); }
 char* ChineseStringRes::getHotKeyTitle_unFixedYCoordOfOfAllNode() { return hotKeyTitle_unFixedYCoordOfOfAllNode.data(); }
+char* ChineseStringRes::getHotKeyTitle_autoGroupX() { hotKeyTitle_autoGroupX.data(); }
+char* ChineseStringRes::getHotKeyTitle_autoGroupY() { hotKeyTitle_autoGroupY.data(); }
+char* ChineseStringRes::getHotKeyTitle_autoGroupXY() { hotKeyTitle_autoGroupXY.data(); }
 char* ChineseStringRes::getHotKeyTitle_LayoutWeightOfSelectedIncr() { return hotKeyTitle_LayoutWeightOfSelectedIncr.data(); }
 char* ChineseStringRes::getHotKeyTitle_LayoutWeightOfSelectedDecr() { return hotKeyTitle_LayoutWeightOfSelectedDecr.data(); }
 char* ChineseStringRes::getHotKeyTitle_ResetLayoutWeightOfAllNode() { return hotKeyTitle_ResetLayoutWeightOfAllNode.data(); }
@@ -231,6 +234,9 @@ char* EnglishStringRes::getHotKeyTitle_unFixedXCoordOfAllNode() { return hotKeyT
 char* EnglishStringRes::getHotKeyTitle_FixedYCoordOfSelected() { return hotKeyTitle_FixedYCoordOfSelected.data(); }
 char* EnglishStringRes::getHotKeyTitle_unFixedYCoordOfOfSelected() { return hotKeyTitle_unFixedYCoordOfOfSelected.data(); }
 char* EnglishStringRes::getHotKeyTitle_unFixedYCoordOfOfAllNode() { return hotKeyTitle_unFixedYCoordOfOfAllNode.data(); }
+char* EnglishStringRes::getHotKeyTitle_autoGroupX() { hotKeyTitle_autoGroupX.data(); }
+char* EnglishStringRes::getHotKeyTitle_autoGroupY() { hotKeyTitle_autoGroupY.data(); }
+char* EnglishStringRes::getHotKeyTitle_autoGroupXY() { hotKeyTitle_autoGroupXY.data(); }
 char* EnglishStringRes::getHotKeyTitle_LayoutWeightOfSelectedIncr() { return hotKeyTitle_LayoutWeightOfSelectedIncr.data(); }
 char* EnglishStringRes::getHotKeyTitle_LayoutWeightOfSelectedDecr() { return hotKeyTitle_LayoutWeightOfSelectedDecr.data(); }
 char* EnglishStringRes::getHotKeyTitle_ResetLayoutWeightOfAllNode() { return hotKeyTitle_ResetLayoutWeightOfAllNode.data(); }

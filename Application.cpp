@@ -543,6 +543,15 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[RELEASE_ALL_Y_COORD] = [&]() {
         boundedGraph->ungroupAllNodes(boundedGraph->yCoordFixed);
     };
+    HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
+        boundedGraph->grid(boundedGraph->xCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[AUTO_GROUP_Y] = [&]() {
+        boundedGraph->grid(boundedGraph->yCoordFixed);
+    };
+    HotkeyConfig::functionEnumToFunction[AUTO_GROUP_XY] = [&]() {
+        boundedGraph->grid(boundedGraph->groups);
+    };
 
     canvas.onWindowResize([&](WindowSize size) {
         camera->aspect = size.aspect();

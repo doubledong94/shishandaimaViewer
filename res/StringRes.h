@@ -55,6 +55,9 @@ public:
     virtual char* getHotKeyTitle_FixedYCoordOfSelected() { return NULL; };
     virtual char* getHotKeyTitle_unFixedYCoordOfOfSelected() { return NULL; };
     virtual char* getHotKeyTitle_unFixedYCoordOfOfAllNode() { return NULL; };
+    virtual char* getHotKeyTitle_autoGroupX() { return NULL; };
+    virtual char* getHotKeyTitle_autoGroupY() { return NULL; };
+    virtual char* getHotKeyTitle_autoGroupXY() { return NULL; };
     virtual char* getHotKeyTitle_LayoutWeightOfSelectedIncr() { return NULL; };
     virtual char* getHotKeyTitle_LayoutWeightOfSelectedDecr() { return NULL; };
     virtual char* getHotKeyTitle_ResetLayoutWeightOfAllNode() { return NULL; };
@@ -143,6 +146,9 @@ private:
     string hotKeyTitle_FixedYCoordOfSelected = "固定选中的节点的y坐标";
     string hotKeyTitle_unFixedYCoordOfOfSelected = "取消固定选中的节点的y坐标";
     string hotKeyTitle_unFixedYCoordOfOfAllNode = "取消固定未选中的节点的y坐标";
+    string hotKeyTitle_autoGroupX = "自动聚合X坐标";
+    string hotKeyTitle_autoGroupY = "自动聚合Y坐标";
+    string hotKeyTitle_autoGroupXY = "自动聚合";
     string hotKeyTitle_LayoutWeightOfSelectedIncr = "选中的子图的布局权重+";
     string hotKeyTitle_LayoutWeightOfSelectedDecr = "选中的子图的布局权重－";
     string hotKeyTitle_ResetLayoutWeightOfAllNode = "恢复未选中的节点的布局权重";
@@ -228,6 +234,9 @@ public:
     char* getHotKeyTitle_FixedYCoordOfSelected() override;
     char* getHotKeyTitle_unFixedYCoordOfOfSelected() override;
     char* getHotKeyTitle_unFixedYCoordOfOfAllNode() override;
+    char* getHotKeyTitle_autoGroupX() override;
+    char* getHotKeyTitle_autoGroupY() override;
+    char* getHotKeyTitle_autoGroupXY() override;
     char* getHotKeyTitle_LayoutWeightOfSelectedIncr() override;
     char* getHotKeyTitle_LayoutWeightOfSelectedDecr() override;
     char* getHotKeyTitle_ResetLayoutWeightOfAllNode() override;
@@ -315,6 +324,9 @@ private:
     string hotKeyTitle_FixedYCoordOfSelected = "固定选中的节点的y坐标";
     string hotKeyTitle_unFixedYCoordOfOfSelected = "取消固定选中的节点的y坐标";
     string hotKeyTitle_unFixedYCoordOfOfAllNode = "取消固定未选中的节点的y坐标";
+    string hotKeyTitle_autoGroupX = "自动聚合X坐标";
+    string hotKeyTitle_autoGroupY = "自动聚合Y坐标";
+    string hotKeyTitle_autoGroupXY = "自动聚合";
     string hotKeyTitle_LayoutWeightOfSelectedIncr = "选中的子图的布局权重+";
     string hotKeyTitle_LayoutWeightOfSelectedDecr = "选中的子图的布局权重－";
     string hotKeyTitle_ResetLayoutWeightOfAllNode = "恢复未选中的节点的布局权重";
@@ -400,6 +412,9 @@ public:
     char* getHotKeyTitle_FixedYCoordOfSelected() override;
     char* getHotKeyTitle_unFixedYCoordOfOfSelected() override;
     char* getHotKeyTitle_unFixedYCoordOfOfAllNode() override;
+    char* getHotKeyTitle_autoGroupX() override;
+    char* getHotKeyTitle_autoGroupY() override;
+    char* getHotKeyTitle_autoGroupXY() override;
     char* getHotKeyTitle_LayoutWeightOfSelectedIncr() override;
     char* getHotKeyTitle_LayoutWeightOfSelectedDecr() override;
     char* getHotKeyTitle_ResetLayoutWeightOfAllNode() override;

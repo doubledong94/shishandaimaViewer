@@ -123,6 +123,9 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {GROUP, "group selected nodes", 0xffff3901,SINGLE_CLICK},
     {UNGROUP, "ungroup selected nodes", 0xffff3903,SINGLE_CLICK},
     {UNGROUP_ALL_NODE, "ungroup all nodes", 0xff390501,SINGLE_CLICK},
+    {AUTO_GROUP_X, "auto group x", 0xffff3d37,SINGLE_CLICK},
+    {AUTO_GROUP_Y, "auto group y", 0xffff372e,SINGLE_CLICK},
+    {AUTO_GROUP_XY, "auto group x and y", 0xffff3937,SINGLE_CLICK},
     // style
     {SHOW_AND_HIDE_TEXT, "show and hide text", 0xffff3a03,SINGLE_CLICK},
     {SHOW_AND_HIDE_TOOLTIP, "show and hide tooltip", 0xffff2d03,SINGLE_CLICK},
@@ -262,6 +265,9 @@ void HotkeyConfig::init() {
     hotkeyMap[FIX_Y_COORD]->functionName = StringRes::singleton->getHotKeyTitle_FixedYCoordOfSelected();
     hotkeyMap[RELEASE_Y_COORD]->functionName = StringRes::singleton->getHotKeyTitle_unFixedYCoordOfOfSelected();
     hotkeyMap[RELEASE_ALL_Y_COORD]->functionName = StringRes::singleton->getHotKeyTitle_unFixedYCoordOfOfAllNode();
+    hotkeyMap[AUTO_GROUP_X]->functionName = StringRes::singleton->getHotKeyTitle_autoGroupX();
+    hotkeyMap[AUTO_GROUP_Y]->functionName = StringRes::singleton->getHotKeyTitle_autoGroupY();
+    hotkeyMap[AUTO_GROUP_XY]->functionName = StringRes::singleton->getHotKeyTitle_autoGroupXY();
 }
 
 void HotkeyConfig::saveHotkeyConfig(const string& filePath) {
