@@ -166,6 +166,10 @@ public:
 
     void selectPathInBetween();
 
+    void selectPathUpward();
+
+    void selectPathDownward();
+
     void lookUpForCommonAncestor(int i, int j, set<int>& visited, set<int>& path, set<int>& selected);
 
     void lookUpForCommonAncestor(int i, set<int>& otherNodes, set<int>& selected);

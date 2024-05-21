@@ -1109,9 +1109,33 @@ void BoundedIncrementalGraph::selectPathInBetween() {
         set<int> otherNodes;
         otherNodes.insert(nodesObj->selected.begin(), nodesObj->selected.end());
         otherNodes.erase(i);
-        lookUpForCommonAncestor(i, otherNodes, newNodes);
-        lookDownForCommonChild(i, otherNodes, newNodes);
         lookEachOtherForPath(i, otherNodes, newNodes);
+    }
+    nodesObj->selected.insert(newNodes.begin(), newNodes.end());
+    onNodeColorChanged();
+}
+
+void BoundedIncrementalGraph::selectPathUpward() {
+    prepareDistance();
+    set<int> newNodes;
+    for (int i : nodesObj->selected) {
+        set<int> otherNodes;
+        otherNodes.insert(nodesObj->selected.begin(), nodesObj->selected.end());
+        otherNodes.erase(i);
+        lookUpForCommonAncestor(i, otherNodes, newNodes);
+    }
+    nodesObj->selected.insert(newNodes.begin(), newNodes.end());
+    onNodeColorChanged();
+}
+
+void BoundedIncrementalGraph::selectPathDownward() {
+    prepareDistance();
+    set<int> newNodes;
+    for (int i : nodesObj->selected) {
+        set<int> otherNodes;
+        otherNodes.insert(nodesObj->selected.begin(), nodesObj->selected.end());
+        otherNodes.erase(i);
+        lookDownForCommonChild(i, otherNodes, newNodes);
     }
     nodesObj->selected.insert(newNodes.begin(), newNodes.end());
     onNodeColorChanged();

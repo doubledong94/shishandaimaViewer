@@ -36,6 +36,8 @@ public:
     virtual char* getHotKeyTitle_selectNodeDownward() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeBackward() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeInBetween() { return NULL; };
+    virtual char* getHotKeyTitle_selectPathUpward() { return NULL; };
+    virtual char* getHotKeyTitle_selectPathDownward() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByInDegree() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByOutDegree() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByDegree() { return NULL; };
@@ -127,6 +129,8 @@ private:
     string hotKeyTitle_selectNodeDownward = "向下选择";
     string hotKeyTitle_selectNodeBackward = "反向选择";
     string hotKeyTitle_selectNodeInBetween = "选择连线";
+    string hotKeyTitle_selectPathUpward = "向上选择连线";
+    string hotKeyTitle_selectPathDownward = "向下选择连线";
     string hotKeyTitle_selectNodeByInDegree = "按入度选择";
     string hotKeyTitle_selectNodeByOutDegree = "按出度选择";
     string hotKeyTitle_selectNodeByDegree = "按度选择";
@@ -215,6 +219,8 @@ public:
     char* getHotKeyTitle_selectNodeDownward() override;
     char* getHotKeyTitle_selectNodeBackward() override;
     char* getHotKeyTitle_selectNodeInBetween() override;
+    char* getHotKeyTitle_selectPathUpward() override;
+    char* getHotKeyTitle_selectPathDownward() override;
     char* getHotKeyTitle_selectNodeByInDegree() override;
     char* getHotKeyTitle_selectNodeByOutDegree() override;
     char* getHotKeyTitle_selectNodeByDegree() override;
@@ -305,6 +311,8 @@ private:
     string hotKeyTitle_selectNodeDownward = "向下选择";
     string hotKeyTitle_selectNodeBackward = "反向选择";
     string hotKeyTitle_selectNodeInBetween = "选择连线";
+    string hotKeyTitle_selectPathUpward = "向上选择连线";
+    string hotKeyTitle_selectPathDownward = "向下选择连线";
     string hotKeyTitle_selectNodeByInDegree = "按入度选择";
     string hotKeyTitle_selectNodeByOutDegree = "按出度选择";
     string hotKeyTitle_selectNodeByDegree = "按度选择";
@@ -393,6 +401,8 @@ public:
     char* getHotKeyTitle_selectNodeDownward() override;
     char* getHotKeyTitle_selectNodeBackward() override;
     char* getHotKeyTitle_selectNodeInBetween() override;
+    char* getHotKeyTitle_selectPathUpward() override;
+    char* getHotKeyTitle_selectPathDownward() override;
     char* getHotKeyTitle_selectNodeByInDegree() override;
     char* getHotKeyTitle_selectNodeByOutDegree() override;
     char* getHotKeyTitle_selectNodeByDegree() override;

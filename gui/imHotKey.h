@@ -247,16 +247,16 @@ namespace ImHotKey {
                 if (i == 10) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_select_node());
                 }
-                if (i == 23) {
+                if (i == 25) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_layout());
                 }
-                if (i == 46) {
+                if (i == 48) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_style());
                 }
-                if (i == 63) {
+                if (i == 65) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_explore());
                 }
-                if (i == 65) {
+                if (i == 67) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_next_round());
                 }
                 addHotKeySelectable(hotkey[i], i);

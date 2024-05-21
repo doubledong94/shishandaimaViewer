@@ -423,6 +423,12 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[SELECT_PATH_IN_BETWEEN] = [&]() {
         boundedGraph->selectPathInBetween();
         };
+    HotkeyConfig::functionEnumToFunction[SELECT_PATH_UPWARD] = [&]() {
+        boundedGraph->selectPathUpward();
+        };
+    HotkeyConfig::functionEnumToFunction[SELECT_PATH_DOWNWARD] = [&]() {
+        boundedGraph->selectPathDownward();
+        };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_IN_DEGREE] = [&]() {
         boundedGraph->prepareInDegreeMap();
         showTooltip = false;
