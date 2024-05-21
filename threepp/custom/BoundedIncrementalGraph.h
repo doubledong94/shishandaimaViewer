@@ -12,6 +12,7 @@ public:
     string methodOfRuntime;
     string runtimeKey;
     string key;
+    string typeKey;
     int keyType;
     string simpleName;
     string uniKey;
@@ -20,6 +21,8 @@ public:
     static string makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey);
     void makeSimpleName();
     string& getSimpleName();
+    string& getTypeKey();
+    void makeTypeKey();
 };
 
 template<typename T>

@@ -267,7 +267,10 @@ void NodeInfo::makeSimpleName() {
         keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
         keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
         CompoundTerm* simpleNameTerm = CompoundTerm::getSimpleNameTerm(Term::getStr(key), Term::getVar("S"));
-        simpleName = PrologWrapper::query(simpleNameTerm)->atomOrVar;
+        auto* result = PrologWrapper::query(simpleNameTerm);
+        if (result) {
+            simpleName = result->atomOrVar;
+        }
     } else if (GlobalInfo::isOptrKeyType(keyType) or
         keyType == GlobalInfo::KEY_TYPE_CONDITION or
         keyType == GlobalInfo::KEY_TYPE_ELSE or
@@ -295,6 +298,37 @@ string& NodeInfo::getSimpleName() {
         makeSimpleName();
     }
     return simpleName;
+}
+
+string& NodeInfo::getTypeKey() {
+    if (typeKey.empty()) {
+        makeTypeKey();
+    }
+    return typeKey;
+}
+
+void NodeInfo::makeTypeKey() {
+    if (keyType == GlobalInfo::KEY_TYPE_FIELD or
+        keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
+        keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN) {
+        auto* instanceOfTerm = CompoundTerm::getInstanceOfTerm(Term::getStr(key), Term::getVar("T"));
+        auto* result = PrologWrapper::query(instanceOfTerm);
+        if (result) {
+            typeKey = result->atomOrVar;
+        }
+    } else if (keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
+        auto* instanceOfTerm = CompoundTerm::getCalledParamInstanceOfTerm(Term::getStr(key), Term::getVar("T"));
+        auto* result = PrologWrapper::query(instanceOfTerm);
+        if (result) {
+            typeKey = result->atomOrVar;
+        }
+    } else if (keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+        auto* instanceOfTerm = CompoundTerm::getCalledReturnInstanceOfTerm(Term::getStr(key), Term::getVar("T"));
+        auto* result = PrologWrapper::query(instanceOfTerm);
+        if (result) {
+            typeKey = result->atomOrVar;
+        }
+    }
 }
 
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
@@ -871,6 +905,9 @@ void BoundedIncrementalGraph::onNodeHover(int nodeInstanceId) {
         string info;
         info += "simpleName:  " + nodeInfo->getSimpleName() + "\n";
         info += "key:  " + nodeInfo->key + "\n";
+        if (not nodeInfo->getTypeKey().empty()) {
+            info += "type:  " + nodeInfo->getTypeKey() + "\n";
+        }
         info += "runtime:  " + nodeInfo->methodOfRuntime + "\n";
         info += "regex: "  "\n";
         for (auto& pos : nodeInfo->positionInRegex) {

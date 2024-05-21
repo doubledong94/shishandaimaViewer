@@ -42,3 +42,8 @@ isCalledMethodReturnVoid(MethodScope,CalledMethodRuntime):-
     runtimeKey(MethodScope,CalledMethod,CalledMethodRuntime,_),calledMethod(Method,CalledMethod),return(Method,ReturnKey),instanceOf(ReturnKey,"void").
 
 simpleName("[Array].length","length").
+
+calledParamterInstanceOf(CalledParam, TypeKey):-
+    calledParam(P,CalledParam),instanceOf(P,TypeKey).
+calledReturnInstanceOf(CalledReturn, TypeKey):-
+    calledReturn(R,CalledReturn),instanceOf(R,TypeKey).
