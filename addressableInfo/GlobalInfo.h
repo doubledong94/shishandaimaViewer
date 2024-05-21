@@ -68,12 +68,12 @@ public:
         KEY_TYPE_REFERENCE,
         KEY_TYPE_STEP,
 
-        KEY_TYPE_ANONYMOUS_CLASS, // todo what is the simple name for this
-        KEY_TYPE_METHOD_REFERENCE, // todo what is the simple name for this
-        KEY_TYPE_FINAL,
         KEY_TYPE_LOCAL_VARIABLE,
+        KEY_TYPE_FINAL,
         KEY_TYPE_DEFAULT_VALUE,
         KEY_TYPE_KEY_WORD_VALUE, // null, true, false
+        KEY_TYPE_ANONYMOUS_CLASS, // todo what is the simple name for this
+        KEY_TYPE_METHOD_REFERENCE, // todo what is the simple name for this
         KEY_TYPE_ENUM_INSTANCE,
         KEY_TYPE_ARRAY_INIT, // todo what is the simple name for this
 

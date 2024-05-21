@@ -162,7 +162,23 @@ int app::Application::ApplicationMain() {
     static int graph_instance_starting_count = -1;
     static char* graphAndGraphInstanceNames[500];
     static char saveNodeName[100];
-    static char* nodeType[] = { "Field","Constructor","Method","Parameter","Return","CalledMethod","CalledParameter","CalledReturn","Condition","Else","Reference","Step" };
+    static char* nodeType[] = { "Field",
+    "Constructor",
+    "Method",
+    "Parameter",
+    "Return",
+    "CalledMethod",
+    "CalledParameter",
+    "CalledReturn",
+    "Condition",
+    "Else",
+    "Reference",
+    "Step",
+    "Local Variable",
+    "Final Value",
+    "Default Value",
+    "null/true/false",
+    };
 
     // all hotkey functions
     HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {
@@ -524,34 +540,34 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[TRANSITIVE_REDUCTION] = [&]() {
         boundedGraph->transitiveReduction();
-    };
+        };
     HotkeyConfig::functionEnumToFunction[FIX_X_COORD] = [&]() {
         boundedGraph->groupSelectedNodes(boundedGraph->xCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[RELEASE_X_COORD] = [&]() {
         boundedGraph->ungroupSelectedNodes(boundedGraph->xCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[RELEASE_ALL_X_COORD] = [&]() {
         boundedGraph->ungroupAllNodes(boundedGraph->xCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[FIX_Y_COORD] = [&]() {
         boundedGraph->groupSelectedNodes(boundedGraph->yCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[RELEASE_Y_COORD] = [&]() {
         boundedGraph->ungroupSelectedNodes(boundedGraph->yCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[RELEASE_ALL_Y_COORD] = [&]() {
         boundedGraph->ungroupAllNodes(boundedGraph->yCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
         boundedGraph->grid(boundedGraph->xCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_Y] = [&]() {
         boundedGraph->grid(boundedGraph->yCoordFixed);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_XY] = [&]() {
         boundedGraph->grid(boundedGraph->groups);
-    };
+        };
 
     canvas.onWindowResize([&](WindowSize size) {
         camera->aspect = size.aspect();
@@ -771,7 +787,7 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByKeyTypePopupOpen")) {
             ImGui::SeparatorText("select by key type");
-            for (int i = 0;i < 12;i++) {
+            for (int i = 0;i < 16;i++) {
                 if (ImGui::Selectable(nodeType[i])) {
                     boundedGraph->selectByKeyType(i + 1);
                 }
