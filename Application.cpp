@@ -623,6 +623,7 @@ int app::Application::ApplicationMain() {
             !searchedLineAndGraphOpen and
             !aboutToParseFile and
             !parser->parsing and
+            !searchingInProgress and
             !openPopupForSaveNodes) {
             HotkeyConfig::onFrame();
         }
