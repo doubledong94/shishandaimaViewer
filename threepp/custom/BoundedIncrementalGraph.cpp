@@ -1744,7 +1744,7 @@ void BoundedIncrementalGraph::refreshSimpleText() {
                             if (not textLoading.empty()) {
                                 TextLoadingItem& item = textLoading.begin()->second;
                                 std::shared_ptr<threepp::SpriteMaterial> textMaterial = threepp::SpriteMaterial::create();
-                                textMaterial->color = { 0.6f,0.6f,0.6f };
+                                textMaterial->color = { 1,1,1 };
                                 textMesh[item.nodeId] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), item.text, textMaterial);
                                 textMesh[item.nodeId]->geometry()->center();
                                 textMesh[item.nodeId]->geometry()->scale(textSize, textSize, textSize);
