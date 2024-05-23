@@ -1328,7 +1328,6 @@ string SimpleView::NodeAndRepeatType::getRepeatTypeString() {
     return repeatString;
 }
 
-// todo countResolved:-findall(X,resolved(5,X),L),length(L,N).
 int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName) {
     if (repeatType != LineTemplate::REPEAT_TYPE_ONE) {
         return INT_MAX;
@@ -1349,12 +1348,7 @@ int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCou
                 if (node->nodeType == SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH) {
                     innerName = SimpleView::SimpleViewToGraphConverter::valNameToNode[paramNameToArgName[node->displayName]]->innerValName;
                 }
-                int ret = PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getResolveRuntimeTerm(
-                    Term::getStr(innerName),
-                    Term::getStr(classScope->innerValName),
-                    Term::getIgnoredVar(),
-                    Term::getVar("RuntimeNode"),
-                    Term::getIgnoredVar(), Term::getIgnoredVar()), Term::getVar("C")));
+                int ret = PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getResolveTerm(Term::getStr(innerName), Term::getVar("Node")), Term::getVar("C")));
                 nodeToRuntimeCount[node] = ret;
                 return ret;
             } else {
