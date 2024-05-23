@@ -1319,17 +1319,7 @@ namespace shishan {
             case SimpleView::Node::NODE_TYPE_UNION:
             case SimpleView::Node::NODE_TYPE_DIFFERENCE:
                 if (type == 3) {
-                    int choosenNodeType = SimpleView::SimpleViewToGraphConverter::valNameToNode[
-                        SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index]
-                    ]->nodeType;
-                    if (choosenNodeType != SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF
-                        and choosenNodeType != SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF
-                        and choosenNodeType != SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF
-                        and choosenNodeType != SimpleView::Node::NODE_TYPE_READ
-                        and choosenNodeType != SimpleView::Node::NODE_TYPE_WRITE
-                        ) {
-                        nodeEditValues[nodeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data();
-                    }
+                    nodeEditValues[nodeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data();
                 }
                 break;
             case SimpleView::Node::NODE_TYPE_VAR:
