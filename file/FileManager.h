@@ -28,6 +28,8 @@ public:
 
     static void initCurrentDir();
 
+    static bool shouldRestore(const string& filePath);
+
     static string baseFolder;
     static string prologBaseDir;
     static string prologAddressableFileDir;

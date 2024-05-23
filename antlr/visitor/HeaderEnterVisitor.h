@@ -43,6 +43,7 @@ namespace Header {
 
     class EnterClassPhase :PhaseBaseClass {
     public:
+        set<string> duplicateTypeFile;
         void run();
         // prepare ClassScopeAndEnv (just inner info) for :
         // "resolving inner class in bounds of type parameter"

@@ -126,10 +126,7 @@ void GlobalInfo::deserializeUseRelation() {
             }
             typeKey2itUseTypeKeys[typeKey] = usedTypeKeys;
         }
-        // in update file: file is updated, do not restore
-        // not in all file: file is deleted, do not restore
-        bool fileRestore = not (FileManager::updatedFiles.count(filePath) or not FileManager::allFiles.count(filePath));
-        if (fileRestore) {
+        if (FileManager::shouldRestore(filePath)) {
             filePath2TypeKey2itUseTypeKeys[filePath] = typeKey2itUseTypeKeys;
         }
     }
@@ -168,8 +165,7 @@ void GlobalInfo::deserializeFilePath() {
             getline(f, filePath);
             typeKey2filePath[typeKey] = filePath;
         }
-        bool fileRestore = not (FileManager::updatedFiles.count(filePath) or not FileManager::allFiles.count(filePath));
-        if (fileRestore) {
+        if (FileManager::shouldRestore(filePath)) {
             filePath2typeKey2filePath[filePath] = typeKey2filePath;
         }
     }
@@ -216,8 +212,7 @@ void GlobalInfo::deserializePackage2typeKey() {
             }
             package2typeKeys[p] = typeKeys;
         }
-        bool fileRestore = not (FileManager::updatedFiles.count(filePath) or not FileManager::allFiles.count(filePath));
-        if (fileRestore) {
+        if (FileManager::shouldRestore(filePath)) {
             filePath2package2typeKeys[filePath] = package2typeKeys;
         }
     }
@@ -264,8 +259,7 @@ void GlobalInfo::deserializeSubType() {
             }
             typeAndSubType[sup] = subs;
         }
-        bool fileRestore = not (FileManager::updatedFiles.count(filePath) or not FileManager::allFiles.count(filePath));
-        if (fileRestore) {
+        if (FileManager::shouldRestore(filePath)) {
             filePath2typeKey2subTypeKeys[filePath] = typeAndSubType;
         }
     }

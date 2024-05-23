@@ -156,6 +156,12 @@ void FileManager::initCurrentDir() {
     f.close();
 }
 
+bool FileManager::shouldRestore(const string& filePath) {
+    bool isInSrcPath = filePath.find(srcPath) == 0;
+    return not isInSrcPath or
+        (FileManager::allFiles.count(filePath) and not FileManager::updatedFiles.count(filePath));
+}
+
 string FileManager::srcjsonBaseDir = baseDataFolder + "srcjson/";
 string FileManager::headerSerializationFile = "";
 

@@ -120,6 +120,10 @@ void app::Parser::parse(const string& path) {
 
     Header::EnterClassPhase enterClassPhase;
     enterClassPhase.run();
+    for (auto& filePath : enterClassPhase.duplicateTypeFile) {
+        FileManager::updatedFiles.erase(filePath);
+        FileManager::allFiles.erase(filePath);
+    }
 
     AddressableInfo::afterFirstRound();
     PackageScopeAndEnv::addScopeAndEnvForAllPackage();

@@ -60,10 +60,21 @@ void Header::EnterClassPhase::run() {
         GlobalInfo::filePath2typeInfos[currentFilePath] = list<TypeInfo*>();
         visitCompilationUnit(compileUnit.second);
     }
+    for (auto& filePath : duplicateTypeFile) {
+        AddressableInfo::filePath2compilationUnits.erase(filePath);
+        GlobalInfo::filePath2package2typeKeys.erase(filePath);
+        GlobalInfo::filePath2typeKey2subTypeKeys.erase(filePath);
+        GlobalInfo::filePath2typeKey2filePath.erase(filePath);
+    }
 }
 
 void Header::EnterClassPhase::visitType(Type* type) {
     pushTypeStack(type->name);
+    if (AddressableInfo::typeKey2typeInfo.count(typeKeyStack.back())) {
+        duplicateTypeFile.insert(currentFilePath);
+        popTypeStack();
+        return;
+    }
 
     GlobalInfo::filePath2package2typeKeys[currentFilePath][package].insert(typeKeyStack.back());
     GlobalInfo::filePath2typeKey2filePath[currentFilePath][typeKeyStack.back()] = currentFilePath;

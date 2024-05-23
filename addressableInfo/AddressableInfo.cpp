@@ -117,10 +117,9 @@ void AddressableInfo::deserializeHeader() {
         std::getline(f, filePath);
         CompilationUnit* compilationUnit = new CompilationUnit();
         compilationUnit->fromFile(f);
-        if (FileManager::updatedFiles.count(filePath) or not FileManager::allFiles.count(filePath)) {
-            continue;
+        if (FileManager::shouldRestore(filePath)) {
+            filePath2compilationUnits[filePath] = compilationUnit;
         }
-        filePath2compilationUnits[filePath] = compilationUnit;
     }
     f.close();
     for (auto& filePath : FileManager::allFiles) {

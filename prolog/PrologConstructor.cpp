@@ -94,9 +94,6 @@ void PrologConstructor::savePrologRelatedType(map<string, map<string, set<string
 }
 
 void PrologConstructor::saveAddressableInfo(const string& filePath, const list<TypeInfo*>& typeInfos) {
-    if (not FileManager::updatedFiles.count(filePath) or not FileManager::allFiles.count(filePath)) {
-        return;
-    }
     list<string> lines;
     FOR_EACH_ITEM(addressableMultiFileFunctorName2ArgCount, lines.push_back(getMultiFileDirective(item.first->toString(), to_string(item.second))););
     for (auto& typeInfo : typeInfos) {
