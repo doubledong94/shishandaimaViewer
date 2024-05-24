@@ -201,9 +201,13 @@ void PrologWrapper::unLoadFile(const string& filePath) {
 
 
 void PrologWrapper::loadTypeKeyAddressable(const string& typeKey) {
+    debug_prolog_file << ("load_addressable(\"" + typeKey + "\").") << "\n";
+    debug_prolog_file.flush();
     PlCall("load_addressable(\"" + typeKey + "\").");
 }
 
 void PrologWrapper::loadTypeKeyUnaddressable(const string& typeKey) {
+    debug_prolog_file << ("load_unaddressable(\"" + typeKey + "\").") << "\n";
+    debug_prolog_file.flush();
     PlCall("load_unaddressable(\"" + typeKey + "\").");
 }

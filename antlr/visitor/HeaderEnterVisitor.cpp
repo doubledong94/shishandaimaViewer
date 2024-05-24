@@ -321,7 +321,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
     }
     // return type ends
 
-    map<string, FieldInfo*> parameterInfos;
+    list<pair<string, FieldInfo*>> parameterInfos;
     for (auto& parameter : method->parameters) {
         TypeInfo* parameterTypeInfo = typeInfo->classScopeAndEnv->getTypeInfoWithFileScope(parameter->typeName->typeName);
         if (not parameterTypeInfo and parameter->typeName->typeName.size() == 1 and typeParamName2TypeInfo.count(parameter->typeName->typeName.back())) {
@@ -340,7 +340,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
         parameterInfo->name = parameter->name;
         parameterInfo->typeInfo = parameterTypeInfo;
         methodInfo->parameterInfos.push_back(parameterInfo);
-        parameterInfos[parameter->name] = parameterInfo;
+        parameterInfos.push_back({ parameter->name ,parameterInfo });
         if (parameterTypeInfo->typeParamInfos.size() == parameter->typeName->typeArgs.size()) {
             for (int i = 0;i < parameter->typeName->typeArgs.size();i++) {
                 TypeInfo* typeArgTypeInfo = typeInfo->classScopeAndEnv->getTypeInfoWithFileScope(parameter->typeName->typeArgs[i]->typeName);
