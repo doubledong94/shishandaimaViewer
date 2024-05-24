@@ -2278,9 +2278,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_STEP))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD))));
         break;
     case Node::NODE_TYPE_REFERENCE:
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)));
