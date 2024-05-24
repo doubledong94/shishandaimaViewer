@@ -1074,14 +1074,25 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
         Term* calledMethod = Term::getVar("CalledMethod");
         ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledMethod));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledMethod, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)));
-        ruleBody.push_back(new DisjunctionTerm(CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm),
-            CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)));
+        ruleBody.push_back(new DisjunctionTerm(
+            new ConjunctionTerm({ 
+                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)), 
+                CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm) }),
+            new ConjunctionTerm({ 
+                CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod), 
+                Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
+        ));
     } else {
-        ruleBody.push_back(new DisjunctionTerm(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledReturnTerm),
-            CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)));
+        ruleBody.push_back(new DisjunctionTerm(
+            new ConjunctionTerm({ 
+                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)), 
+                CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledReturnTerm) }),
+            new ConjunctionTerm({ 
+                CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod), 
+                Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
+        ));
     }
-    ruleBody.push_back(new DisjunctionTerm(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
-        CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)));
+    ruleBody.push_back(new NegationTerm(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_STEP))));
     return Rule::getRuleInstance(CompoundTerm::getStepTerm(
         Tail::getInstanceByElements({ outerMethod,calledParameterOrCalledMethod }),
         step,
@@ -1189,3 +1200,13 @@ string DisjunctionTerm::toString() const {
     return "(" + term1->toString() + "; " + term2->toString() + ")";
 }
 
+ConjunctionTerm::ConjunctionTerm(const vector<Term*>& terms) {
+    FOR_EACH_ITEM(terms, this->terms.push_back(item););
+}
+
+string ConjunctionTerm::toString() const {
+    string ret = "(";
+    ret += joinVector(terms, ",", termToString);
+    ret.push_back(')');
+    return ret;
+}

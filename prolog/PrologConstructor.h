@@ -72,6 +72,15 @@ public:
     string toString() const override;
 };
 
+class ConjunctionTerm : public Term {
+public:
+    vector<Term*> terms;
+
+    ConjunctionTerm(const vector<Term*>& terms);
+
+    string toString() const override;
+};
+
 static Term* HEAD_ADDRESSABLE_FILE = new Term("addressableFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_UNADDRESSABLE_FILE = new Term("unaddressableFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_PACKAGE = new Term("package", Term::TERM_TYPE_ATOM);
