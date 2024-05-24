@@ -13,6 +13,9 @@ PlEngine* PrologWrapper::e = NULL;
 ofstream debug_prolog_file;
 
 bool PrologWrapper::init() {
+    debug_prolog_file.open("debug_prolog.pl");
+    debug_prolog_file << (":-discontiguous resolve/2.") << "\n";
+    debug_prolog_file << (":-discontiguous resolveRuntime/6.") << "\n";
     e = new PlEngine("");
     bool loaded = true;
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_package2typeKey);
@@ -20,7 +23,6 @@ bool PrologWrapper::init() {
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2AddressableFilePath);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2UnaddressableFilePath);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_baseRuleFile);
-    debug_prolog_file.open("debug_prolog_file.txt");
     return loaded;
 }
 
@@ -183,6 +185,7 @@ bool PrologWrapper::loadFileIfExist(const string& filePath) {
         if (file != NULL) {
             fclose(file);
             spdlog::get(ErrorManager::TimerTag)->info("load file: {}", filePath);
+            debug_prolog_file << (":-ensure_loaded(\"" + filePath + "\").") << "\n";
             PlCall("ensure_loaded(\"" + filePath + "\").");
             return true;
         } else {
@@ -201,13 +204,13 @@ void PrologWrapper::unLoadFile(const string& filePath) {
 
 
 void PrologWrapper::loadTypeKeyAddressable(const string& typeKey) {
-    debug_prolog_file << ("load_addressable(\"" + typeKey + "\").") << "\n";
+    debug_prolog_file << (":-load_addressable(\"" + typeKey + "\").") << "\n";
     debug_prolog_file.flush();
     PlCall("load_addressable(\"" + typeKey + "\").");
 }
 
 void PrologWrapper::loadTypeKeyUnaddressable(const string& typeKey) {
-    debug_prolog_file << ("load_unaddressable(\"" + typeKey + "\").") << "\n";
+    debug_prolog_file << (":-load_unaddressable(\"" + typeKey + "\").") << "\n";
     debug_prolog_file.flush();
     PlCall("load_unaddressable(\"" + typeKey + "\").");
 }

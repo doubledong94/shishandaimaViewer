@@ -1,7 +1,7 @@
 /build/
 /prolog/a.txt
 /prolog/debug_rules.pl
-debug_prolog_file.txt
+debug_prolog.pl
 /.vscode/
 /simpleView/.antlr
 /antlr/javaParser/.antlr
