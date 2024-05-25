@@ -1826,7 +1826,7 @@ void BoundedIncrementalGraph::changeTextSize(bool increase) {
         s = 1 / 1.1f;
     }
     textSize *= s;
-    for (int i : textAdded) {
+    for (int i : textLoaded) {
         textMesh[i]->geometry()->scale(s, s, s);
     }
 }

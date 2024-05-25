@@ -1913,6 +1913,14 @@ void SimpleView::LineInstance::retractAllLineInstanceRule(int intersectionCount)
     CompoundTerm::retractAllHalfLineTerm(true, intersectionCount);
     CompoundTerm::retractAllFaTerm(false, intersectionCount);
     CompoundTerm::retractAllFaTerm(true, intersectionCount);
+    CompoundTerm::retractAllFaImplTerm(false, intersectionCount);
+    CompoundTerm::retractAllFaImplTerm(true, intersectionCount);
+    CompoundTerm::retractAllCacheFaTerm(false, intersectionCount);
+    CompoundTerm::retractAllCacheFaTerm(true, intersectionCount);
+    CompoundTerm::retractAllFaCacheTerm(false);
+    CompoundTerm::retractAllFaCacheTerm(true);
+    CompoundTerm::retractAllFaDoneTerm(false);
+    CompoundTerm::retractAllFaDoneTerm(true);
     CompoundTerm::retractAllTransitionTerm(false, intersectionCount);
     CompoundTerm::retractAllTransitionTerm(true, intersectionCount);
 }
@@ -2100,7 +2108,9 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     Term* currentExpectingPoint = Term::getVar("CurrentExpectingPoint");
     Term* nextExpectingPoint = Term::getVar("NextExpectingPoint");
     Term* history = Term::getVar("History");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+
+    // fa impl
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
         currentPoint,
@@ -2137,6 +2147,118 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                         intersection,
                         outputTailTerm,
                         Tail::getTailInstance(nextPoint, history), isBackward),
+        }))->toString());
+
+    // make cache
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCacheFaTerm(
+        lineInstanceValNameTerm, classScopeTerm,
+        currentStateTerm,
+        currentPoint,
+        currentStepsTerm,
+        currentExpectingPoint,
+        intersection,
+        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        history, isBackward), {
+            CompoundTerm::getFaImplTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                currentStepsTerm,
+                currentExpectingPoint,
+                intersection,
+                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                history, isBackward),
+            new NegationTerm(CompoundTerm::getFaCacheTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                isBackward)),
+            new AssertTerm(CompoundTerm::getFaCacheTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                isBackward)),
+                #ifdef DEBUG_PROLOG
+                CompoundTerm::getToFileTerm(
+                    CompoundTerm::getFaCacheTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                    isBackward),
+                Term::getStr("a.txt")),
+                #endif
+            Term::getAtom("fail"),
+        }))->toString());
+
+    // use cache
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+        lineInstanceValNameTerm, classScopeTerm,
+        currentStateTerm,
+        currentPoint,
+        currentStepsTerm,
+        currentExpectingPoint,
+        intersection,
+        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        history, isBackward), { CompoundTerm::getFaCacheTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                isBackward)
+        }))->toString());
+
+    // there is no cache yet, make cache and use cache
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+        lineInstanceValNameTerm, classScopeTerm,
+        currentStateTerm,
+        currentPoint,
+        currentStepsTerm,
+        currentExpectingPoint,
+        intersection,
+        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        history, isBackward), {
+            // no cache yet
+            new NegationTerm(CompoundTerm::getFaDoneTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                isBackward)),
+                // mark done
+            new AssertTerm(CompoundTerm::getFaDoneTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                isBackward)),
+            #ifdef DEBUG_PROLOG
+            CompoundTerm::getToFileTerm(CompoundTerm::getFaDoneTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                currentPoint,
+                isBackward),
+                Term::getStr("a.txt")),
+            #endif
+                // make cache
+                new NegationTerm(
+                CompoundTerm::getCacheFaTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    currentStepsTerm,
+                    currentExpectingPoint,
+                    intersection,
+                    Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                    history, isBackward)
+                ),
+                // use cache
+                CompoundTerm::getFaCacheTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                    isBackward),
         }))->toString());
 }
 

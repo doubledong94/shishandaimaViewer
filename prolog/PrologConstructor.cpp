@@ -639,11 +639,123 @@ Term* CompoundTerm::getFaTerm(
     return ret;
 }
 
+Term* CompoundTerm::getFaImplTerm(
+    Term* lineInstanceValName,
+    Term* classScopeValName,
+    Term* currentState,
+    Term* currentPoint,
+    Term* currentSteps,
+    Term* expectingNextPoint,
+    const vector<Term*>& intersections,
+    Term* output,
+    Term* history,
+    bool isBackward) {
+    auto ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = isBackward ? HEAD_BACKWARD_FA_IMPL : HEAD_FORWARD_FA_IMPL;
+    ret->addArg(lineInstanceValName);
+    ret->addArg(classScopeValName);
+    ret->addArg(currentState);
+    ret->addArg(currentPoint);
+    ret->addArg(currentSteps);
+    FOR_EACH_ITEM(intersections, ret->addArg(item););
+    ret->addArg(output);
+    ret->addArg(history);
+    return ret;
+}
+
+Term* CompoundTerm::getCacheFaTerm(
+    Term* lineInstanceValName,
+    Term* classScopeValName,
+    Term* currentState,
+    Term* currentPoint,
+    Term* currentSteps,
+    Term* expectingNextPoint,
+    const vector<Term*>& intersections,
+    Term* output,
+    Term* history,
+    bool isBackward) {
+    auto ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = isBackward ? HEAD_BACKWARD_CACHE_FA : HEAD_FORWARD_CACHE_FA;
+    ret->addArg(lineInstanceValName);
+    ret->addArg(classScopeValName);
+    ret->addArg(currentState);
+    ret->addArg(currentPoint);
+    ret->addArg(currentSteps);
+    FOR_EACH_ITEM(intersections, ret->addArg(item););
+    ret->addArg(output);
+    ret->addArg(history);
+    return ret;
+}
+
+Term* CompoundTerm::getFaCacheTerm(
+    Term* lineInstanceValName,
+    Term* classScopeValName,
+    Term* currentState,
+    Term* currentPoint,
+    Term* output,
+    bool isBackward) {
+    auto ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = isBackward ? HEAD_BACKWARD_FA_CACHE : HEAD_FORWARD_FA_CACHE;
+    ret->addArg(lineInstanceValName);
+    ret->addArg(classScopeValName);
+    ret->addArg(currentState);
+    ret->addArg(currentPoint);
+    ret->addArg(output);
+    return ret;
+}
+
+Term* CompoundTerm::getFaDoneTerm(
+    Term* lineInstanceValName,
+    Term* classScopeValName,
+    Term* currentState,
+    Term* currentPoint,
+    bool isBackward) {
+    auto ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = isBackward ? HEAD_BACKWARD_FA_DONE : HEAD_FORWARD_FA_DONE;
+    ret->addArg(lineInstanceValName);
+    ret->addArg(classScopeValName);
+    ret->addArg(currentState);
+    ret->addArg(currentPoint);
+    return ret;
+}
+
 void CompoundTerm::retractAllFaTerm(bool isBackward, int intersectionCount) {
     if (isBackward) {
         PrologWrapper::retractAllFact(HEAD_BACKWARD_FA->toString(), 7 + intersectionCount);
     } else {
         PrologWrapper::retractAllFact(HEAD_FORWARD_FA->toString(), 7 + intersectionCount);
+    }
+}
+
+void CompoundTerm::retractAllFaImplTerm(bool isBackward, int intersectionCount) {
+    if (isBackward) {
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_IMPL->toString(), 7 + intersectionCount);
+    } else {
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_IMPL->toString(), 7 + intersectionCount);
+    }
+}
+
+void CompoundTerm::retractAllCacheFaTerm(bool isBackward, int intersectionCount) {
+    if (isBackward) {
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_CACHE_FA->toString(), 7 + intersectionCount);
+    } else {
+        PrologWrapper::retractAllFact(HEAD_FORWARD_CACHE_FA->toString(), 7 + intersectionCount);
+    }
+}
+
+void CompoundTerm::retractAllFaCacheTerm(bool isBackward) {
+    if (isBackward) {
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_CACHE->toString(), 5);
+    } else {
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_CACHE->toString(), 5);
+    }
+}
+
+void CompoundTerm::retractAllFaDoneTerm(bool isBackward) {
+    if (isBackward) {
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_DONE->toString(), 4);
+    } else {
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_DONE->toString(), 4);
     }
 }
 
@@ -1075,22 +1187,22 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
         ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledMethod));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledMethod, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)));
         ruleBody.push_back(new DisjunctionTerm(
-            new ConjunctionTerm({ 
-                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)), 
+            new ConjunctionTerm({
+                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)),
                 CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm) }),
-            new ConjunctionTerm({ 
-                CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod), 
-                Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
-        ));
+                new ConjunctionTerm({
+                    CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod),
+                    Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
+                    ));
     } else {
         ruleBody.push_back(new DisjunctionTerm(
-            new ConjunctionTerm({ 
-                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)), 
+            new ConjunctionTerm({
+                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)),
                 CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledReturnTerm) }),
-            new ConjunctionTerm({ 
-                CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod), 
-                Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
-        ));
+                new ConjunctionTerm({
+                    CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod),
+                    Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
+                    ));
     }
     ruleBody.push_back(new NegationTerm(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_STEP))));
     return Rule::getRuleInstance(CompoundTerm::getStepTerm(
@@ -1209,4 +1321,12 @@ string ConjunctionTerm::toString() const {
     ret += joinVector(terms, ",", termToString);
     ret.push_back(')');
     return ret;
+}
+
+AssertTerm::AssertTerm(Term* term) {
+    this->term = term;
+}
+
+string AssertTerm::toString() const {
+    return HEAD_ASSERTZ->toString() + "((" + term->toString() + "))";
 }

@@ -115,8 +115,16 @@ static Term* HEAD_LOADED = new Term("loaded", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LINE = new Term("line", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_HALF_LINE = new Term("forwardHalfLine", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_FA = new Term("forwardFa", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_FA_IMPL = new Term("forwardFaImpl", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_CACHE_FA = new Term("forwardCacheFa", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_FA_CACHE = new Term("forwardFaCache", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_FA_DONE = new Term("forwardFaDone", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_HALF_LINE = new Term("backwardHalfLine", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_FA = new Term("backwardFa", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_FA_IMPL = new Term("backwardFaImpl", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_CACHE_FA = new Term("backwardCacheFa", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_FA_CACHE = new Term("backwardFaCache", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_FA_DONE = new Term("backwardFaDone", Term::TERM_TYPE_ATOM);
 static Term* HEAD_GRAPH = new Term("graph", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_TRANSITION = new Term("forwardTransition", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_TRANSITION = new Term("backwardTransition", Term::TERM_TYPE_ATOM);
@@ -150,6 +158,7 @@ static Term* HEAD_NODE_DIFFERENCE = new Term("nodeDifference", Term::TERM_TYPE_A
 static Term* HEAD_PRINT = new Term("print", Term::TERM_TYPE_ATOM);
 static Term* HEAD_TO_FILE = new Term("toFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_STATISTICS = new Term("statistics", Term::TERM_TYPE_ATOM);
+static Term* HEAD_ASSERTZ = new Term("assertz", Term::TERM_TYPE_ATOM);
 static Term* TERM_NEXT_LINE = new Term("nl", Term::TERM_TYPE_ATOM);
 static Term* TERM_IS_CALLED_METHD_RETURN_VOID = new Term("isCalledMethodReturnVoid", Term::TERM_TYPE_ATOM);
 
@@ -315,7 +324,54 @@ public:
         Term* history,
         bool isBackward);
 
+    static Term* getFaImplTerm(
+        Term* lineInstanceValName,
+        Term* classScopeValName,
+        Term* currentState,
+        Term* currentPoint,
+        Term* currentSteps,
+        Term* expectingNextPoint,
+        const vector<Term*>& intersections,
+        Term* output,
+        Term* history,
+        bool isBackward);
+
+    static Term* getCacheFaTerm(
+        Term* lineInstanceValName,
+        Term* classScopeValName,
+        Term* currentState,
+        Term* currentPoint,
+        Term* currentSteps,
+        Term* expectingNextPoint,
+        const vector<Term*>& intersections,
+        Term* output,
+        Term* history,
+        bool isBackward);
+
+    static Term* getFaCacheTerm(
+        Term* lineInstanceValName,
+        Term* classScopeValName,
+        Term* currentState,
+        Term* currentPoint,
+        Term* output,
+        bool isBackward);
+
+    static Term* getFaDoneTerm(
+        Term* lineInstanceValName,
+        Term* classScopeValName,
+        Term* currentState,
+        Term* currentPoint,
+        bool isBackward);
+
     static void retractAllFaTerm(bool isBackward, int intersectionCount);
+
+    static void retractAllFaImplTerm(bool isBackward, int intersectionCount);
+
+    static void retractAllCacheFaTerm(bool isBackward, int intersectionCount);
+
+    static void retractAllFaCacheTerm(bool isBackward);
+
+    static void retractAllFaDoneTerm(bool isBackward);
 
     static Term* getTransitionTerm(
         Term* lineInstanceValName,
@@ -446,6 +502,13 @@ public:
     void reset() override;
 
     void reverse();
+};
+
+class AssertTerm : public Term, PooledItem<AssertTerm> {
+public:
+    Term* term = NULL;
+    AssertTerm(Term* term);
+    string toString() const;
 };
 
 class Rule : public PooledItem<Rule> {

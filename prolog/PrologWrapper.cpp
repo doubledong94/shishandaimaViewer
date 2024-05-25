@@ -16,6 +16,12 @@ bool PrologWrapper::init() {
     debug_prolog_file.open("debug_prolog.pl");
     debug_prolog_file << (":-discontiguous resolve/2.") << "\n";
     debug_prolog_file << (":-discontiguous resolveRuntime/6.") << "\n";
+    debug_prolog_file << (":-discontiguous forwardFa/7.") << "\n";
+    debug_prolog_file << (":-discontiguous backwardFa/7.") << "\n";
+    debug_prolog_file << (":-discontiguous forwardFa/8.") << "\n";
+    debug_prolog_file << (":-discontiguous backwardFa/8.") << "\n";
+    debug_prolog_file << (":-discontiguous forwardFa/9.") << "\n";
+    debug_prolog_file << (":-discontiguous backwardFa/9.") << "\n";
     e = new PlEngine("");
     bool loaded = true;
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_package2typeKey);

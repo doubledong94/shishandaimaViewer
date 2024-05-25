@@ -1,6 +1,10 @@
 :- multifile simpleName/2.
 :- dynamic addressableLoaded/1.
 :- dynamic unaddressableLoaded/1.
+:- dynamic forwardFaCache/5.
+:- dynamic backwardFaCache/5.
+:- dynamic forwardFaDone/4.
+:- dynamic backwardFaDone/4.
 
 toFile(Str):-
     open("a.txt",append,S),write(S,Str),nl(S),close(S).
