@@ -621,7 +621,6 @@ Term* CompoundTerm::getFaTerm(
     Term* currentState,
     Term* currentPoint,
     Term* currentSteps,
-    Term* expectingNextPoint,
     const vector<Term*>& intersections,
     Term* output,
     Term* history,
@@ -645,7 +644,6 @@ Term* CompoundTerm::getFaImplTerm(
     Term* currentState,
     Term* currentPoint,
     Term* currentSteps,
-    Term* expectingNextPoint,
     const vector<Term*>& intersections,
     Term* output,
     Term* history,
@@ -669,7 +667,6 @@ Term* CompoundTerm::getCacheFaTerm(
     Term* currentState,
     Term* currentPoint,
     Term* currentSteps,
-    Term* expectingNextPoint,
     const vector<Term*>& intersections,
     Term* output,
     Term* history,
@@ -769,8 +766,6 @@ Term* CompoundTerm::getTransitionTerm(
     Term* currentSteps,
     Term* nextPoint,
     Term* nextSteps,
-    Term* currentExpectingPoint,
-    Term* nextExpectingPoint,
     const vector<Term*>& intersections,
     Term* outputItem,
     bool isBackward) {
@@ -1165,53 +1160,78 @@ string Rule::toString() const {
 /**
  * used in forward line and backward line
  * in forward line:
- *      steps1 has value, (this shorter steps)
- *      steps2 is varaible, (this longer steps)
+ *      steps1 has value, (shorter steps)
+ *      steps2 is varaible, (longer steps)
  *      outermethod and calledKey has value,
  *      inner method and return term is varialbe,
  * in backward line:
- *      steps1 is varialbe, (this shorter steps)
- *      steps2 has value, (this longer steps)
+ *      steps1 is varialbe, (shorter steps)
+ *      steps2 has value, (longer steps)
  *      outermethod and calledKey is varialbe,
  *      inner method and return term has value,
 */
 // reorder parameter: outermethod, calledparameter, step, innermethod, parameter
 Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledParameterOrCalledMethod, Term* step, Term* parameterOrMethod, bool isParam) {
-    Term* runtimeParameterOrMethod = Term::getVar(isParam ? "RuntimeParam" : "RuntimeMethod");
+    Term* parameter = NULL;
+    Term* method = NULL;
+    Term* runtimeParameter = NULL;
+    Term* runtimeMethod = NULL;
+    Term* calledParameter = NULL;
+    Term* calledMethod = NULL;
+    if (isParam) {
+        parameter = parameterOrMethod;
+        runtimeParameter = Term::getVar("RuntimeParam");
+        calledParameter = calledParameterOrCalledMethod;
+        calledMethod = Term::getVar("CalledMethod");
+    } else {
+        method = parameterOrMethod;
+        runtimeMethod = Term::getVar("RuntimeMethod");
+        calledMethod = calledParameterOrCalledMethod;
+    }
     Term* steps = Term::getVar("Steps");
     Term* calledReturnTerm = Term::getVar("CalledReturn");
     vector<Term*> ruleBody;
-    ruleBody.push_back(CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod, Term::getInt(isParam ? GlobalInfo::KEY_TYPE_METHOD_PARAMETER : GlobalInfo::KEY_TYPE_METHOD)));
+    // gen runtime point after step in
     if (isParam) {
-        Term* calledMethod = Term::getVar("CalledMethod");
-        ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledMethod));
-        ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledMethod, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)));
-        ruleBody.push_back(new DisjunctionTerm(
-            new ConjunctionTerm({
-                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)),
-                CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm) }),
-                new ConjunctionTerm({
-                    CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod),
-                    Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
-                    ));
+        ruleBody.push_back(CompoundTerm::getRuntimeTerm(innerMethod, parameter, runtimeParameter, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)));
     } else {
-        ruleBody.push_back(new DisjunctionTerm(
-            new ConjunctionTerm({
-                new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod)),
-                CompoundTerm::getDataFlowTerm(outerMethod, calledParameterOrCalledMethod, calledReturnTerm) }),
-                new ConjunctionTerm({
-                    CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledParameterOrCalledMethod),
-                    Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
-                    ));
+        ruleBody.push_back(new DisjunctionTerm({
+            CompoundTerm::getRuntimeTerm(innerMethod, method, runtimeMethod, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR)),
+            CompoundTerm::getRuntimeTerm(innerMethod, method, runtimeMethod, Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+            }));
     }
-    ruleBody.push_back(new NegationTerm(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_STEP))));
-    return Rule::getRuleInstance(CompoundTerm::getStepTerm(
-        Tail::getInstanceByElements({ outerMethod,calledParameterOrCalledMethod }),
-        step,
-        Tail::getInstanceByElements({ innerMethod,runtimeParameterOrMethod }),
-        steps,
-        Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod,calledReturnTerm }), steps)
-    ), ruleBody);
+    // get calledMethod if it is param
+    if (isParam) {
+        ruleBody.push_back(CompoundTerm::getDataFlowTerm(outerMethod, calledParameter, calledMethod));
+        ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledMethod, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)));
+    }
+    // get calledReturn as step out point
+    ruleBody.push_back(new DisjunctionTerm(
+        new ConjunctionTerm({
+            new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)),
+            CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm),
+            CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)) }),
+        new ConjunctionTerm({
+            CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod),
+            Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
+        ));
+    if (isParam) {
+        return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+            Tail::getInstanceByElements({ outerMethod,calledParameter }),
+            step,
+            Tail::getInstanceByElements({ innerMethod,runtimeParameter }),
+            steps,
+            Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod,calledReturnTerm }), steps)
+        ), ruleBody);
+    } else {
+        return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+            Tail::getInstanceByElements({ outerMethod,calledMethod }),
+            step,
+            Tail::getInstanceByElements({ innerMethod,runtimeMethod }),
+            steps,
+            Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod,calledReturnTerm }), steps)
+        ), ruleBody);
+    }
 }
 
 /**
@@ -1221,6 +1241,15 @@ Rule* Rule::getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* 
     Term* runtimeParameterOrMethod = Term::getVar("RuntimeParameterOrMethod");
     Term* shorterSteps = Term::getVar("ShorterSteps");
     Term* longerSteps = Term::getVar("LongerSteps");
+    Term* typeCheckTerm = NULL;
+    if (isParam) {
+        typeCheckTerm = CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER));
+    } else {
+        typeCheckTerm = new DisjunctionTerm({
+        CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod,Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR)),
+        CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+            });
+    }
     return Rule::getRuleInstance(CompoundTerm::getStepTerm(
         Tail::getInstanceByElements({ outerMethod,calledParameterOrCalledMethod }),
         step,
@@ -1230,7 +1259,7 @@ Rule* Rule::getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* 
     ), {
         new NegationTerm(CompoundTerm::getVarTerm(longerSteps)),
         Unification::getUnificationInstance(longerSteps, Tail::getInstanceByElements({})),
-        CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod,Term::getInt(isParam ? GlobalInfo::KEY_TYPE_METHOD_PARAMETER : GlobalInfo::KEY_TYPE_METHOD)),
+        typeCheckTerm,
         Unification::getUnificationInstance(shorterSteps, Tail::getInstanceByElements({}))
         });
 }
@@ -1238,13 +1267,13 @@ Rule* Rule::getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* 
 /**
  * used in forward line and backward line
  * in forward line:
- *      steps1 has value, not empty, (this longer steps)
- *      steps2 is varaible, (this shorter steps)
+ *      steps1 has value, not empty, (longer steps)
+ *      steps2 is varaible, (shorter steps)
  *      inner method and return term has value,
  *      outermethod and calledReturn is varialbe,
  * in backward line:
- *      steps1 is varialbe, (this longer steps)
- *      steps2 has value, maybe empty, (this shorter steps)
+ *      steps1 is varialbe, (longer steps)
+ *      steps2 has value, maybe empty, (shorter steps)
  *      inner method and return term is varialbe,
  *      outermethod and calledReturn has value,
 */
@@ -1268,7 +1297,7 @@ Rule* Rule::getStepOutTerm(Term* innerMethod, Term* outerMethod, Term* returnTer
  * used only in forward line, steps1 has a value and it is empty
 */
 Rule* Rule::getStepOutTermOutOfSteps(Term* innerMethod, Term* outerMethod, Term* returnTerm, Term* step, Term* calledReturn) {
-    Term* runtimeReturn = Term::getVar("Runtime");
+    Term* runtimeReturn = Term::getVar("RuntimeReturn");
     Term* shorterSteps = Term::getVar("ShorterSteps");
     Term* longerSteps = Term::getVar("LongerSteps");
     return Rule::getRuleInstance(CompoundTerm::getStepTerm(

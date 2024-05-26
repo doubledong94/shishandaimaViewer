@@ -2049,8 +2049,6 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 Term::getIgnoredVar(), // the current step of init state has no value
                 splitTerm,  // next point = split point or split point = next point
                 Tail::getInstanceByElements({}),
-                Term::getIgnoredVar(),
-                Term::getIgnoredVar(),
                 intersection,
                 outputTerm, isBackward),
             CompoundTerm::getFaTerm(
@@ -2058,7 +2056,6 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 nextStateTerm,
                 splitTerm,
                 Tail::getInstanceByElements({}),
-                Term::getIgnoredVar(),
                 intersection,
                 outputTailTerm,
                 Tail::getInstanceByElements({splitTerm}), isBackward),
@@ -2081,7 +2078,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
         lineInstanceValNameTerm, classScopeTerm,
         acceptingState,
-        discardedTerm,
         discardedTerm,
         discardedTerm,
         intersection,
@@ -2115,7 +2111,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentStateTerm,
         currentPoint,
         currentStepsTerm,
-        currentExpectingPoint,
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
@@ -2128,8 +2123,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 currentStepsTerm,
                 nextPoint,
                 nextStepsTerm,
-                currentExpectingPoint,
-                nextExpectingPoint,
                 intersection,
                 outputItemTerm, isBackward),
                 // debug purpose
@@ -2143,7 +2136,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                         nextStateTerm,
                         nextPoint,
                         nextStepsTerm,
-                        nextExpectingPoint,
                         intersection,
                         outputTailTerm,
                         Tail::getTailInstance(nextPoint, history), isBackward),
@@ -2155,7 +2147,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentStateTerm,
         currentPoint,
         currentStepsTerm,
-        currentExpectingPoint,
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
@@ -2164,16 +2155,9 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 currentStateTerm,
                 currentPoint,
                 currentStepsTerm,
-                currentExpectingPoint,
                 intersection,
                 Tail::getTailInstance(outputItemTerm, outputTailTerm),
                 history, isBackward),
-            new NegationTerm(CompoundTerm::getFaCacheTerm(
-                lineInstanceValNameTerm, classScopeTerm,
-                currentStateTerm,
-                currentPoint,
-                Tail::getTailInstance(outputItemTerm, outputTailTerm),
-                isBackward)),
             new AssertTerm(CompoundTerm::getFaCacheTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
@@ -2199,7 +2183,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentStateTerm,
         currentPoint,
         currentStepsTerm,
-        currentExpectingPoint,
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), { CompoundTerm::getFaCacheTerm(
@@ -2216,7 +2199,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentStateTerm,
         currentPoint,
         currentStepsTerm,
-        currentExpectingPoint,
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
@@ -2247,7 +2229,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     currentStateTerm,
                     currentPoint,
                     currentStepsTerm,
-                    currentExpectingPoint,
                     intersection,
                     Tail::getTailInstance(outputItemTerm, outputTailTerm),
                     history, isBackward)
@@ -2340,8 +2321,6 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
         currentStateTerm, nextStateTerm, regexCharTerm, // state transition from init state
         Term::getIgnoredVar(), Term::getIgnoredVar(), // current value
         nextPoint, Tail::getInstanceByElements({}), // next value
-        Term::getIgnoredVar(),
-        Term::getIgnoredVar(),
         lineInstance->intersectionTerms, // intersections
         getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), // output
         isBackward), ruleBody))->toString());
@@ -2366,27 +2345,26 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     Term* currentStepsTerm = Term::getVar("CurrentSteps");
     Term* nextMethodKeyTerm = Term::getVar("NextMethodKey");
     Term* nextKeyTerm = Term::getVar("NextRuntimeKey");
+    Term* stepTerm = Term::getVar("Step");
     Term* nextPoint = Tail::getInstanceByElements({ nextMethodKeyTerm, nextKeyTerm });
     Term* nextStepsTerm = Term::getVar("NextStepsTerm");
-    Term* nextExpectingPoint = Term::getVar("NextExpectingPoint");
     Term* outputAddressableKey = Term::getVar("OutputAddressableKey");
     Term* outputKeyType = Term::getVar("OutputKeyType");
-    // generate value by dataflow term
-    if (isBackward) {
-        ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, nextKeyTerm, currentKeyTerm));
-    } else {
-        ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, nextKeyTerm));
-    }
     int nodeType = node->nodeType;
     // generate the next method key and next steps
     if (nodeType == Node::NODE_TYPE_STEP) {
         if (isBackward) {
-            ruleBody.push_back(CompoundTerm::getStepTerm(nextExpectingPoint, nextKeyTerm, currentPoint, nextStepsTerm, currentStepsTerm));
+            ruleBody.push_back(CompoundTerm::getStepTerm(nextPoint, stepTerm, currentPoint, nextStepsTerm, currentStepsTerm));
         } else {
-            ruleBody.push_back(CompoundTerm::getStepTerm(currentPoint, nextKeyTerm, nextExpectingPoint, currentStepsTerm, nextStepsTerm));
+            ruleBody.push_back(CompoundTerm::getStepTerm(currentPoint, stepTerm, nextPoint, currentStepsTerm, nextStepsTerm));
         }
-        ruleBody.push_back(Unification::getUnificationInstance(nextExpectingPoint, Tail::getTailInstance(nextMethodKeyTerm, Term::getIgnoredVar())));
     } else {
+        // generate value by dataflow term
+        if (isBackward) {
+            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, nextKeyTerm, currentKeyTerm));
+        } else {
+            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, nextKeyTerm));
+        }
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
@@ -2414,9 +2392,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ELSE)));
         break;
     case Node::NODE_TYPE_STEP:
-        // this type node is checked by getStepTerm
-        ruleBody.push_back(Unification::getUnificationInstance(outputAddressableKey, nextKeyTerm));
-        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_STEP)));
+        ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
         break;
     default:
         // check by node inner name
@@ -2440,8 +2416,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         currentStepsTerm,
         nextPoint,
         nextStepsTerm,
-        nextPoint,
-        nextExpectingPoint,
         lineInstance->intersectionTerms,
         getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), isBackward
     ), ruleBody))->toString());

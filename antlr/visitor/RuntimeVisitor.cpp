@@ -359,7 +359,6 @@ std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchCont
         switchItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->parExpression()->expression()->getText()),
             AddressableInfo::errorTypeInfo, outerCodeBlock->structure_key, "0", "0", GlobalInfo::KEY_TYPE_ERROR);
     }
-    StatementVisitor::returnToPool(statementVisitor);
     int branchIndex = 1;
     for (auto* group : ctx->switchBlockStatementGroup()) {
         bool closed = false;
@@ -373,7 +372,8 @@ std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchCont
         for (auto* switchLabel : group->switchLabel()) {
             if (switchLabel->CASE() != nullptr) {
                 caseIndex--;
-                visitConditionCase(switchLabel->expression(), switchItem, caseCodeBlock, caseIndex);
+                auto switchItemI = ResolvingItem::getInstance2(switchItem->variableKey, switchItem->typeInfo, caseCodeBlock->structure_key, switchItem->sentenceIndex, statementVisitor->getIncreasedIndexInsideExp(), switchItem->keyType, switchItem->extraInfoForOptr);
+                visitConditionCase(switchLabel->expression(), switchItemI, caseCodeBlock, caseIndex);
             } else if (switchLabel->DEFAULT() != nullptr) {
                 visitConditionDefault(caseCodeBlock);
             }
@@ -385,6 +385,7 @@ std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchCont
         }
         branchIndex++;
     }
+    StatementVisitor::returnToPool(statementVisitor);
     return 0;
 }
 
@@ -476,7 +477,7 @@ void StructuralVisitor::visitConditionCase(JavaParser::ExpressionContext* ctx, R
             caseItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()),
                 AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
         }
-        ResolvingItem* logicItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, "==");
+        ResolvingItem* logicItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, to_string(caseIndex), "-1", GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, "==");
         new Relation(statementVisitor->getSentence(), switchItem, logicItem);
         new Relation(statementVisitor->getSentence(), caseItem, logicItem);
         codeBlock->toConditionValue = logicItem;
