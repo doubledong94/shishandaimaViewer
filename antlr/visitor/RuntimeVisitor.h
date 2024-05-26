@@ -119,6 +119,8 @@ public:
 
     int sentenceIndex = 0;
 
+    int* statementBlockStateCount = NULL;
+
     int indexInsideStatement = 0;
 
     list<TypeInfo*> expectingTypeInfo;
@@ -154,7 +156,9 @@ public:
     //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^statement^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     std::any visitStatementBlock(JavaParser::StatementBlockContext* ctx) override;
 
-    std::any visitInitBlockForClass(JavaParser::BlockContext* ctx);
+    void visitStatementBlock(JavaParser::BlockContext* ctx);
+
+    int visitInitBlockForClass(JavaParser::BlockContext* ctx, int stateCount);
 
     std::any visitStatementAssert(JavaParser::StatementAssertContext* ctx) override;
 

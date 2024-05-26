@@ -232,3 +232,12 @@ void printTime(const string &s, clock_t &startTime, clock_t &endTime) {
     string parseTime = to_string((endTime - startTime) / 1000000.0f);
     printf("%s: %ss\n", s.data(), parseTime.data());
 }
+
+string getArrayPostFix(int dim) {
+    string ret = "";
+    for (int i = 0; i < dim; i++) {
+        ret.push_back('[');
+        ret.push_back(']');
+    }
+    return ret;
+}

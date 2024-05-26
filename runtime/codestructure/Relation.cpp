@@ -29,6 +29,7 @@ void ResolvingItem::reset() {
     conditionToAdded = false;
     referenceAdded = false;
     orderPrologAdded = false;
+    readFromLastWriteAdded = false;
 }
 
 void ResolvingItem::set(const string& variableKey, TypeInfo* typeInfo, const string& structureKey, const string& sentenceIndex, const string& indexInsideExp, int keyType, const string& extraInfo) {

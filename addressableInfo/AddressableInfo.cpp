@@ -252,7 +252,7 @@ void AddressableInfo::release() {
 string MethodInfo::getParamPartOfKey() {
     list<string> paramNames;
     for (auto& paramInfo : parameterInfos) {
-        paramNames.push_back(paramInfo->typeInfo->typeName);
+        paramNames.push_back(paramInfo->typeInfo->typeName + getArrayPostFix(paramInfo->dim));
     }
     return joinList(paramNames, ",");
 }

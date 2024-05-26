@@ -22,6 +22,7 @@ public:
     bool conditionToAdded = false;
     bool referenceAdded = false;
     bool orderPrologAdded = false;
+    bool readFromLastWriteAdded = false;
 
     void reset() override;
 

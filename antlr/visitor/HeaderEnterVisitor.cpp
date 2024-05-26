@@ -267,6 +267,7 @@ void Header::MemeberPhase::addFieldInfo(FieldOrParameter* field) {
             "MemeberPhase::addFieldInfo: did not find type name: <{}> for field: {} in type: {}", fieldTypeInfo->typeName, field->name, typeInfo->typeKey);
     }
     auto* fieldInfo = new FieldInfo();
+    fieldInfo->dim = field->typeName->dim;
     typeInfo->fieldInfos.insert(fieldInfo);
     fieldInfo->name = field->name;
     fieldInfo->fieldKey = typeKeyStack.back() + "." + field->name;
@@ -337,6 +338,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
                 "MemeberPhase::addMethodInfo: did not find parameter type name: <{}> for method name: {} in type: {}", parameterTypeInfo->typeName, method->name, typeInfo->typeKey);
         }
         auto parameterInfo = new FieldInfo();
+        parameterInfo->dim = parameter->typeName->dim;
         parameterInfo->name = parameter->name;
         parameterInfo->typeInfo = parameterTypeInfo;
         methodInfo->parameterInfos.push_back(parameterInfo);
@@ -354,9 +356,8 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
             }
         }
     }
-    string paramPartOfKey = methodInfo->getParamPartOfKey();
     methodInfo->name = method->name;
-    methodInfo->methodKey = AddressableInfo::makeMethodKey(typeKeyStack.back(), method->name, paramPartOfKey);
+    methodInfo->methodKey = AddressableInfo::makeMethodKey(typeKeyStack.back(), method->name, methodInfo->getParamPartOfKey());
     methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
     methodInfo->isConstructor = isConstructor;
     methodInfo->flag = method->flag;
@@ -378,6 +379,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
         parameterInfo->fieldKey = AddressableInfo::makeParamKey(methodInfo->methodKey, parameter.first);
         AddressableInfo::fieldKey2fieldInfo[parameterInfo->fieldKey] = parameterInfo;
         auto* calledParamInfo = new FieldInfo();
+        calledParamInfo->dim = parameter.second->dim;
         methodInfo->calledParamInfos.push_back(calledParamInfo);
         calledParamInfo->name = AddressableInfo::makeCalledKey(parameterInfo->name);
         calledParamInfo->fieldKey = AddressableInfo::makeCalledKey(parameterInfo->fieldKey);
@@ -385,12 +387,14 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
         AddressableInfo::fieldKey2fieldInfo[calledParamInfo->fieldKey] = calledParamInfo;
     }
     auto* returnFieldInfo = new FieldInfo();
+    returnFieldInfo->dim = method->returnTypeName->dim;
     methodInfo->returnInfo = returnFieldInfo;
     returnFieldInfo->name = "return";
     returnFieldInfo->fieldKey = AddressableInfo::makeReturnKey(methodInfo->methodKey);
     returnFieldInfo->typeInfo = returnTypeInfo;
     AddressableInfo::fieldKey2fieldInfo[returnFieldInfo->fieldKey] = returnFieldInfo;
     auto* calledReturnFieldInfo = new FieldInfo();
+    calledReturnFieldInfo->dim = method->returnTypeName->dim;
     methodInfo->calledReturnInfo = calledReturnFieldInfo;
     calledReturnFieldInfo->name = AddressableInfo::makeCalledKey("return");
     calledReturnFieldInfo->fieldKey = AddressableInfo::makeCalledKey(returnFieldInfo->fieldKey);

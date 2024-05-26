@@ -166,13 +166,14 @@ any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMeth
         FOR_EACH_ITEM(method.parameters,
             TypeInfo * parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
         string paramTypeName;
+        string arrayPostFix = getArrayPostFix(item->typeName->dim);
         if (parameterTypeInfo) {
-            paramTypeName = parameterTypeInfo->typeName;
+            paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
         } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
-            paramTypeName = item->typeName->typeName.back();
+            paramTypeName = item->typeName->typeName.back() + arrayPostFix;
         }
         if (paramTypeName.empty()) {
-            paramTypeName = joinList(item->typeName->typeName, ".");
+            paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
             spdlog::get(ErrorManager::DebugTag)->warn("visitInterfaceMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
         }
         parameterTypes.push_back(paramTypeName);
@@ -201,13 +202,14 @@ std::any ClassLevelVisitor::visitMethodDeclaration(JavaParser::MethodDeclaration
         FOR_EACH_ITEM(method.parameters,
             TypeInfo * parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
         string paramTypeName;
+        string arrayPostFix = getArrayPostFix(item->typeName->dim);
         if (parameterTypeInfo) {
-            paramTypeName = parameterTypeInfo->typeName;
+            paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
         } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
-            paramTypeName = item->typeName->typeName.back();
+            paramTypeName = item->typeName->typeName.back() + arrayPostFix;
         }
         if (paramTypeName.empty()) {
-            paramTypeName = joinList(item->typeName->typeName, ".");
+            paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
             spdlog::get(ErrorManager::DebugTag)->warn("visitMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
         }
         parameterTypes.push_back(paramTypeName);
@@ -536,6 +538,12 @@ void StatementVisitor::reset() {
 StatementVisitor* StatementVisitor::getInstanceFromCopy(RuntimeVisitor* copied) {
     auto* ret = StatementVisitor::getInstance();
     ret->copyFrom(copied);
+    if (dynamic_cast<StatementVisitor*>(copied) != nullptr) {
+        ret->statementBlockStateCount = (dynamic_cast<StatementVisitor*>(copied))->statementBlockStateCount;
+    } else {
+        ret->statementBlockStateCount = new int;
+        *(ret->statementBlockStateCount) = 10000;
+    }
     return ret;
 }
 
@@ -716,13 +724,35 @@ std::any StatementVisitor::visitFieldDeclaration(JavaParser::FieldDeclarationCon
 }
 
 std::any StatementVisitor::visitStatementBlock(JavaParser::StatementBlockContext* ctx) {
-    // todo start a new scope
-    return visitBlock(ctx->block());
+    visitStatementBlock(ctx->block());
+    return 0;
 }
 
-std::any StatementVisitor::visitInitBlockForClass(JavaParser::BlockContext* ctx) {
-    // todo start a new scope
-    return visitBlock(ctx);
+void StatementVisitor::visitStatementBlock(JavaParser::BlockContext* ctx) {
+    methodScopeAndEnv->codeBlockScopeAndEnvs.push_front(new CodeBlockScopeAndEnv());
+    for (auto* statement : ctx->blockStatement()) {
+        (*statementBlockStateCount)++;
+        StatementVisitor* visitor = StatementVisitor::getInstanceFromCopy(this);
+        visitor->codeBlock = codeBlock;
+        visitor->sentenceIndex = (*statementBlockStateCount);
+        statement->accept(visitor);
+        StatementVisitor::returnToPool(visitor);
+    }
+    methodScopeAndEnv->codeBlockScopeAndEnvs.pop_front();
+}
+
+int StatementVisitor::visitInitBlockForClass(JavaParser::BlockContext* ctx, int stateCount) {
+    methodScopeAndEnv->codeBlockScopeAndEnvs.push_front(new CodeBlockScopeAndEnv());
+    for (auto* statement : ctx->blockStatement()) {
+        stateCount--;
+        StatementVisitor* visitor = StatementVisitor::getInstanceFromCopy(this);
+        visitor->codeBlock = codeBlock;
+        visitor->sentenceIndex = stateCount;
+        statement->accept(visitor);
+        StatementVisitor::returnToPool(visitor);
+    }
+    methodScopeAndEnv->codeBlockScopeAndEnvs.pop_front();
+    return stateCount;
 }
 
 std::any StatementVisitor::visitStatementAssert(JavaParser::StatementAssertContext* ctx) {
@@ -785,7 +815,8 @@ std::any StatementVisitor::visitStatementTry(JavaParser::StatementTryContext* ct
 }
 
 std::any StatementVisitor::visitStatementSync(JavaParser::StatementSyncContext* ctx) {
-    return ctx->block()->accept(this);
+    visitStatementBlock(ctx->block());
+    return 0;
 }
 
 std::any StatementVisitor::visitStatementReturn(JavaParser::StatementReturnContext* ctx) {
@@ -1618,20 +1649,26 @@ void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<Res
     calledMethodResolvingItem->extraInfoMethodKey = methodInfo->methodKey;
     if (not argValueResolvingItems.empty()) {
         int paramIndex = 0;
+        ResolvingItem* lastCalledParamResolvingItem = NULL;
         for (auto& arg : argValueResolvingItems) {
+            bool variableParameter = false;
             if (paramIndex >= methodInfo->parameterInfos.size()) {
                 paramIndex--;
+                variableParameter = true;
             }
             const string& paramKey = methodInfo->parameterInfos[paramIndex]->fieldKey;
             FieldInfo*& calledParam = methodInfo->calledParamInfos[paramIndex];
-            ResolvingItem* calledParamResolvingItem = ResolvingItem::getInstance2(calledParam->fieldKey, calledParam->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, indexInsideExpForMethod, GlobalInfo::KEY_TYPE_CALLED_PARAMETER);
+            ResolvingItem* calledParamResolvingItem = variableParameter ? lastCalledParamResolvingItem : ResolvingItem::getInstance2(calledParam->fieldKey, calledParam->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, indexInsideExpForMethod, GlobalInfo::KEY_TYPE_CALLED_PARAMETER);
             calledParamResolvingItem->extraInfoMethodKey = methodInfo->methodKey;
             calledParamResolvingItem->extraInfoParameterKey = paramKey;
             // value to called parameter
             new Relation(getSentence(), arg, calledParamResolvingItem);
-            // called parameter to called method
-            new Relation(getSentence(), calledParamResolvingItem, calledMethodResolvingItem);
+            if (not variableParameter) {
+                // called parameter to called method
+                new Relation(getSentence(), calledParamResolvingItem, calledMethodResolvingItem);
+            }
             paramIndex++;
+            lastCalledParamResolvingItem = calledParamResolvingItem;
         }
     }
     // called method to called return
@@ -1676,13 +1713,14 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
             FOR_EACH_ITEM(method.parameters,
                 TypeInfo * parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
             string paramTypeName;
+            string arrayPostFix = getArrayPostFix(item->typeName->dim);
             if (parameterTypeInfo) {
-                paramTypeName = parameterTypeInfo->typeName;
+                paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
             } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
-                paramTypeName = item->typeName->typeName.back();
+                paramTypeName = item->typeName->typeName.back() + arrayPostFix;
             }
             if (paramTypeName.empty()) {
-                paramTypeName = joinList(item->typeName->typeName, ".");
+                paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
                 spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
             }
             parameterTypes.push_back(paramTypeName);
@@ -1758,9 +1796,11 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
 }
 
 std::any InitializerVisitor::visitFieldDeclarationOfClassBody(JavaParser::ClassBodyContext* ctx) {
+    int stateCount = 0;
     for (JavaParser::ClassBodyDeclarationContext* ctxI : ctx->classBodyDeclaration()) {
+        stateCount--;
         if (ctxI->block() and not ctxI->STATIC()) {
-            stateVisitorForCurrentMethod->visitInitBlockForClass(ctxI->block());
+            stateCount = stateVisitorForCurrentMethod->visitInitBlockForClass(ctxI->block(), stateCount);
         }
         if (ctxI->memberDeclaration() and ctxI->memberDeclaration()->fieldDeclaration()) {
             bool isStatic = false;
@@ -1770,8 +1810,11 @@ std::any InitializerVisitor::visitFieldDeclarationOfClassBody(JavaParser::ClassB
                 }
             }
             if (not isStatic) {
-                stateVisitorForCurrentMethod->sentenceIndex++;
-                stateVisitorForCurrentMethod->visitFieldDeclaration(ctxI->memberDeclaration()->fieldDeclaration());
+                StatementVisitor* visitor = StatementVisitor::getInstanceFromCopy(stateVisitorForCurrentMethod);
+                visitor->codeBlock = stateVisitorForCurrentMethod->codeBlock;
+                visitor->sentenceIndex = stateCount;
+                visitor->visitFieldDeclaration(ctxI->memberDeclaration()->fieldDeclaration());
+                StatementVisitor::returnToPool(visitor);
             }
         }
     }
@@ -1849,6 +1892,7 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 }
                 for (auto& fieldName : variableDeclaration.nameAndValueCount) {
                     auto* fieldInfo = new FieldInfo();
+                    fieldInfo->dim = fieldName.dim;
                     fieldInfo->name = fieldName.name.front();
                     fieldInfo->fieldKey = typeInfo->typeKey + "." + fieldName.name.front();
                     fieldInfo->typeInfo = fieldTypeInfo;
@@ -1879,14 +1923,14 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                         spdlog::get(ErrorManager::DebugTag)->warn("AnonymousVisitor::visitForMembers: did not find param type name: {} for param: {} for method: {} in type: {}", parameterTypeInfo->typeName, parameter->name, method->name, typeInfo->typeKey);
                     }
                     FieldInfo* paramInfo = new FieldInfo();
+                    paramInfo->dim = parameter->typeName->dim;
                     paramInfo->name = parameter->name;
                     paramInfo->typeInfo = parameterTypeInfo;
                     methodInfo->parameterInfos.push_back(paramInfo);
                     paramName2paramInfo[parameter->name] = paramInfo;
                 }
-                string paramPartOfKey = methodInfo->getParamPartOfKey();
                 methodInfo->name = method->name;
-                methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, method->name, paramPartOfKey);
+                methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, method->name, methodInfo->getParamPartOfKey());
                 methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
                 if (not classScopeAndEnv->name2method.count(method->name)) {
                     classScopeAndEnv->name2method[method->name] = list<MethodInfo*>();
@@ -1906,6 +1950,7 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 methodScopeAndEnv->methodFinallyKey = AddressableInfo::makeMethodFinallyKey(methodInfo->methodKey);
                 methodScopeAndEnv->outerScopeAndEnv = classScopeAndEnv;
                 auto* returnInfo = new FieldInfo();
+                returnInfo->dim = method->returnTypeName->dim;
                 methodInfo->returnInfo = returnInfo;
                 returnInfo->name = "return";
                 returnInfo->fieldKey = AddressableInfo::makeReturnKey(methodInfo->methodKey);
@@ -1914,6 +1959,7 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 AddressableInfo::fieldKey2fieldInfo[returnInfo->fieldKey] = returnInfo;
 
                 auto* calledReturnFieldInfo = new FieldInfo();
+                calledReturnFieldInfo->dim = method->returnTypeName->dim;
                 methodInfo->calledReturnInfo = calledReturnFieldInfo;
                 calledReturnFieldInfo->name = AddressableInfo::makeCalledKey("return");
                 calledReturnFieldInfo->fieldKey = AddressableInfo::makeCalledKey(returnInfo->fieldKey);
@@ -1927,6 +1973,7 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                     AddressableInfo::fieldKey2fieldInfo[paramInfo->fieldKey] = paramInfo;
 
                     auto* calledParamInfo = new FieldInfo();
+                    calledParamInfo->dim = paramInfo->dim;
                     methodInfo->calledParamInfos.push_back(calledParamInfo);
                     calledParamInfo->name = AddressableInfo::makeCalledKey(paramInfo->name);
                     calledParamInfo->fieldKey = AddressableInfo::makeCalledKey(paramInfo->fieldKey);
@@ -1966,9 +2013,8 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
         paramName2paramInfo[paramInfo->name] = paramInfo;
         paramIndex++;
     }
-    string paramPartOfKey = methodInfo->getParamPartOfKey();
     methodInfo->name = superMethodInfo->name;
-    methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, methodInfo->name, paramPartOfKey);
+    methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, methodInfo->name, methodInfo->getParamPartOfKey());
     methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
     typeInfo->methodInfos.insert(methodInfo);
     auto methodScopeAndEnv = new MethodScopeAndEnv();

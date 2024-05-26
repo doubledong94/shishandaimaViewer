@@ -325,3 +325,5 @@ void saveListLineByLine(list<string> &l, char *filePath);
 void readListLineByLine(char *filePath, list<string> &l);
 
 void printTime(const string &s, clock_t &startTime, clock_t &endTime);
+
+string getArrayPostFix(int dim);

@@ -132,6 +132,10 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
 }
 
 void DataFlowVisitor::genDataFlowForLastWrittenLvs(const string& methodKey, ResolvingItem* read, CodeBlock* codeBlock, list<string>& prologLines) {
+    if (read->readFromLastWriteAdded) {
+        return;
+    }
+    read->readFromLastWriteAdded = true;
     if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         if (codeBlock->lvToLastWrittenKeys.count(read->variableKey) > 0) {
             FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, read->runtimeKey)););

@@ -35,6 +35,7 @@ struct TypeInfo {
 
 struct FieldInfo {
     unsigned int flag = 0;
+    int dim;
     string fieldKey;
     string name;
     TypeInfo* typeInfo = NULL;
