@@ -154,32 +154,45 @@ any ClassLevelVisitor::visitConstDeclaration(JavaParser::ConstDeclarationContext
     return 0;
 }
 
-any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMethodDeclarationContext* ctx) {
-    // ctx->interfaceCommonBodyDeclaration()->methodBody() == nullptr is parsing error
-    if (ctx->interfaceCommonBodyDeclaration()->methodBody() != nullptr && ctx->interfaceCommonBodyDeclaration()->methodBody()->block() != nullptr) {
-        Method method;
-        AntlrNodeToSyntaxObjectConverter::convertInterfaceMethodDeclaration(ctx, &method);
-        set<string> typeParameters;
-        FOR_EACH_ITEM(method.typeParams, typeParameters.insert(item->name););
+string ClassLevelVisitor::makeMethodKeyFromMethodInf(Method& method) {
+    set<string> typeParameters;
+    FOR_EACH_ITEM(method.typeParams, typeParameters.insert(item->name););
 
-        list<string> parameterTypes;
-        FOR_EACH_ITEM(method.parameters,
-            TypeInfo * parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
+    list<string> parameterTypes;
+    int paramIndex = 0;
+    for (auto& item : method.parameters) {
+        TypeInfo* parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
         string paramTypeName;
-        string arrayPostFix = getArrayPostFix(item->typeName->dim);
+        int dim = item->typeName->dim;
+        if (method.isVariableParameter and paramIndex == method.parameters.size() - 1) {
+            dim += 1;
+        }
+        string arrayPostFix = getArrayPostFix(dim);
         if (parameterTypeInfo) {
-            paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
+            if (parameterTypeInfo->typeKey.size() == joinList(item->typeName->typeName, ".").size()) {
+                paramTypeName = parameterTypeInfo->typeKey + arrayPostFix;
+            } else {
+                paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
+            }
         } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
             paramTypeName = item->typeName->typeName.back() + arrayPostFix;
         }
         if (paramTypeName.empty()) {
             paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
-            spdlog::get(ErrorManager::DebugTag)->warn("visitInterfaceMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
+            spdlog::get(ErrorManager::DebugTag)->warn("visitMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
         }
         parameterTypes.push_back(paramTypeName);
-            );
-        const string& methodKey = AddressableInfo::makeMethodKey(
-            typeKeyStack.back(), ctx->interfaceCommonBodyDeclaration()->identifier()->getText(), joinList(parameterTypes, ","));
+        paramIndex++;
+    }
+    return AddressableInfo::makeMethodKey(typeKeyStack.back(), method.name, joinList(parameterTypes, ","));
+}
+
+any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMethodDeclarationContext* ctx) {
+    // ctx->interfaceCommonBodyDeclaration()->methodBody() == nullptr is parsing error
+    if (ctx->interfaceCommonBodyDeclaration()->methodBody() != nullptr && ctx->interfaceCommonBodyDeclaration()->methodBody()->block() != nullptr) {
+        Method method;
+        AntlrNodeToSyntaxObjectConverter::convertInterfaceMethodDeclaration(ctx, &method);
+        string methodKey = makeMethodKeyFromMethodInf(method);
         auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
@@ -195,27 +208,7 @@ std::any ClassLevelVisitor::visitMethodDeclaration(JavaParser::MethodDeclaration
     if (ctx->methodBody()->block() != nullptr) {
         Method method;
         AntlrNodeToSyntaxObjectConverter::convertMethodDeclaration(ctx, &method);
-        set<string> typeParameters;
-        FOR_EACH_ITEM(method.typeParams, typeParameters.insert(item->name););
-
-        list<string> parameterTypes;
-        FOR_EACH_ITEM(method.parameters,
-            TypeInfo * parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
-        string paramTypeName;
-        string arrayPostFix = getArrayPostFix(item->typeName->dim);
-        if (parameterTypeInfo) {
-            paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
-        } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
-            paramTypeName = item->typeName->typeName.back() + arrayPostFix;
-        }
-        if (paramTypeName.empty()) {
-            paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
-            spdlog::get(ErrorManager::DebugTag)->warn("visitMethodDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
-        }
-        parameterTypes.push_back(paramTypeName);
-            );
-        const string& methodKey = AddressableInfo::makeMethodKey(
-            typeKeyStack.back(), ctx->identifier()->getText(), joinList(parameterTypes, ","));
+        string methodKey = makeMethodKeyFromMethodInf(method);
         auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
@@ -374,7 +367,7 @@ std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchCont
         for (auto* switchLabel : group->switchLabel()) {
             if (switchLabel->CASE() != nullptr) {
                 caseIndex--;
-                auto switchItemI = ResolvingItem::getInstance2(switchItem->variableKey, switchItem->typeInfo, caseCodeBlock->structure_key, switchItem->sentenceIndex, statementVisitor->getIncreasedIndexInsideExp(), switchItem->keyType, switchItem->extraInfoForOptr);
+                auto switchItemI = ResolvingItem::getInstance2(switchItem->variableKey, switchItem->typeInfo, caseCodeBlock->structure_key, to_string(caseIndex), "-1", switchItem->keyType, switchItem->extraInfoForOptr);
                 visitConditionCase(switchLabel->expression(), switchItemI, caseCodeBlock, caseIndex);
             } else if (switchLabel->DEFAULT() != nullptr) {
                 visitConditionDefault(caseCodeBlock);
@@ -413,18 +406,13 @@ std::any StructuralVisitor::visitStatementTry(JavaParser::StatementTryContext* c
 }
 
 void StructuralVisitor::visitCondition(string& conditionKey, JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock) {
-    visitCondition(conditionKey, ctx, codeBlock, 0);
-}
-
-// todo I did not member why I have to set sentIndex for "switch case" but not for "if else if else"
-void StructuralVisitor::visitCondition(string& conditionKey, JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock, int sentIndex) {
     if (codeBlock->conditionItem == nullptr) {
         codeBlock->conditionItem = ResolvingItem::getInstance2(conditionKey, NULL, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_CONDITION);
     }
     if (ctx != nullptr) {
         auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
         statementVisitor->codeBlock = codeBlock;
-        statementVisitor->sentenceIndex = sentIndex;
+        statementVisitor->sentenceIndex = -10;
         const any& itemOrNull = ctx->accept(statementVisitor);
         if (!statementVisitor->abort) {
             codeBlock->toConditionValue = any_cast<ResolvingItem*>(itemOrNull);
@@ -479,7 +467,7 @@ void StructuralVisitor::visitConditionCase(JavaParser::ExpressionContext* ctx, R
             caseItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()),
                 AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
         }
-        ResolvingItem* logicItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, to_string(caseIndex), "-1", GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, "==");
+        ResolvingItem* logicItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, to_string(caseIndex), "-1", GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, "==");
         new Relation(statementVisitor->getSentence(), switchItem, logicItem);
         new Relation(statementVisitor->getSentence(), caseItem, logicItem);
         codeBlock->toConditionValue = logicItem;
@@ -909,13 +897,13 @@ std::any StatementVisitor::visitPrimaryLiteral(JavaParser::PrimaryLiteralContext
     int keyType = GlobalInfo::KEY_TYPE_FINAL;
     if (ctx->literal()->integerLiteral() != nullptr) {
         key = "final:" + ctx->literal()->integerLiteral()->getText();
-        literalTypeInfo = AddressableInfo::intTypeInfo;
+        literalTypeInfo = AddressableInfo::primitive_intTypeInfo;
     } else if (ctx->literal()->floatLiteral() != nullptr) {
         key = "final:" + ctx->literal()->floatLiteral()->getText();
-        literalTypeInfo = AddressableInfo::floatTypeInfo;
+        literalTypeInfo = AddressableInfo::primitive_floatTypeInfo;
     } else if (ctx->literal()->CHAR_LITERAL() != nullptr) {
         key = "final:" + REPLACE_QUOTATION_MARKS(ctx->literal()->CHAR_LITERAL()->getText());
-        literalTypeInfo = AddressableInfo::charTypeInfo;
+        literalTypeInfo = AddressableInfo::primitive_charTypeInfo;
     } else if (ctx->literal()->STRING_LITERAL() != nullptr) {
         key = "final:" + REPLACE_QUOTATION_MARKS(ctx->literal()->STRING_LITERAL()->getText());
         literalTypeInfo = AddressableInfo::stringTypeInfo;
@@ -924,7 +912,7 @@ std::any StatementVisitor::visitPrimaryLiteral(JavaParser::PrimaryLiteralContext
         literalTypeInfo = AddressableInfo::stringTypeInfo;
     } else if (ctx->literal()->BOOL_LITERAL() != nullptr) {
         key = ctx->literal()->BOOL_LITERAL()->getText();
-        literalTypeInfo = AddressableInfo::boolTypeInfo;
+        literalTypeInfo = AddressableInfo::primitive_boolTypeInfo;
         keyType = GlobalInfo::KEY_TYPE_KEY_WORD_VALUE;
     } else if (ctx->literal()->NULL_LITERAL() != nullptr) {
         key = "null";
@@ -1066,7 +1054,7 @@ std::any StatementVisitor::visitExpressionArrayAccess(JavaParser::ExpressionArra
     auto* indexedItem = any_cast<ResolvingItem*>(itemOrNull1);
     auto* indexItem = any_cast<ResolvingItem*>(itemOrNull2);
     auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER1, indexedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_PARAMETER1, "A[_]");
-    auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER2, AddressableInfo::intTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_PARAMETER2, "_[i]");
+    auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER2, AddressableInfo::primitive_intTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_PARAMETER2, "_[i]");
     auto* ret = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, indexedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN, "A[i]");
     // array index
     new Relation(getSentence(), indexedItem, param1);
@@ -1170,7 +1158,7 @@ std::any StatementVisitor::visitExpressionIncDec(JavaParser::ExpressionIncDecCon
         return nullptr;
     }
     auto* increasedItem = any_cast<ResolvingItem*>(itemOrNull);
-    auto* finalValueItem = ResolvingItem::getInstance2("1", AddressableInfo::intTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FINAL);
+    auto* finalValueItem = ResolvingItem::getInstance2("final:1", AddressableInfo::primitive_intTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FINAL);
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, increasedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, optr);
     new Relation(getSentence(), finalValueItem, returnItem);
     new Relation(getSentence(), returnItem, increasedItem);
@@ -1277,7 +1265,7 @@ std::any StatementVisitor::visitExpressionRelational(JavaParser::ExpressionRelat
     auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
     auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
     const string& optrStr = ctx->bop->getText();
-    auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, optrStr);
+    auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, optrStr);
     if (optrStr == "==" or optrStr == "!=") {
         new Relation(getSentence(), arg1, returnItem);
         new Relation(getSentence(), arg2, returnItem);
@@ -1318,7 +1306,7 @@ std::any StatementVisitor::visitExpressionInstanceOf(JavaParser::ExpressionInsta
         auto* arg2 = ResolvingItem::getInstance2(pInfo->typeKey, pInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_CLASS);
         auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_PARAMETER1, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_PARAMETER1, getOptrParam(ctx->bop->getText(), 1));
         auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_PARAMETER2, arg2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_PARAMETER2, getOptrParam(ctx->bop->getText(), 2));
-        auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_RETURN, ctx->bop->getText());
+        auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_RETURN, ctx->bop->getText());
         new Relation(getSentence(), arg1, param1);
         new Relation(getSentence(), arg2, param2);
         new Relation(getSentence(), param1, returnItem);
@@ -1339,7 +1327,7 @@ std::any StatementVisitor::visitExpressionLogical(JavaParser::ExpressionLogicalC
     }
     auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
     auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
-    auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_LOGIC_RETURN, AddressableInfo::boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_LOGIC_RETURN, ctx->bop->getText());
+    auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_LOGIC_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_LOGIC_RETURN, ctx->bop->getText());
     new Relation(getSentence(), arg1, returnItem);
     new Relation(getSentence(), arg2, returnItem);
     return returnItem;
@@ -1515,7 +1503,7 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
                     typeInfo->classScopeAndEnv->getMethodInfoFromSelf(methodName, paramCount, methods);
                 }
                 if (not methods.empty()) {
-                    return ResolvingItem::getInstance2(methods.front()->methodKey, interaceI, "", getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_REFERENCE);
+                    return ResolvingItem::getInstance2(methods.front()->methodKey, interaceI, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_REFERENCE);
                 }
             }
         }
@@ -1710,21 +1698,31 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
             FOR_EACH_ITEM(method.typeParams, typeParameters.insert(item->name););
 
             list<string> parameterTypes;
-            FOR_EACH_ITEM(method.parameters,
-                TypeInfo * parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
-            string paramTypeName;
-            string arrayPostFix = getArrayPostFix(item->typeName->dim);
-            if (parameterTypeInfo) {
-                paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
-            } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
-                paramTypeName = item->typeName->typeName.back() + arrayPostFix;
+            int paramIndex = 0;
+            for (auto& item : method.parameters) {
+                TypeInfo* parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
+                string paramTypeName;
+                int dim = item->typeName->dim;
+                if (method.isVariableParameter and paramIndex == method.parameters.size() - 1) {
+                    dim += 1;
+                }
+                string arrayPostFix = getArrayPostFix(dim);
+                if (parameterTypeInfo) {
+                    if (parameterTypeInfo->typeKey.size() == joinList(item->typeName->typeName, ".").size()) {
+                        paramTypeName = parameterTypeInfo->typeKey + arrayPostFix;
+                    } else {
+                        paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
+                    }
+                } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
+                    paramTypeName = item->typeName->typeName.back() + arrayPostFix;
+                }
+                if (paramTypeName.empty()) {
+                    paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
+                    spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
+                }
+                parameterTypes.push_back(paramTypeName);
+                paramIndex++;
             }
-            if (paramTypeName.empty()) {
-                paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
-                spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
-            }
-            parameterTypes.push_back(paramTypeName);
-                );
             const string& methodKey = AddressableInfo::makeMethodKey(
                 classLevelVisitor->typeKeyStack.back(), ctx->identifier()->getText(), joinList(parameterTypes, ","));
             auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);

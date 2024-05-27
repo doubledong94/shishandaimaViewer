@@ -39,31 +39,25 @@ bool TypeCheckAndInference::isAssignable(TypeInfo* typeInfo, TypeInfo* superType
 }
 
 bool TypeCheckAndInference::isNumberAssignable(TypeInfo* typeInfo, TypeInfo* superTypeInfo) {
-    if (typeInfo == AddressableInfo::shortTypeInfo) {
-        return superTypeInfo == AddressableInfo::shortTypeInfo or
-            superTypeInfo == AddressableInfo::intTypeInfo or
-            superTypeInfo == AddressableInfo::longTypeInfo or
-            superTypeInfo == AddressableInfo::floatTypeInfo or
-            superTypeInfo == AddressableInfo::doubleTypeInfo;
+    bool biggerThanDouble = superTypeInfo == AddressableInfo::doubleTypeInfo or superTypeInfo == AddressableInfo::primitive_doubleTypeInfo;
+    bool biggerThanFloat = biggerThanDouble or superTypeInfo == AddressableInfo::floatTypeInfo or superTypeInfo == AddressableInfo::primitive_floatTypeInfo;
+    bool biggerThanLong = biggerThanFloat or superTypeInfo == AddressableInfo::longTypeInfo or superTypeInfo == AddressableInfo::primitive_longTypeInfo;
+    bool biggerThanInt = biggerThanLong or superTypeInfo == AddressableInfo::intTypeInfo or superTypeInfo == AddressableInfo::primitive_intTypeInfo;
+    bool biggerThanShort = biggerThanInt or superTypeInfo == AddressableInfo::shortTypeInfo or superTypeInfo == AddressableInfo::primitive_shortTypeInfo;
+    if (typeInfo == AddressableInfo::shortTypeInfo or typeInfo == AddressableInfo::primitive_shortTypeInfo) {
+        return biggerThanShort;
     }
-    if (typeInfo == AddressableInfo::intTypeInfo) {
-        return superTypeInfo == AddressableInfo::intTypeInfo or
-            superTypeInfo == AddressableInfo::longTypeInfo or
-            superTypeInfo == AddressableInfo::floatTypeInfo or
-            superTypeInfo == AddressableInfo::doubleTypeInfo;
+    if (typeInfo == AddressableInfo::intTypeInfo or typeInfo == AddressableInfo::primitive_intTypeInfo) {
+        return biggerThanInt;
     }
-    if (typeInfo == AddressableInfo::longTypeInfo) {
-        return superTypeInfo == AddressableInfo::longTypeInfo or
-            superTypeInfo == AddressableInfo::floatTypeInfo or
-            superTypeInfo == AddressableInfo::doubleTypeInfo;
+    if (typeInfo == AddressableInfo::longTypeInfo or typeInfo == AddressableInfo::primitive_longTypeInfo) {
+        return biggerThanLong;
     }
-    if (typeInfo == AddressableInfo::floatTypeInfo) {
-        return superTypeInfo == AddressableInfo::floatTypeInfo or
-            superTypeInfo == AddressableInfo::doubleTypeInfo;
-
+    if (typeInfo == AddressableInfo::floatTypeInfo or typeInfo == AddressableInfo::primitive_floatTypeInfo) {
+        return biggerThanFloat;
     }
-    if (typeInfo == AddressableInfo::doubleTypeInfo) {
-        return superTypeInfo == AddressableInfo::doubleTypeInfo;
+    if (typeInfo == AddressableInfo::doubleTypeInfo or typeInfo == AddressableInfo::primitive_doubleTypeInfo) {
+        return biggerThanDouble;
     }
     return false;
 }

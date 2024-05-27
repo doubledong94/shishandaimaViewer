@@ -57,6 +57,7 @@ public:
 
     any visitInterfaceMethodDeclaration(JavaParser::InterfaceMethodDeclarationContext* ctx) override;
 
+    string makeMethodKeyFromMethodInf(Method& methodInfo);
 };
 
 class StructuralVisitor : public RuntimeVisitor, public PooledItem<StructuralVisitor> {
@@ -88,8 +89,6 @@ public:
     std::any visitStatementTry(JavaParser::StatementTryContext* ctx) override;
 
     void visitCondition(string& conditionKey, JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock);
-
-    void visitCondition(string& conditionKey, JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock, int sentIndex);
 
     void visitConditionIf(JavaParser::ExpressionContext* ctx, CodeBlock* codeBlock);
 

@@ -1,0 +1,2 @@
+python3 findDup.py /home/ydd/shishandaimaViewer/build/data/prolog/addressable/ > dup_addressable.txt
+python3 findDup.py /home/ydd/shishandaimaViewer/build/data/prolog/unaddressable/ > dup_unaddressable.txt

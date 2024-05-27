@@ -152,6 +152,16 @@ TypeInfo* AddressableInfo::objectTypeInfo = NULL;
 TypeInfo* AddressableInfo::enumTypeInfo = NULL;
 set<TypeInfo*> AddressableInfo::numberTypes;
 
+TypeInfo* AddressableInfo::primitive_boolTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_charTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_intTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_floatTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_byteTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_shortTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_longTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_doubleTypeInfo = NULL;
+TypeInfo* AddressableInfo::primitive_enumTypeInfo = NULL;
+
 FieldInfo* AddressableInfo::arrayLengthdFieldInfo = NULL;
 
 TypeName* AddressableInfo::enumTypeName = NULL;
@@ -204,21 +214,74 @@ void AddressableInfo::afterFirstRound() {
     enumTypeInfo = typeKey2typeInfo["java.lang.Enum"];
 
     primitiveType2TypeInfo["class"] = classTypeInfo;
-    primitiveType2TypeInfo["boolean"] = boolTypeInfo;
-    primitiveType2TypeInfo["char"] = charTypeInfo;
-    primitiveType2TypeInfo["int"] = intTypeInfo;
-    primitiveType2TypeInfo["float"] = floatTypeInfo;
-    primitiveType2TypeInfo["byte"] = byteTypeInfo;
-    primitiveType2TypeInfo["short"] = shortTypeInfo;
-    primitiveType2TypeInfo["long"] = longTypeInfo;
-    primitiveType2TypeInfo["double"] = doubleTypeInfo;
-    primitiveType2TypeInfo["enum"] = enumTypeInfo;
+
+    primitive_boolTypeInfo = new TypeInfo();
+    primitive_boolTypeInfo->typeKey = "boolean";
+    primitive_boolTypeInfo->typeName = "boolean";
+    primitive_boolTypeInfo->simpletypeName = "boolean";
+    primitive_boolTypeInfo->superTypeInfos.insert(boolTypeInfo);
+    primitive_charTypeInfo = new TypeInfo();
+    primitive_charTypeInfo->typeKey = "char";
+    primitive_charTypeInfo->typeName = "char";
+    primitive_charTypeInfo->simpletypeName = "char";
+    primitive_charTypeInfo->superTypeInfos.insert(charTypeInfo);
+    primitive_intTypeInfo = new TypeInfo();
+    primitive_intTypeInfo->typeKey = "int";
+    primitive_intTypeInfo->typeName = "int";
+    primitive_intTypeInfo->simpletypeName = "int";
+    primitive_intTypeInfo->superTypeInfos.insert(intTypeInfo);
+    primitive_floatTypeInfo = new TypeInfo();
+    primitive_floatTypeInfo->typeKey = "float";
+    primitive_floatTypeInfo->typeName = "float";
+    primitive_floatTypeInfo->simpletypeName = "float";
+    primitive_floatTypeInfo->superTypeInfos.insert(floatTypeInfo);
+    primitive_byteTypeInfo = new TypeInfo();
+    primitive_byteTypeInfo->typeKey = "byte";
+    primitive_byteTypeInfo->typeName = "byte";
+    primitive_byteTypeInfo->simpletypeName = "byte";
+    primitive_byteTypeInfo->superTypeInfos.insert(byteTypeInfo);
+    primitive_shortTypeInfo = new TypeInfo();
+    primitive_shortTypeInfo->typeKey = "short";
+    primitive_shortTypeInfo->typeName = "short";
+    primitive_shortTypeInfo->simpletypeName = "short";
+    primitive_shortTypeInfo->superTypeInfos.insert(shortTypeInfo);
+    primitive_longTypeInfo = new TypeInfo();
+    primitive_longTypeInfo->typeKey = "long";
+    primitive_longTypeInfo->typeName = "long";
+    primitive_longTypeInfo->simpletypeName = "long";
+    primitive_longTypeInfo->superTypeInfos.insert(longTypeInfo);
+    primitive_doubleTypeInfo = new TypeInfo();
+    primitive_doubleTypeInfo->typeKey = "double";
+    primitive_doubleTypeInfo->typeName = "double";
+    primitive_doubleTypeInfo->simpletypeName = "double";
+    primitive_doubleTypeInfo->superTypeInfos.insert(doubleTypeInfo);
+    primitive_enumTypeInfo = new TypeInfo();
+    primitive_enumTypeInfo->typeKey = "enum";
+    primitive_enumTypeInfo->typeName = "enum";
+    primitive_enumTypeInfo->simpletypeName = "enum";
+    primitive_enumTypeInfo->superTypeInfos.insert(enumTypeInfo);
+
+    primitiveType2TypeInfo["boolean"] = primitive_boolTypeInfo;
+    primitiveType2TypeInfo["char"] = primitive_charTypeInfo;
+    primitiveType2TypeInfo["int"] = primitive_intTypeInfo;
+    primitiveType2TypeInfo["float"] = primitive_floatTypeInfo;
+    primitiveType2TypeInfo["byte"] = primitive_byteTypeInfo;
+    primitiveType2TypeInfo["short"] = primitive_shortTypeInfo;
+    primitiveType2TypeInfo["long"] = primitive_longTypeInfo;
+    primitiveType2TypeInfo["double"] = primitive_doubleTypeInfo;
+    primitiveType2TypeInfo["enum"] = primitive_enumTypeInfo;
 
     numberTypes.insert(intTypeInfo);
     numberTypes.insert(floatTypeInfo);
     numberTypes.insert(shortTypeInfo);
     numberTypes.insert(longTypeInfo);
     numberTypes.insert(doubleTypeInfo);
+
+    numberTypes.insert(primitive_intTypeInfo);
+    numberTypes.insert(primitive_floatTypeInfo);
+    numberTypes.insert(primitive_shortTypeInfo);
+    numberTypes.insert(primitive_longTypeInfo);
+    numberTypes.insert(primitive_doubleTypeInfo);
 
     arrayLengthdFieldInfo = new FieldInfo();
     arrayLengthdFieldInfo->name = "length";
@@ -251,8 +314,17 @@ void AddressableInfo::release() {
 
 string MethodInfo::getParamPartOfKey() {
     list<string> paramNames;
-    for (auto& paramInfo : parameterInfos) {
-        paramNames.push_back(paramInfo->typeInfo->typeName + getArrayPostFix(paramInfo->dim));
+    for (int i = 0;i < parameterInfos.size();i++) {
+        auto& paramInfo = parameterInfos[i];
+        int dim = paramInfo->dim;
+        if (isVariableParameter and i == parameterInfos.size() - 1) {
+            dim += 1;
+        }
+        if (paramInfo->isTypeFullPathed) {
+            paramNames.push_back(paramInfo->typeInfo->typeKey + getArrayPostFix(dim));
+        } else {
+            paramNames.push_back(paramInfo->typeInfo->typeName + getArrayPostFix(dim));
+        }
     }
     return joinList(paramNames, ",");
 }

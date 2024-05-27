@@ -34,6 +34,7 @@ struct TypeInfo {
 };
 
 struct FieldInfo {
+    bool isTypeFullPathed;
     unsigned int flag = 0;
     int dim;
     string fieldKey;
@@ -97,6 +98,16 @@ public:
     static set<TypeInfo*> numberTypes;
     static TypeName* enumTypeName;
     static TypeName* objectTypeName;
+
+    static TypeInfo* primitive_boolTypeInfo;
+    static TypeInfo* primitive_charTypeInfo;
+    static TypeInfo* primitive_intTypeInfo;
+    static TypeInfo* primitive_floatTypeInfo;
+    static TypeInfo* primitive_byteTypeInfo;
+    static TypeInfo* primitive_shortTypeInfo;
+    static TypeInfo* primitive_longTypeInfo;
+    static TypeInfo* primitive_doubleTypeInfo;
+    static TypeInfo* primitive_enumTypeInfo;
 
     static FieldInfo* arrayLengthdFieldInfo;
 

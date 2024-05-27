@@ -338,6 +338,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
                 "MemeberPhase::addMethodInfo: did not find parameter type name: <{}> for method name: {} in type: {}", parameterTypeInfo->typeName, method->name, typeInfo->typeKey);
         }
         auto parameterInfo = new FieldInfo();
+        parameterInfo->isTypeFullPathed = parameterTypeInfo->typeKey.size() == joinList(parameter->typeName->typeName, ".").size();
         parameterInfo->dim = parameter->typeName->dim;
         parameterInfo->name = parameter->name;
         parameterInfo->typeInfo = parameterTypeInfo;
