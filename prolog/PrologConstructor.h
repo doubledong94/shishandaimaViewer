@@ -350,6 +350,7 @@ public:
         Term* classScopeValName,
         Term* currentState,
         Term* currentPoint,
+        Term* currentSteps,
         Term* output,
         bool isBackward);
 

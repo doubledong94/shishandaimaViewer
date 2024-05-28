@@ -225,6 +225,9 @@ int app::Application::ApplicationMain() {
     static bool searchingInProgress = false;
     HotkeyConfig::functionEnumToFunction[START_SEARCHING] = [&]() {
         // search line instance
+        if (searchingInProgress) {
+            return;
+        }
         if (selected_class_scope > -1 and selected_line_instance > -1) {
             bool isTemplate = selected_line_instance < line_instance_starting_count;
             char* lineName = lineAndLineInstanceNames[selected_line_instance];
@@ -623,7 +626,6 @@ int app::Application::ApplicationMain() {
             !searchedLineAndGraphOpen and
             !aboutToParseFile and
             !parser->parsing and
-            !searchingInProgress and
             !openPopupForSaveNodes) {
             HotkeyConfig::onFrame();
         }

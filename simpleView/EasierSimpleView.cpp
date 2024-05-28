@@ -2175,6 +2175,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
+                currentStepsTerm,
                 Tail::getTailInstance(outputItemTerm, outputTailTerm),
                 isBackward)),
                 #ifdef DEBUG_PROLOG
@@ -2183,6 +2184,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     lineInstanceValNameTerm, classScopeTerm,
                     currentStateTerm,
                     currentPoint,
+                    currentStepsTerm,
                     Tail::getTailInstance(outputItemTerm, outputTailTerm),
                     isBackward),
                 Term::getStr("a.txt")),
@@ -2202,6 +2204,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
+                currentStepsTerm,
                 Tail::getTailInstance(outputItemTerm, outputTailTerm),
                 isBackward)
         }))->toString());
@@ -2251,6 +2254,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     lineInstanceValNameTerm, classScopeTerm,
                     currentStateTerm,
                     currentPoint,
+                    currentStepsTerm,
                     Tail::getTailInstance(outputItemTerm, outputTailTerm),
                     isBackward),
         }))->toString());

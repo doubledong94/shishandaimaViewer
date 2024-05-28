@@ -690,6 +690,7 @@ Term* CompoundTerm::getFaCacheTerm(
     Term* classScopeValName,
     Term* currentState,
     Term* currentPoint,
+    Term* currentSteps,
     Term* output,
     bool isBackward) {
     auto ret = PooledItem<CompoundTerm>::getInstance();
@@ -698,6 +699,7 @@ Term* CompoundTerm::getFaCacheTerm(
     ret->addArg(classScopeValName);
     ret->addArg(currentState);
     ret->addArg(currentPoint);
+    ret->addArg(currentSteps);
     ret->addArg(output);
     return ret;
 }
@@ -743,9 +745,9 @@ void CompoundTerm::retractAllCacheFaTerm(bool isBackward, int intersectionCount)
 
 void CompoundTerm::retractAllFaCacheTerm(bool isBackward) {
     if (isBackward) {
-        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_CACHE->toString(), 5);
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_CACHE->toString(), 6);
     } else {
-        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_CACHE->toString(), 5);
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_CACHE->toString(), 6);
     }
 }
 

@@ -1243,8 +1243,8 @@ std::any StatementVisitor::visitExpressionShift(JavaParser::ExpressionShiftConte
     }
     auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
     auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
-    auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_PARAMETER1, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER1, optrString);
-    auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_PARAMETER2, arg2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER2, optrString);
+    auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_PARAMETER1, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER1, getOptrParam(optrString, 1));
+    auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_PARAMETER2, arg2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER2, getOptrParam(optrString, 2));
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_RETURN, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_RETURN, optrString);
     new Relation(getSentence(), arg1, param1);
     new Relation(getSentence(), arg2, param2);
