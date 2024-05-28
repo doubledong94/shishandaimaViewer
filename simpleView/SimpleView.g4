@@ -42,7 +42,8 @@ NODE : 'Node';
 REFERENCE : 'Reference';
 CONDITION : 'Condition';
 ELSE : 'Else';
-STEP : 'Step';
+DATA_STEP : 'DataStep';
+TIMING_STEP : 'TimingStep';
 SEGMENT : 'Seg';
 LINE : 'Line';
 LINE_INSTANCE: 'LineInstance';
@@ -109,7 +110,8 @@ nodeExp
     | REFERENCE
     | CONDITION
     | ELSE
-    | STEP
+    | DATA_STEP
+    | TIMING_STEP
     | '(' bracket=nodeExp ')'
     | refOtherNode=IDENTIFIER
     | varNode='{' IDENTIFIER '}'

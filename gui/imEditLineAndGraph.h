@@ -870,11 +870,20 @@ namespace shishan {
             }
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("Step##specialNodeStep")) {
+            if (ImGui::Button("DataStep##specialNodeDataStep")) {
                 cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_STEP->displayName.data());
+                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_DATA_STEP->displayName.data());
                 lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_STEP->displayName.data(), false, lineEditValueSelectedIndex + 1);
+                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_DATA_STEP->displayName.data(), false, lineEditValueSelectedIndex + 1);
+                lineEditValueSelectedIndex++;
+            };
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            if (ImGui::Button("TimingStep##specialNodeTimingStep")) {
+                cleanLineEditIfItIsHint();
+                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_TIMING_STEP->displayName.data());
+                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
+                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_TIMING_STEP->displayName.data(), false, lineEditValueSelectedIndex + 1);
                 lineEditValueSelectedIndex++;
             };
             for (int i = 0;i < lineEditValues.size();i++) {
@@ -1861,7 +1870,7 @@ namespace shishan {
             auto& pI = pointsInLine->seg[pointCount];
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointCount];
             bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE
-                or (nodeAndRepeatTypeI->node and (nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_REFERENCE or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_STEP)));
+                or (nodeAndRepeatTypeI->node and (nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_REFERENCE or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_DATA_STEP or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_TIMING_STEP)));
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {
             case SimpleView::LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:

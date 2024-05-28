@@ -264,7 +264,7 @@ public:
 
     static string getCalledReturnFact(const string& returnKey, const string& calledReturnKey);
 
-    static CompoundTerm* getStepTerm(Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2);
+    static CompoundTerm* getStepTerm(Term* stepType, Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2);
 
     static CompoundTerm* getVarTerm(Term* t);
 

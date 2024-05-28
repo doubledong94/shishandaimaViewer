@@ -80,7 +80,8 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::REFERENCE);
     saveVocabulary(lexer, SimpleViewLexer::CONDITION);
     saveVocabulary(lexer, SimpleViewLexer::ELSE);
-    saveVocabulary(lexer, SimpleViewLexer::STEP);
+    saveVocabulary(lexer, SimpleViewLexer::DATA_STEP);
+    saveVocabulary(lexer, SimpleViewLexer::TIMING_STEP);
     // line
     saveVocabulary(lexer, SimpleViewLexer::LINE);
     saveVocabulary(lexer, SimpleViewLexer::CODE_ORDER);
@@ -139,7 +140,8 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_REFERENCE,Images::referenceIconId},
                 {SimpleView::Node::NODE_TYPE_CONDITION,Images::conditionIconId},
                 {SimpleView::Node::NODE_TYPE_ELSE,Images::elseIconId},
-                {SimpleView::Node::NODE_TYPE_STEP,Images::stepIconId},
+                {SimpleView::Node::NODE_TYPE_DATA_STEP,Images::stepIconId},
+                {SimpleView::Node::NODE_TYPE_TIMING_STEP,Images::stepIconId},
                 {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_VAR,Images::varIconId},
     };
@@ -154,7 +156,7 @@ void EasierSimpleView::init() {
 
     PrologWrapper::declareFun(HEAD_RUNTIME_KEY->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_DATA_FLOW->atomOrVar, 3);
-    PrologWrapper::declareFun(HEAD_STEP->atomOrVar, 5);
+    PrologWrapper::declareFun(HEAD_STEP->atomOrVar, 6);
     PrologWrapper::declareFun(HEAD_RUNTIME_READ->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_RUNTIME_WRITE->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_CODE_ORDER->atomOrVar, 3);
@@ -170,7 +172,8 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_REFERENCE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_REFERENCE);
     SimpleView::Node::NODE_CONDITION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONDITION);
     SimpleView::Node::NODE_ELSE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ELSE);
-    SimpleView::Node::NODE_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_STEP);
+    SimpleView::Node::NODE_DATA_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_STEP);
+    SimpleView::Node::NODE_TIMING_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_STEP);
 
     antlr4::CommonTokenStream tokenStream(&lexer);
     SimpleViewParser parser(&tokenStream);
@@ -889,7 +892,8 @@ SimpleView::Node* SimpleView::Node::NODE_ANY = NULL;
 SimpleView::Node* SimpleView::Node::NODE_REFERENCE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CONDITION = NULL;
 SimpleView::Node* SimpleView::Node::NODE_ELSE = NULL;
-SimpleView::Node* SimpleView::Node::NODE_STEP = NULL;
+SimpleView::Node* SimpleView::Node::NODE_DATA_STEP = NULL;
+SimpleView::Node* SimpleView::Node::NODE_TIMING_STEP = NULL;
 
 SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     auto* node = new Node();
@@ -911,8 +915,12 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::ELSE];
         node->iconId = Images::elseIconId;
         break;
-    case Node::NODE_TYPE_STEP:
-        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::STEP];
+    case Node::NODE_TYPE_DATA_STEP:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::DATA_STEP];
+        node->iconId = Images::stepIconId;
+        break;
+    case Node::NODE_TYPE_TIMING_STEP:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::TIMING_STEP];
         node->iconId = Images::stepIconId;
         break;
     default:
@@ -1111,8 +1119,10 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::CONDITION];
     case NODE_TYPE_ELSE:
         return voc[SimpleViewLexer::ELSE];
-    case NODE_TYPE_STEP:
-        return voc[SimpleViewLexer::STEP];
+    case NODE_TYPE_DATA_STEP:
+        return voc[SimpleViewLexer::DATA_STEP];
+    case NODE_TYPE_TIMING_STEP:
+        return voc[SimpleViewLexer::TIMING_STEP];
     case NODE_TYPE_INTERSECTION:
         return operandForSetOperation.first->displayName + " & " + operandForSetOperation.second->displayName;
     case NODE_TYPE_UNION:
@@ -1132,7 +1142,8 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_REFERENCE
         and nodeType != NODE_TYPE_CONDITION
         and nodeType != NODE_TYPE_ELSE
-        and nodeType != NODE_TYPE_STEP;
+        and nodeType != NODE_TYPE_DATA_STEP
+        and nodeType != NODE_TYPE_TIMING_STEP;
 }
 
 void SimpleView::Node::release() {
@@ -1554,7 +1565,8 @@ bool SimpleView::LineTemplate::hasRepeatOnceNodeExceptFor(const string& exceptio
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CONDITION
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_ELSE
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_REFERENCE
-            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_STEP
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_DATA_STEP
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_TIMING_STEP
             and nodeAndRepeatTypeI->repeatType == SimpleView::LineTemplate::REPEAT_TYPE_ONE) {
             foundRepeatTypeOnce = true;
             break;
@@ -1585,7 +1597,8 @@ bool SimpleView::LineTemplate::checkValidation(vector<const char*>& values, vect
                 and node != SimpleView::Node::NODE_REFERENCE
                 and node != SimpleView::Node::NODE_CONDITION
                 and node != SimpleView::Node::NODE_ELSE
-                and node != SimpleView::Node::NODE_STEP) {
+                and node != SimpleView::Node::NODE_DATA_STEP
+                and node != SimpleView::Node::NODE_TIMING_STEP) {
                 foundRepeatTypeOnce = true;
                 break;
             }
@@ -2352,11 +2365,17 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     Term* outputKeyType = Term::getVar("OutputKeyType");
     int nodeType = node->nodeType;
     // generate the next method key and next steps
-    if (nodeType == Node::NODE_TYPE_STEP) {
+    if (nodeType == Node::NODE_TYPE_DATA_STEP) {
         if (isBackward) {
-            ruleBody.push_back(CompoundTerm::getStepTerm(nextPoint, stepTerm, currentPoint, nextStepsTerm, currentStepsTerm));
+            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(1), nextPoint, stepTerm, currentPoint, nextStepsTerm, currentStepsTerm));
         } else {
-            ruleBody.push_back(CompoundTerm::getStepTerm(currentPoint, stepTerm, nextPoint, currentStepsTerm, nextStepsTerm));
+            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(1), currentPoint, stepTerm, nextPoint, currentStepsTerm, nextStepsTerm));
+        }
+    } else if (nodeType == Node::NODE_TYPE_TIMING_STEP) {
+        if (isBackward) {
+            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(2), nextPoint, stepTerm, currentPoint, nextStepsTerm, currentStepsTerm));
+        } else {
+            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(2), currentPoint, stepTerm, nextPoint, currentStepsTerm, nextStepsTerm));
         }
     } else {
         // generate value by dataflow term
@@ -2375,7 +2394,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONDITION))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_STEP))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
         break;
@@ -2391,7 +2411,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE)));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ELSE)));
         break;
-    case Node::NODE_TYPE_STEP:
+    case Node::NODE_TYPE_DATA_STEP:
+    case Node::NODE_TYPE_TIMING_STEP:
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
         break;
     default:

@@ -251,7 +251,7 @@ PositionInRegex* NodeInfo::getExistingPositionInRegex(const string& graphName, c
 }
 
 string NodeInfo::makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey) {
-    if (keyType == GlobalInfo::KEY_TYPE_STEP) {
+    if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
         return runtimeKey;
     } else {
         return runtimeKey + " <---> " + methodOfRuntime;
@@ -283,7 +283,7 @@ void NodeInfo::makeSimpleName() {
         simpleName = key;
     } else if (keyType == GlobalInfo::KEY_TYPE_REFERENCE) {
         simpleName = "[reference]";
-    } else if (keyType == GlobalInfo::KEY_TYPE_STEP) {
+    } else if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
         simpleName = "[step]";
     } else if (keyType == GlobalInfo::KEY_TYPE_ERROR) {
         simpleName = "[error]";

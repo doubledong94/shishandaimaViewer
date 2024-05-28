@@ -491,9 +491,10 @@ string CompoundTerm::getCalledReturnFact(const string& returnKey, const string& 
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getStepTerm(Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2) {
+CompoundTerm* CompoundTerm::getStepTerm(Term* stepType, Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = HEAD_STEP;
+    ret->addArg(stepType);
     ret->addArg(point1);
     ret->addArg(step);
     ret->addArg(point2);
@@ -1216,7 +1217,7 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
             Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
         ));
     if (isParam) {
-        return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+        return Rule::getRuleInstance(CompoundTerm::getStepTerm(Term::getInt(1),
             Tail::getInstanceByElements({ outerMethod,calledParameter }),
             step,
             Tail::getInstanceByElements({ innerMethod,runtimeParameter }),
@@ -1224,7 +1225,7 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
             Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod,calledReturnTerm }), steps)
         ), ruleBody);
     } else {
-        return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+        return Rule::getRuleInstance(CompoundTerm::getStepTerm(Term::getInt(2),
             Tail::getInstanceByElements({ outerMethod,calledMethod }),
             step,
             Tail::getInstanceByElements({ innerMethod,runtimeMethod }),
@@ -1250,7 +1251,13 @@ Rule* Rule::getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* 
         CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
             });
     }
-    return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+    Term* stepTypeTerm = NULL;
+    if (isParam) {
+        stepTypeTerm = Term::getInt(1);
+    } else {
+        stepTypeTerm = Term::getInt(2);
+    }
+    return Rule::getRuleInstance(CompoundTerm::getStepTerm(stepTypeTerm,
         Tail::getInstanceByElements({ outerMethod,calledParameterOrCalledMethod }),
         step,
         Tail::getInstanceByElements({ innerMethod,runtimeParameterOrMethod }),
@@ -1282,7 +1289,8 @@ Rule* Rule::getStepOutTerm(Term* innerMethod, Term* outerMethod, Term* returnTer
     Term* runtimeReturn = Term::getVar("RuntimeReturn");
     Term* steps = Term::getVar("Steps");
     Term* point2 = Tail::getInstanceByElements({ outerMethod,calledReturn });
-    return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+    Term* stepTypeTerm = Term::getInt(1);
+    return Rule::getRuleInstance(CompoundTerm::getStepTerm(stepTypeTerm,
         Tail::getInstanceByElements({ innerMethod,runtimeReturn }),
         step,
         point2,
@@ -1300,7 +1308,8 @@ Rule* Rule::getStepOutTermOutOfSteps(Term* innerMethod, Term* outerMethod, Term*
     Term* runtimeReturn = Term::getVar("RuntimeReturn");
     Term* shorterSteps = Term::getVar("ShorterSteps");
     Term* longerSteps = Term::getVar("LongerSteps");
-    return Rule::getRuleInstance(CompoundTerm::getStepTerm(
+    Term* stepTeypTerm = Term::getInt(1);
+    return Rule::getRuleInstance(CompoundTerm::getStepTerm(stepTeypTerm,
         Tail::getInstanceByElements({ innerMethod,runtimeReturn }),
         step,
         Tail::getInstanceByElements({ outerMethod,calledReturn }),

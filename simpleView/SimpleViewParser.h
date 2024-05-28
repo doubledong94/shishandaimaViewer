@@ -23,10 +23,11 @@ public:
     READ = 41, WRITE = 42, IN_PACKAGE = 43, USED_BY = 44, USE = 45, CLASS_OF = 46, 
     SUPER = 47, SUB = 48, STYLE = 49, DEFAULT_STYLE = 50, BASIC_STYLE = 51, 
     CLASS_SCOPE = 52, NODE = 53, REFERENCE = 54, CONDITION = 55, ELSE = 56, 
-    STEP = 57, SEGMENT = 58, LINE = 59, LINE_INSTANCE = 60, GLUE = 61, GLUE_RUNTIME = 62, 
-    GLULE_MEMBER_OF = 63, GLUE_INSTANCE_OF = 64, GLUE_OVERRIDE = 65, GLUE_HIERARCHY = 66, 
-    GRAPH = 67, GRAPH_INSTANCE = 68, CODE_ORDER = 69, SHOW = 70, STRING = 71, 
-    IDENTIFIER = 72, FLOAT = 73, INT = 74, WS = 75, LINE_COMMENT = 76
+    DATA_STEP = 57, TIMING_STEP = 58, SEGMENT = 59, LINE = 60, LINE_INSTANCE = 61, 
+    GLUE = 62, GLUE_RUNTIME = 63, GLULE_MEMBER_OF = 64, GLUE_INSTANCE_OF = 65, 
+    GLUE_OVERRIDE = 66, GLUE_HIERARCHY = 67, GRAPH = 68, GRAPH_INSTANCE = 69, 
+    CODE_ORDER = 70, SHOW = 71, STRING = 72, IDENTIFIER = 73, FLOAT = 74, 
+    INT = 75, WS = 76, LINE_COMMENT = 77
   };
 
   enum {
@@ -173,7 +174,8 @@ public:
     antlr4::tree::TerminalNode *REFERENCE();
     antlr4::tree::TerminalNode *CONDITION();
     antlr4::tree::TerminalNode *ELSE();
-    antlr4::tree::TerminalNode *STEP();
+    antlr4::tree::TerminalNode *DATA_STEP();
+    antlr4::tree::TerminalNode *TIMING_STEP();
     antlr4::tree::TerminalNode *IDENTIFIER();
 
 

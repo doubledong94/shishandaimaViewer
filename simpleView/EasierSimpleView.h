@@ -116,7 +116,8 @@ namespace SimpleView {
             NODE_TYPE_ANY,
             NODE_TYPE_REFERENCE,
             NODE_TYPE_CONDITION,
-            NODE_TYPE_STEP,
+            NODE_TYPE_DATA_STEP,
+            NODE_TYPE_TIMING_STEP,
             NODE_TYPE_ELSE,
 
             NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,
@@ -131,7 +132,8 @@ namespace SimpleView {
         static Node* NODE_REFERENCE;
         static Node* NODE_CONDITION;
         static Node* NODE_ELSE;
-        static Node* NODE_STEP;
+        static Node* NODE_DATA_STEP;
+        static Node* NODE_TIMING_STEP;
 
         int nodeType = -1;
         string extraStr;

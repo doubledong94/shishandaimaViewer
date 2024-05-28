@@ -66,7 +66,8 @@ public:
         KEY_TYPE_CONDITION,
         KEY_TYPE_ELSE,
         KEY_TYPE_REFERENCE,
-        KEY_TYPE_STEP,
+        KEY_TYPE_DATA_STEP,
+        KEY_TYPE_TIMING_STEP,
 
         KEY_TYPE_LOCAL_VARIABLE,
         KEY_TYPE_FINAL,
