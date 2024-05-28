@@ -293,6 +293,9 @@ void EasierSimpleView::getDependencyBoundsForClassScope(int classScopeIndex,
         if (classScope == nodeI->classScope) {
             nodeDependencyHigher.push_back(i);
         }
+        if (classScope == nodeI->classScope2) {
+            nodeDependencyHigher.push_back(i);
+        }
     }
 }
 
@@ -2402,6 +2405,12 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FIELD))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))));
+        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
         break;
     case Node::NODE_TYPE_REFERENCE:
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)));
