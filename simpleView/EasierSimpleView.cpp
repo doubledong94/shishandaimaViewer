@@ -2212,7 +2212,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 isBackward)
         }))->toString());
 
-    // there is no cache yet, make cache and use cache
+    // there is no cache, if it is not called parameter nor return, just run the fa
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
@@ -2221,6 +2221,50 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
+            // type check
+            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))),
+            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))),
+            CompoundTerm::getTransitionTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                nextStateTerm,
+                Term::getIgnoredVar(),
+                currentPoint,
+                currentStepsTerm,
+                nextPoint,
+                nextStepsTerm,
+                intersection,
+                outputItemTerm, isBackward),
+                // debug purpose
+                #ifdef DEBUG_PROLOG
+                CompoundTerm::getLengthTerm(history,Term::getVar("L")),
+                CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
+                #endif
+                    new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
+                    CompoundTerm::getFaTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        nextStateTerm,
+                        nextPoint,
+                        nextStepsTerm,
+                        intersection,
+                        outputTailTerm,
+                        Tail::getTailInstance(nextPoint, history), isBackward),
+        }))->toString());
+
+    // there is no cache, if it is called parameter or return, make cache and use cache
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+        lineInstanceValNameTerm, classScopeTerm,
+        currentStateTerm,
+        currentPoint,
+        currentStepsTerm,
+        intersection,
+        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        history, isBackward), {
+            // type check
+            new DisjunctionTerm(
+                CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+                CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))
+            ),
             // no cache yet
             new NegationTerm(CompoundTerm::getFaDoneTerm(
                 lineInstanceValNameTerm, classScopeTerm,
