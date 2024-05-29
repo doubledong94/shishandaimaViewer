@@ -173,7 +173,8 @@ int app::Application::ApplicationMain() {
     "Condition",
     "Else",
     "Reference",
-    "Step",
+    "DataStep",
+    "TimingStep",
     "Local Variable",
     "Final Value",
     "Default Value",
@@ -796,7 +797,7 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByKeyTypePopupOpen")) {
             ImGui::SeparatorText("select by key type");
-            for (int i = 0;i < 16;i++) {
+            for (int i = 0;i < 17;i++) {
                 if (ImGui::Selectable(nodeType[i])) {
                     boundedGraph->selectByKeyType(i + 1);
                 }
