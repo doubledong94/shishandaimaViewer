@@ -28,6 +28,7 @@ void PrologConstructor::beforeParseAll() {
     addressableMultiFileFunctorName2ArgCount[HEAD_CALLED_PARAMETER] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_CALLED_RETURN] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_FIELD] = 2;
+    addressableMultiFileFunctorName2ArgCount[HEAD_STEP] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_INSTANCE_OF] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_SIMPLE_NAME] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_IS_FINAL] = 1;
@@ -120,6 +121,10 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
             lines.push_back(CompoundTerm::getReturnFact(methodKey, returnKey));
             lines.push_back(CompoundTerm::getCalledReturnFact(returnKey, calledReturnKey));
             lines.push_back(CompoundTerm::getInstanceOfFact(returnKey, methodInfo->returnInfo->typeInfo->typeKey));
+            lines.push_back(CompoundTerm::getStepFact(methodKey, AddressableInfo::makeStepKey(methodKey)));
+            lines.push_back(CompoundTerm::getStepFact(methodInfo->calledMethodKey, AddressableInfo::makeStepKey(methodInfo->calledMethodKey)));
+            lines.push_back(CompoundTerm::getStepFact(returnKey, AddressableInfo::makeStepKey(returnKey)));
+            lines.push_back(CompoundTerm::getStepFact(calledReturnKey, AddressableInfo::makeStepKey(calledReturnKey)));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodKey, methodSimpleName));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodInfo->calledMethodKey, AddressableInfo::makeCalledKey(methodSimpleName)));
             lines.push_back(CompoundTerm::getSimpleNameFact(returnKey, methodInfo->returnInfo->name));
@@ -131,6 +136,8 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
                 string& calledParamKey = calledParamInfo->fieldKey;
                 lines.push_back(CompoundTerm::getParameterFact(methodKey, paramKey));
                 lines.push_back(CompoundTerm::getCalledParamFact(paramKey, calledParamKey));
+                lines.push_back(CompoundTerm::getStepFact(paramKey, AddressableInfo::makeStepKey(paramKey)));
+                lines.push_back(CompoundTerm::getStepFact(calledParamKey, AddressableInfo::makeStepKey(calledParamKey)));
                 lines.push_back(CompoundTerm::getSimpleNameFact(paramKey, paramInfo->name));
                 lines.push_back(CompoundTerm::getSimpleNameFact(calledParamKey, calledParamInfo->name));
                 lines.push_back(CompoundTerm::getInstanceOfFact(paramKey, paramInfo->typeInfo->typeKey));
@@ -500,6 +507,20 @@ CompoundTerm* CompoundTerm::getStepTerm(Term* stepType, Term* point1, Term* step
     ret->addArg(point2);
     ret->addArg(setps1);
     ret->addArg(setps2);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getStepTerm(Term* key, Term* stepKey) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_STEP;
+    ret->addArg(key);
+    ret->addArg(stepKey);
+    return ret;
+}
+
+string CompoundTerm::getStepFact(const string& key, const string& stepKey) {
+    string ret = getStepTerm(Term::getStr(key), Term::getStr(stepKey))->toString();
+    ret.push_back('.');
     return ret;
 }
 
@@ -1369,4 +1390,92 @@ AssertTerm::AssertTerm(Term* term) {
 
 string AssertTerm::toString() const {
     return HEAD_ASSERTZ->toString() + "((" + term->toString() + "))";
+}
+
+CompoundTerm* CompoundTerm::getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_FORWARD_DATA_STEP;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(midStepKey);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextStepKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getBackwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_BACKWARD_DATA_STEP;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(midStepKey);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextStepKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getForwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_FORWARD_TIMING_STEP;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(midStepKey);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextStepKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getBackwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_BACKWARD_TIMING_STEP;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(midStepKey);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextStepKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getCalledParamToCalledReturnTerm(Term* runtimeMethodKey, Term* calledParam, Term* calledReturn) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_CALLED_PARAM_TO_CALLED_RETURN;
+    ret->addArg(runtimeMethodKey);
+    ret->addArg(calledParam);
+    ret->addArg(calledReturn);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getCalledMethodToCalledReturnTerm(Term* runtimeMethodKey, Term* calledMethod, Term* calledReturn) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_CALLED_METHOD_TO_CALLED_RETURN;
+    ret->addArg(runtimeMethodKey);
+    ret->addArg(calledMethod);
+    ret->addArg(calledReturn);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getCalledReturnToCalledParam(Term* runtimeMethodKey, Term* calledReturn, Term* calledParam) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_CALLED_RETURN_TO_CALLED_PARAM;
+    ret->addArg(runtimeMethodKey);
+    ret->addArg(calledReturn);
+    ret->addArg(calledParam);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getCalledReturnToCalledMethod(Term* runtimeMethodKey, Term* calledReturn, Term* calledMethod) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_CALLED_RETURN_TO_CALLED_METHOD;
+    ret->addArg(runtimeMethodKey);
+    ret->addArg(calledReturn);
+    ret->addArg(calledMethod);
+    return ret;
 }

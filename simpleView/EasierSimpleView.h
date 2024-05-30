@@ -515,6 +515,7 @@ public:
     static void saveVocabulary(SimpleViewLexer& lexer, int symbol);
     static void saveVocabulary(SimpleViewLexer& lexer);
     static void init();
+    static void declareStepRules();
     static void searchClass(char* searchStr, vector<const char*>& searchResult);
     static void searchNode(const char* classKey, vector<const char*>& searchResult);
     static void filterSearchResults(char* searchStr, vector<const char*>& searchResult);

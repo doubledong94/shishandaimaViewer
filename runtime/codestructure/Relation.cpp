@@ -40,25 +40,11 @@ void ResolvingItem::set(const string& variableKey, TypeInfo* typeInfo, const str
     this->keyType = keyType;
     this->indexInsideStatement = indexInsideExp;
     this->extraInfoForOptr = extraInfo;
-    this->runtimeKey = variableKey;
-    this->runtimeKey += '(';
-    this->runtimeKey += structureKey;
-    this->runtimeKey += ';';
-    this->runtimeKey += sentenceIndex;
-    this->runtimeKey += ';';
-    this->runtimeKey += indexInsideStatement;
-    this->runtimeKey += ')';
+    this->runtimeKey = makeRuntimeKey(variableKey, structureKey, sentenceIndex, indexInsideStatement);
     if (typeInfo) {
         this->referenceKey = typeInfo->typeKey + "-reference";
+        this->referenceRuntimeKey = makeRuntimeKey(referenceKey, structureKey, sentenceIndex, indexInsideStatement);
     }
-    this->referenceRuntimeKey = referenceKey;
-    this->referenceRuntimeKey += '(';
-    this->referenceRuntimeKey += structureKey;
-    this->referenceRuntimeKey += ';';
-    this->referenceRuntimeKey += sentenceIndex;
-    this->referenceRuntimeKey += ';';
-    this->referenceRuntimeKey += indexInsideStatement;
-    this->referenceRuntimeKey += ')';
 }
 
 static int relationCount = 0;
@@ -83,6 +69,10 @@ void ResolvingItem::addRuntimeProlog(string(*act)(const string& methodKey, const
         referencedBy->addRuntimeProlog(act, methodKey, prologLines);
     }
     runtimeAdded = true;
+}
+
+string ResolvingItem::makeRuntimeKey(const string& key, const string& structureKey, const string& sentenceIndex, const string& indexInsideStatement) {
+    return key + "(" + structureKey + ";" + sentenceIndex + ";" + indexInsideStatement + ")";
 }
 
 void ResolvingItem::addRuntimeReadProlog(string(*act)(const string&, const string&, const string&), const string& methodKey, list<string>& prologLines) {

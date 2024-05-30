@@ -12,6 +12,8 @@ public:
 };
 class DataFlowVisitor : public GenDataVisitor {
 public:
+    thread_local static map<string, list<pair<string, string>>> dataStepRuntimes;
+
     void visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) override;
 
     void beforeRunSplitCodeBlock(CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks);
@@ -35,6 +37,8 @@ public:
 };
 class TimingFlowVisitor : public GenDataVisitor {
 public:
+    thread_local static map<string, list<pair<string, string>>> timingStepRuntimes;
+
     void visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) override;
 
     void visitSplitCodeBlock(const string& methodKey, CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks, list<string>& prologLines) override;
@@ -48,10 +52,6 @@ public:
 class ScopeFlowVisitor : public GenDataVisitor {
 public:
     void visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) override;
-    void visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) override;
-};
-class StepVisitor :public GenDataVisitor {
-public:
     void visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) override;
 };
 class CodeOrderVisitor : public GenDataVisitor {

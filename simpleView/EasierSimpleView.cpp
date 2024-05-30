@@ -162,6 +162,7 @@ void EasierSimpleView::init() {
     PrologWrapper::declareFun(HEAD_CODE_ORDER->atomOrVar, 3);
     SimpleView::declareClassResolveRules();
     SimpleView::declareNodeResolveRules();
+    declareStepRules();
 
     spdlog::get(ErrorManager::TimerTag)->info("simple init started.");
     std::ifstream stream(FileManager::simpleViewConfig);
@@ -183,6 +184,134 @@ void EasierSimpleView::init() {
     SimpleView::SimpleViewToGraphConverter visitor;
     parser.compilationUnit()->accept(&visitor);
     spdlog::get(ErrorManager::TimerTag)->info("simple init finished.");
+}
+
+void EasierSimpleView::declareStepRules() {
+    Term* runtimeMethod = Term::getVar("RuntimeMethod");
+    Term* calledParam = Term::getVar("CalledParam");
+    Term* calledMethod = Term::getVar("CalledMethod");
+    Term* calledReturn = Term::getVar("CalledReturn");
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod, calledMethod, calledReturn), {
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
+        }))->toString());
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledParamToCalledReturnTerm(runtimeMethod, calledParam, calledReturn), {
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
+        CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod,calledMethod,calledReturn),
+        }))->toString());
+
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod, calledReturn, calledMethod), {
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
+        }))->toString());
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledParam(runtimeMethod, calledReturn, calledParam), {
+        CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod,calledReturn,calledMethod),
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+        }))->toString());
+
+    Term* point = Term::getVar("Point");
+    Term* addressablePoint = Term::getVar("AddressablePoint");
+    Term* midStepKey = Term::getVar("MidStep");
+    Term* nextStepKey = Term::getVar("NextStep");
+    Term* currentSteps = Term::getVar("CurrentSteps");
+    Term* nextSteps = Term::getVar("NextSteps");
+
+    Term* param = Term::getVar("ParamKey");
+    Term* returnKey = Term::getVar("ReturnKey");
+    Term* innerMethod = Term::getVar("InnerMethodKey");
+    Term* outerMethod = Term::getVar("OuterMethodKey");
+    Term* step = Term::getVar("Step");
+    // forward -----------------------------------------------------------------------------------------------------------------------------------------------
+    // called method -> step -> step -> method (increase steps)
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardTimingStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+        // get addressable (addressablePoint=called method)
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
+        // restore called key to normal key (innerMethod)
+        CompoundTerm::getCalledMethodTerm(innerMethod,addressablePoint),
+        // nomal key to its step key
+        CompoundTerm::getStepTerm(innerMethod,step),
+        // step key to its runtime key (nextStepKey)
+        CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+        // called method to called return
+        CompoundTerm::getCalledMethodToCalledReturnTerm(outerMethod, point, calledReturn),
+        }))->toString());
+    // called param -> step -> step -> param (increase steps)
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+        // get addressable key (addressablePoint=called parameter)
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+        // restore called key to normal key (param key), and get its method as inner method
+        CompoundTerm::getCalledParamTerm(param,addressablePoint),CompoundTerm::getParameterTerm(innerMethod,param),
+        // normal key to its step key
+        CompoundTerm::getStepTerm(param,step),
+        // step key to its runtime key
+        CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+        // called return to called return
+        CompoundTerm::getCalledParamToCalledReturnTerm(outerMethod, point, calledReturn),
+        }))->toString());
+    // return -> step -> step -> called return (current steps != [])
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        CompoundTerm::getDataFlowTerm(outerMethod,nextStepKey,calledReturn),
+        CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
+        }))->toString());
+    // return -> step -> step -> called return (current steps == [])
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key (addressablePoint=return)
+        CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
+        // return key to called return key
+        CompoundTerm::getCalledReturnTerm(addressablePoint,calledReturn),
+        // called return key to called step
+        CompoundTerm::getStepTerm(calledReturn,step),
+        // runtime step
+        CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+        }))->toString());
+    // backward -----------------------------------------------------------------------------------------------------------------------------------------------
+    // method -> step -> step -> called method (current steps != [])
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        CompoundTerm::getCalledReturnToCalledMethod(outerMethod,calledReturn,calledMethod),
+        CompoundTerm::getDataFlowTerm(outerMethod,calledMethod,nextStepKey),
+        CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
+        }))->toString());
+    // method -> step -> step -> called method (current steps == [])
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key (addressablePoint=method)
+        CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+        // method key to called method key
+        CompoundTerm::getCalledMethodTerm(addressablePoint,calledMethod),
+        // called method key to called step key
+        CompoundTerm::getStepTerm(calledMethod,step),
+        // runtime step
+        CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+        }))->toString());
+    // param -> step -> step -> called param (current steps != [])
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        CompoundTerm::getCalledReturnToCalledParam(outerMethod,calledReturn,calledParam),
+        CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextStepKey),
+        CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
+        }))->toString());
+    // param -> step -> step -> called param (current steps == [])
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key (addressablePoint=method)
+        CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
+        // parameter key to called parameter key
+        CompoundTerm::getCalledParamTerm(addressablePoint,calledParam),
+        // called param key to called step key
+        CompoundTerm::getStepTerm(calledParam,step),
+        // runtime step
+        CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+        }))->toString());
+    // called return -> step -> step -> return (increase steps)
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(outerMethod, calledReturn, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+        // get addressable key (addressablePoint=called return key)
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
+        // restore called key to normal key (return key), and get its method as inner method
+        CompoundTerm::getCalledReturnTerm(returnKey,calledReturn),CompoundTerm::getReturnTerm(innerMethod,returnKey),
+        // normal key to its step key
+        CompoundTerm::getStepTerm(returnKey,step),
+        // step key to its runtime key
+        CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+        }))->toString());
 }
 
 void EasierSimpleView::searchClass(char* searchStr, vector<const char*>& searchResult) {
@@ -2120,6 +2249,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     Term* currentExpectingPoint = Term::getVar("CurrentExpectingPoint");
     Term* nextExpectingPoint = Term::getVar("NextExpectingPoint");
     Term* history = Term::getVar("History");
+    Term* faOutput = Term::getVar("FaOutput");
 
     // fa impl
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
@@ -2164,7 +2294,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentPoint,
         currentStepsTerm,
         intersection,
-        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        faOutput,
         history, isBackward), {
             CompoundTerm::getFaImplTerm(
                 lineInstanceValNameTerm, classScopeTerm,
@@ -2172,14 +2302,14 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 currentPoint,
                 currentStepsTerm,
                 intersection,
-                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                faOutput,
                 history, isBackward),
             new AssertTerm(CompoundTerm::getFaCacheTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
                 currentStepsTerm,
-                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                faOutput,
                 isBackward)),
                 #ifdef DEBUG_PROLOG
                 CompoundTerm::getToFileTerm(
@@ -2188,7 +2318,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     currentStateTerm,
                     currentPoint,
                     currentStepsTerm,
-                    Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                    faOutput,
                     isBackward),
                 Term::getStr("a.txt")),
                 #endif
@@ -2202,13 +2332,13 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentPoint,
         currentStepsTerm,
         intersection,
-        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        faOutput,
         history, isBackward), { CompoundTerm::getFaCacheTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
                 currentStepsTerm,
-                Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                faOutput,
                 isBackward)
         }))->toString());
 
@@ -2222,8 +2352,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
             // type check
-            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))),
-            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))),
+            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
+            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
             CompoundTerm::getTransitionTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
@@ -2235,20 +2365,20 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 nextStepsTerm,
                 intersection,
                 outputItemTerm, isBackward),
-                // debug purpose
-                #ifdef DEBUG_PROLOG
-                CompoundTerm::getLengthTerm(history,Term::getVar("L")),
-                CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
-                #endif
-                    new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
-                    CompoundTerm::getFaTerm(
-                        lineInstanceValNameTerm, classScopeTerm,
-                        nextStateTerm,
-                        nextPoint,
-                        nextStepsTerm,
-                        intersection,
-                        outputTailTerm,
-                        Tail::getTailInstance(nextPoint, history), isBackward),
+        // debug purpose
+        #ifdef DEBUG_PROLOG
+        CompoundTerm::getLengthTerm(history,Term::getVar("L")),
+        CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
+        #endif
+            new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
+            CompoundTerm::getFaTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                nextStateTerm,
+                nextPoint,
+                nextStepsTerm,
+                intersection,
+                outputTailTerm,
+                Tail::getTailInstance(nextPoint, history), isBackward),
         }))->toString());
 
     // there is no cache, if it is called parameter or return, make cache and use cache
@@ -2258,19 +2388,19 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentPoint,
         currentStepsTerm,
         intersection,
-        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        faOutput,
         history, isBackward), {
             // type check
             new DisjunctionTerm(
-                CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
-                CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))
+                CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+                CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
             ),
-            // no cache yet
-            new NegationTerm(CompoundTerm::getFaDoneTerm(
-                lineInstanceValNameTerm, classScopeTerm,
-                currentStateTerm,
-                currentPoint,
-                isBackward)),
+                // no cache yet
+                new NegationTerm(CompoundTerm::getFaDoneTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    isBackward)),
                 // mark done
             new AssertTerm(CompoundTerm::getFaDoneTerm(
                 lineInstanceValNameTerm, classScopeTerm,
@@ -2293,7 +2423,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     currentPoint,
                     currentStepsTerm,
                     intersection,
-                    Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                    faOutput,
                     history, isBackward)
                 ),
                 // use cache
@@ -2302,7 +2432,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     currentStateTerm,
                     currentPoint,
                     currentStepsTerm,
-                    Tail::getTailInstance(outputItemTerm, outputTailTerm),
+                    faOutput,
                     isBackward),
         }))->toString());
 }
@@ -2390,7 +2520,6 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
         isBackward), ruleBody))->toString());
 }
 
-// todo add a param to transition rule: expectingNextPoint, generated by step
 void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nextState, string& regexChar) {
     Node* node = lineInstance->turnParamNodeToArgNode(lineTemplate->charToNodeTemplate[regexChar[0]]->node);
     int intersectionIndex = lineInstance->findIntersectionIndexByChar(regexChar[0]);
@@ -2409,34 +2538,61 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     Term* currentStepsTerm = Term::getVar("CurrentSteps");
     Term* nextMethodKeyTerm = Term::getVar("NextMethodKey");
     Term* nextKeyTerm = Term::getVar("NextRuntimeKey");
-    Term* stepTerm = Term::getVar("Step");
     Term* nextPoint = Tail::getInstanceByElements({ nextMethodKeyTerm, nextKeyTerm });
     Term* nextStepsTerm = Term::getVar("NextStepsTerm");
     Term* outputAddressableKey = Term::getVar("OutputAddressableKey");
     Term* outputKeyType = Term::getVar("OutputKeyType");
     int nodeType = node->nodeType;
-    // generate the next method key and next steps
-    if (nodeType == Node::NODE_TYPE_DATA_STEP) {
+    bool isStep = nodeType == Node::NODE_TYPE_DATA_STEP or nodeType == Node::NODE_TYPE_TIMING_STEP;
+    int specialKeyType = -1;
+    switch (nodeType) {
+    case Node::NODE_TYPE_REFERENCE:
+        specialKeyType = GlobalInfo::KEY_TYPE_REFERENCE;
+        break;
+    case Node::NODE_TYPE_CONDITION:
+        specialKeyType = GlobalInfo::KEY_TYPE_CONDITION;
+        break;
+    case Node::NODE_TYPE_ELSE:
+        specialKeyType = GlobalInfo::KEY_TYPE_ELSE;
+        break;
+    case Node::NODE_TYPE_DATA_STEP:
+        specialKeyType = GlobalInfo::KEY_TYPE_DATA_STEP;
+        break;
+    case Node::NODE_TYPE_TIMING_STEP:
+        specialKeyType = GlobalInfo::KEY_TYPE_TIMING_STEP;
+        break;
+    }
+    // generate nextKeyTerm by dataflow term
+    if (isStep) {
+        Term* midStepTermRuntime = Term::getVar("MidStepRuntime");
         if (isBackward) {
-            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(1), nextPoint, stepTerm, currentPoint, nextStepsTerm, currentStepsTerm));
+            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, midStepTermRuntime, currentKeyTerm));
         } else {
-            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(1), currentPoint, stepTerm, nextPoint, currentStepsTerm, nextStepsTerm));
+            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime));
         }
-    } else if (nodeType == Node::NODE_TYPE_TIMING_STEP) {
-        if (isBackward) {
-            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(2), nextPoint, stepTerm, currentPoint, nextStepsTerm, currentStepsTerm));
-        } else {
-            ruleBody.push_back(CompoundTerm::getStepTerm(Term::getInt(2), currentPoint, stepTerm, nextPoint, currentStepsTerm, nextStepsTerm));
+        // check type
+        ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), midStepTermRuntime, Term::getInt(specialKeyType)));
+        // generate the next method key and next steps
+        if (nodeType == Node::NODE_TYPE_DATA_STEP) {
+            if (isBackward) {
+                ruleBody.push_back(CompoundTerm::getBackwardDataStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            } else {
+                ruleBody.push_back(CompoundTerm::getForwardDataStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            }
+        } else if (nodeType == Node::NODE_TYPE_TIMING_STEP) {
+            if (isBackward) {
+                ruleBody.push_back(CompoundTerm::getBackwardTimingStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            } else {
+                ruleBody.push_back(CompoundTerm::getForwardTimingStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            }
         }
+
     } else {
-        // generate value by dataflow term
         if (isBackward) {
             ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, nextKeyTerm, currentKeyTerm));
         } else {
             ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, nextKeyTerm));
         }
-        ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
-        ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
     // value check node type/node inner name and output addressable key and key type
     switch (nodeType) {
@@ -2457,19 +2613,12 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
         break;
     case Node::NODE_TYPE_REFERENCE:
-        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)));
-        ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)));
-        break;
     case Node::NODE_TYPE_CONDITION:
-        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONDITION)));
-        ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_CONDITION)));
-        break;
     case Node::NODE_TYPE_ELSE:
-        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE)));
-        ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ELSE)));
-        break;
     case Node::NODE_TYPE_DATA_STEP:
     case Node::NODE_TYPE_TIMING_STEP:
+        // check by node type
+        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
         break;
     default:
@@ -2480,6 +2629,11 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (isIntersection) {
         // output to intersection or checked by intersection
         ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
+    }
+    // generate the next method key and next steps
+    if (not isStep) {
+        ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
+        ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
     // debug purpose
 #ifdef DEBUG_PROLOG

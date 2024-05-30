@@ -1,8 +1,8 @@
 :- multifile simpleName/2.
 :- dynamic addressableLoaded/1.
 :- dynamic unaddressableLoaded/1.
-:- dynamic forwardFaCache/5.
-:- dynamic backwardFaCache/5.
+:- dynamic forwardFaCache/6.
+:- dynamic backwardFaCache/6.
 :- dynamic forwardFaDone/4.
 :- dynamic backwardFaDone/4.
 

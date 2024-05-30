@@ -106,6 +106,14 @@ static Term* HEAD_IS_FINAL = new Term("isFinal", Term::TERM_TYPE_ATOM);
 static Term* HEAD_DATA_FLOW = new Term("dataFlow", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CODE_ORDER = new Term("codeOrder", Term::TERM_TYPE_ATOM);
 static Term* HEAD_STEP = new Term("step", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_DATA_STEP = new Term("forwardDataStep", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_DATA_STEP = new Term("backwardDataStep", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_TIMING_STEP = new Term("forwardTimingStep", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_TIMING_STEP = new Term("backTimingStep", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CALLED_PARAM_TO_CALLED_RETURN = new Term("calledParamToCalledReturn", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CALLED_METHOD_TO_CALLED_RETURN = new Term("calledMethodToCalledReturn", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CALLED_RETURN_TO_CALLED_PARAM = new Term("calledReturnToCalledParam", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CALLED_RETURN_TO_CALLED_METHOD = new Term("calledReturnToCalledMethod", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_RUNTIME_READ = new Term("runtimeRead", Term::TERM_TYPE_ATOM);
 static Term* HEAD_RUNTIME_WRITE = new Term("runtimeWrite", Term::TERM_TYPE_ATOM);
@@ -265,6 +273,26 @@ public:
     static string getCalledReturnFact(const string& returnKey, const string& calledReturnKey);
 
     static CompoundTerm* getStepTerm(Term* stepType, Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2);
+
+    static CompoundTerm* getStepTerm(Term* key, Term* stepKey);
+
+    static string getStepFact(const string& key, const string& stepKey);
+
+    static CompoundTerm* getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getBackwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getForwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getBackwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getCalledParamToCalledReturnTerm(Term* runtimeMethodKey, Term* calledParam, Term* calledReturn);
+
+    static CompoundTerm* getCalledMethodToCalledReturnTerm(Term* runtimeMethodKey, Term* calledMethod, Term* calledReturn);
+
+    static CompoundTerm* getCalledReturnToCalledParam(Term* runtimeMethodKey, Term* calledReturn, Term* calledParam);
+
+    static CompoundTerm* getCalledReturnToCalledMethod(Term* runtimeMethodKey, Term* calledReturn, Term* calledMethod);
 
     static CompoundTerm* getVarTerm(Term* t);
 

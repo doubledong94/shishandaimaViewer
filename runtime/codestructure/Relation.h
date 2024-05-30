@@ -39,6 +39,8 @@ public:
     void addConditionToProlog(string(*act)(const string& methodKey, const string& conditionRuntimeKey, const string& runtimeKey), const string& methodKey, const string& conditionRuntimeKey, list<string>& prologLines);
 
     void addReferenceProlog(string(*act)(const string& methodKey, const string& runtime1, const string& runtime2), const string& methodKey, list<string>& prologLines);
+
+    static string makeRuntimeKey(const string& key, const string& structureKey, const string& sentenceIndex, const string& indexInsideStatement);
 };
 
 

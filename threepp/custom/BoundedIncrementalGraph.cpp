@@ -394,6 +394,9 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
     string& methodOfRuntime = tail->headElements[2]->atomOrVar;
     string& runtimeKey = tail->headElements[3]->atomOrVar;
     int keyType = tail->headElements[5]->integer;
+    if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
+        return NULL;
+    }
     string uniKey = NodeInfo::makeUniKey(keyType, methodOfRuntime, runtimeKey);
     NodeInfo* nodeInfo = getExistingNodeInfo(uniKey);
     string& lineInstanceName = tail->headElements[0]->atomOrVar;
@@ -439,7 +442,12 @@ void BoundedIncrementalGraph::updateGraph() {
         FOR_EACH_ITEM(bufLine->headElements, buf.push_back(dynamic_cast<Tail*>(item)););
         // convert loaded buffer to node info
         vector<NodeInfo*> nodes;
-        FOR_EACH_ITEM(buf, nodes.push_back(convertTailToNodeInfo(item)););
+        for (auto& b : buf) {
+            NodeInfo* node = convertTailToNodeInfo(b);
+            if (node) {
+                nodes.push_back(node);
+            }
+        }
         // give new node a node id, and collect all edges
         vector<pair<int, int>> edges;
         NodeInfo* lastNode = NULL;
@@ -2118,7 +2126,7 @@ void BoundedIncrementalGraph::transitiveReductionImpl() {
     invalidateAllGraphInfo();
 }
 
-void BoundedIncrementalGraph::grid(vector<set<int>> &toBeGruped) {
+void BoundedIncrementalGraph::grid(vector<set<int>>& toBeGruped) {
     map<int, set<int>*> groups;
     for (int nodeId = 0;nodeId < points.size();nodeId++) {
         igraph_vector_int_t neighborsIn;

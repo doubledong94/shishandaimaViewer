@@ -1053,15 +1053,11 @@ std::any StatementVisitor::visitExpressionArrayAccess(JavaParser::ExpressionArra
     }
     auto* indexedItem = any_cast<ResolvingItem*>(itemOrNull1);
     auto* indexItem = any_cast<ResolvingItem*>(itemOrNull2);
-    auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER1, indexedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_PARAMETER1, "A[_]");
-    auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER2, AddressableInfo::primitive_intTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_PARAMETER2, "_[i]");
-    auto* ret = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, indexedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN, "A[i]");
+    auto* optrRet = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, indexedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN, "[i]");
     // array index
-    new Relation(getSentence(), indexedItem, param1);
-    new Relation(getSentence(), indexItem, param2);
-    new Relation(getSentence(), param1, ret);
-    new Relation(getSentence(), param2, ret);
-    return ret;
+    new Relation(getSentence(), indexItem, optrRet);
+    new Relation(getSentence(), optrRet, indexedItem);
+    return indexedItem;
 }
 
 std::any StatementVisitor::visitExpressionMethodCall(JavaParser::ExpressionMethodCallContext* ctx) {
