@@ -407,6 +407,7 @@ public:
         Term* regexChar,
         Term* currentPoint,
         Term* currentSteps,
+        Term* expectingNextKey,
         Term* nextPoint,
         Term* nextSteps,
         const vector<Term*>& intersections,

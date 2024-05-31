@@ -788,6 +788,7 @@ Term* CompoundTerm::getTransitionTerm(
     Term* regexChar,
     Term* currentPoint,
     Term* currentSteps,
+    Term* expectingNextKey,
     Term* nextPoint,
     Term* nextSteps,
     const vector<Term*>& intersections,
@@ -802,6 +803,7 @@ Term* CompoundTerm::getTransitionTerm(
     ret->addArg(regexChar);
     ret->addArg(currentPoint);
     ret->addArg(currentSteps);
+    ret->addArg(expectingNextKey);
     ret->addArg(nextPoint);
     ret->addArg(nextSteps);
     FOR_EACH_ITEM(intersections, ret->addArg(item););
@@ -825,10 +827,10 @@ CompoundTerm* CompoundTerm::getEndingTransitionTerm(
 
 void CompoundTerm::retractAllTransitionTerm(bool isBackward, int intersectionCount) {
     if (isBackward) {
-        PrologWrapper::retractAllFact(HEAD_BACKWARD_TRANSITION->toString(), 10 + intersectionCount);
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_TRANSITION->toString(), 11 + intersectionCount);
         PrologWrapper::retractAllFact(HEAD_BACKWARD_ENDING_TRANSITION->toString(), 4);
     } else {
-        PrologWrapper::retractAllFact(HEAD_FORWARD_TRANSITION->toString(), 10 + intersectionCount);
+        PrologWrapper::retractAllFact(HEAD_FORWARD_TRANSITION->toString(), 11 + intersectionCount);
         PrologWrapper::retractAllFact(HEAD_FORWARD_ENDING_TRANSITION->toString(), 4);
     }
 }

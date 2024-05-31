@@ -2192,6 +2192,7 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 regexCharTerm,  // the first char
                 Term::getIgnoredVar(), // the current point of init state has no value
                 Term::getIgnoredVar(), // the current step of init state has no value
+                Term::getIgnoredVar(),
                 splitTerm,  // next point = split point or split point = next point
                 Tail::getInstanceByElements({}),
                 intersection,
@@ -2250,7 +2251,13 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     Term* nextExpectingPoint = Term::getVar("NextExpectingPoint");
     Term* history = Term::getVar("History");
     Term* faOutput = Term::getVar("FaOutput");
-
+    Term* expectingNextKeyTerm = Term::getVar("ExpectingNextKey");
+    Term* flowTerm = NULL;
+    if (isBackward) {
+        flowTerm = CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, expectingNextKeyTerm, currentKeyTerm);
+    } else {
+        flowTerm = CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, expectingNextKeyTerm);
+    }
     // fa impl
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
         lineInstanceValNameTerm, classScopeTerm,
@@ -2260,6 +2267,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
+            flowTerm,
             CompoundTerm::getTransitionTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
@@ -2267,24 +2275,25 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 Term::getIgnoredVar(),
                 currentPoint,
                 currentStepsTerm,
+                expectingNextKeyTerm,
                 nextPoint,
                 nextStepsTerm,
                 intersection,
                 outputItemTerm, isBackward),
-                // debug purpose
-                #ifdef DEBUG_PROLOG
-                CompoundTerm::getLengthTerm(history,Term::getVar("L")),
-                CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
-                #endif
-                    new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
-                    CompoundTerm::getFaTerm(
-                        lineInstanceValNameTerm, classScopeTerm,
-                        nextStateTerm,
-                        nextPoint,
-                        nextStepsTerm,
-                        intersection,
-                        outputTailTerm,
-                        Tail::getTailInstance(nextPoint, history), isBackward),
+        // debug purpose
+        #ifdef DEBUG_PROLOG
+        CompoundTerm::getLengthTerm(history,Term::getVar("L")),
+        CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
+        #endif
+            new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
+            CompoundTerm::getFaTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                nextStateTerm,
+                nextPoint,
+                nextStepsTerm,
+                intersection,
+                outputTailTerm,
+                Tail::getTailInstance(nextPoint, history), isBackward),
         }))->toString());
 
     // make cache
@@ -2349,36 +2358,19 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         currentPoint,
         currentStepsTerm,
         intersection,
-        Tail::getTailInstance(outputItemTerm, outputTailTerm),
+        faOutput,
         history, isBackward), {
             // type check
             new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
             new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
-            CompoundTerm::getTransitionTerm(
+            CompoundTerm::getFaImplTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
-                nextStateTerm,
-                Term::getIgnoredVar(),
                 currentPoint,
                 currentStepsTerm,
-                nextPoint,
-                nextStepsTerm,
                 intersection,
-                outputItemTerm, isBackward),
-        // debug purpose
-        #ifdef DEBUG_PROLOG
-        CompoundTerm::getLengthTerm(history,Term::getVar("L")),
-        CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
-        #endif
-            new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
-            CompoundTerm::getFaTerm(
-                lineInstanceValNameTerm, classScopeTerm,
-                nextStateTerm,
-                nextPoint,
-                nextStepsTerm,
-                intersection,
-                outputTailTerm,
-                Tail::getTailInstance(nextPoint, history), isBackward),
+                faOutput,
+                history, isBackward),
         }))->toString());
 
     // there is no cache, if it is called parameter or return, make cache and use cache
@@ -2514,6 +2506,7 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm, nextStateTerm, regexCharTerm, // state transition from init state
         Term::getIgnoredVar(), Term::getIgnoredVar(), // current value
+        Term::getIgnoredVar(),
         nextPoint, Tail::getInstanceByElements({}), // next value
         lineInstance->intersectionTerms, // intersections
         getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), // output
@@ -2542,6 +2535,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     Term* nextStepsTerm = Term::getVar("NextStepsTerm");
     Term* outputAddressableKey = Term::getVar("OutputAddressableKey");
     Term* outputKeyType = Term::getVar("OutputKeyType");
+    Term* expectingNextKeyTerm = Term::getVar("ExpectingNextKey");
     int nodeType = node->nodeType;
     bool isStep = nodeType == Node::NODE_TYPE_DATA_STEP or nodeType == Node::NODE_TYPE_TIMING_STEP;
     int specialKeyType = -1;
@@ -2565,11 +2559,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     // generate nextKeyTerm by dataflow term
     if (isStep) {
         Term* midStepTermRuntime = Term::getVar("MidStepRuntime");
-        if (isBackward) {
-            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, midStepTermRuntime, currentKeyTerm));
-        } else {
-            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime));
-        }
+        ruleBody.push_back(Unification::getUnificationInstance(midStepTermRuntime, expectingNextKeyTerm));
         // check type
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), midStepTermRuntime, Term::getInt(specialKeyType)));
         // generate the next method key and next steps
@@ -2588,11 +2578,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         }
 
     } else {
-        if (isBackward) {
-            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, nextKeyTerm, currentKeyTerm));
-        } else {
-            ruleBody.push_back(CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, nextKeyTerm));
-        }
+        ruleBody.push_back(Unification::getUnificationInstance(nextKeyTerm, expectingNextKeyTerm));
     }
     // value check node type/node inner name and output addressable key and key type
     switch (nodeType) {
@@ -2646,6 +2632,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         regexCharTerm,
         currentPoint,
         currentStepsTerm,
+        expectingNextKeyTerm,
         nextPoint,
         nextStepsTerm,
         lineInstance->intersectionTerms,
