@@ -572,8 +572,6 @@ void addTimeCountToRuleBody(vector<Term*>& ruleBody, const string& ruleName);
 
 Term* convertPlTermToTerm(PlTerm* plTerm);
 
-NodeAttr* convertTermToNodeAttr(Term* term);
-
 namespace PrologConstructor {
 
     void init();
@@ -591,7 +589,5 @@ namespace PrologConstructor {
     void savePrologRelatedType(map<string, map<string, set<string>>>& filePath2TypeKey2itUseTypeKeys);
 
     void saveAddressableInfo(const string& filePath, const list<TypeInfo*>& typeInfos);
-
-    void deleteAllTermInstance();
 };
 

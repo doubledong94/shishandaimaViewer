@@ -257,23 +257,15 @@ list<K> &extractFirstFromPair(list<pair<K, V>> &p, list<K> &l) {
 template<typename ItemType>
 class PooledItem {
 public:
-    thread_local static list<ItemType *> itemsInUse;
     thread_local static list<ItemType *> itemsInPool;
 
     static ItemType *getInstance();
 
     static void returnToPool(ItemType *ret);
 
-    static void returnAllToPool();
-
-    static void deleteAll();
-
     virtual void reset();
 };
 
-
-template<typename ItemType>
-thread_local list<ItemType *> PooledItem<ItemType>::itemsInUse;
 
 template<typename ItemType>
 thread_local list<ItemType *> PooledItem<ItemType>::itemsInPool;
@@ -288,27 +280,12 @@ ItemType *PooledItem<ItemType>::getInstance() {
         itemsInPool.pop_front();
     }
     ret->reset();
-    itemsInUse.emplace_back(ret);
     return ret;
 }
 
 template<typename ItemType>
 void PooledItem<ItemType>::returnToPool(ItemType *ret) {
     itemsInPool.emplace_back(ret);
-    itemsInUse.remove(ret);
-}
-
-template<typename ItemType>
-void PooledItem<ItemType>::returnAllToPool() {
-    extendList(itemsInPool, itemsInUse);
-    itemsInUse.clear();
-}
-
-template<typename ItemType>
-void PooledItem<ItemType>::deleteAll() {
-    returnAllToPool();
-    FOR_EACH_ITEM(itemsInPool,delete item;);
-    itemsInPool.clear();
 }
 
 template<typename ItemType>

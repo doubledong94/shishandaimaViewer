@@ -2,7 +2,6 @@
 #include "../../addressableInfo/GlobalInfo.h"
 #include "../../antlr/syntaxObject/JavaHeaderFile.h"
 #include "../../addressableInfo/AddressableInfo.h"
-#include "../../GraphAttributes.h"
 #include "CodeStructure.h"
 #include "Relation.h"
 

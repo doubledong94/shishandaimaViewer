@@ -1,6 +1,5 @@
 #include "../util/util.h"
 #include "../../addressableInfo/GlobalInfo.h"
-#include "../GraphAttributes.h"
 #include "../file/FileManager.h"
 #include "../antlr/syntaxObject/JavaHeaderFile.h"
 #include "../addressableInfo/AddressableInfo.h"
@@ -58,7 +57,6 @@ void PrologConstructor::savePrologFilePath(map<string, map<string, string>>& fil
     }
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2AddressableFilePath, addressableLines);
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2UnaddressableFilePath, unaddressableLines);
-    deleteAllTermInstance();
 }
 
 void PrologConstructor::savePrologPackage(map<string, map<string, set<string>>>& filePath2package2TypeKeys) {
@@ -67,7 +65,6 @@ void PrologConstructor::savePrologPackage(map<string, map<string, set<string>>>&
         FOR_EACH_EACH_ITEM(package2TypeKeys.second, lines.push_back(CompoundTerm::getPackageFact(item1.first, item2)););
     }
     writeToPrologFile(FileManager::prologGlobalInfo_package2typeKey, lines);
-    deleteAllTermInstance();
 }
 
 void PrologConstructor::savePrologSubTypes(map<string, map<string, set<string>>>& filePath2typeKey2subTypeKeys) {
@@ -78,7 +75,6 @@ void PrologConstructor::savePrologSubTypes(map<string, map<string, set<string>>>
         }
     }
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2subTypeKeys, lines);
-    deleteAllTermInstance();
 }
 
 void PrologConstructor::savePrologRelatedType(map<string, map<string, set<string>>>& filePath2TypeKey2itUseTypeKeys) {
@@ -91,7 +87,6 @@ void PrologConstructor::savePrologRelatedType(map<string, map<string, set<string
         }
     }
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2itUseTypeKeys, lines);
-    deleteAllTermInstance();
 }
 
 void PrologConstructor::saveAddressableInfo(const string& filePath, const list<TypeInfo*>& typeInfos) {
@@ -146,15 +141,6 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
     }
     lines.sort();
     writeToPrologFile(FileManager::prologAddressableFileDir + FileManager::convertFilePath2PrologFile(filePath), lines);
-    deleteAllTermInstance();
-}
-
-void PrologConstructor::deleteAllTermInstance() {
-    PooledItem<Term>::deleteAll();
-    PooledItem<CompoundTerm>::deleteAll();
-    PooledItem<Tail>::deleteAll();
-    PooledItem<Unification>::deleteAll();
-    PooledItem<Rule>::deleteAll();
 }
 
 string termToString(const Term* term) {
@@ -1094,20 +1080,6 @@ void Tail::reset() {
 
 void Tail::reverse() {
     std::reverse(headElements.begin(), headElements.end());
-}
-
-NodeAttr* convertTermToNodeAttr(Term* term) {
-    Tail* nodeInfo = dynamic_cast<Tail*>(term);
-    auto* nodeAttr = NodeAttr::getInstance();
-    nodeAttr->regexChar = nodeInfo->headElements[NODE_ATTR_INDEX_CHAR]->atomOrVar;
-    nodeAttr->nodeType = nodeInfo->headElements[NODE_ATTR_INDEX_NODE_TYPE]->integer;
-    nodeAttr->nodeLabel = nodeInfo->headElements[NODE_ATTR_INDEX_NODE_LABEL]->atomOrVar;
-    nodeAttr->nodeKey = nodeInfo->headElements[NODE_ATTR_INDEX_NODE_KEY]->atomOrVar;
-    nodeAttr->nodeRuntimeKey = nodeInfo->headElements[NODE_ATTR_INDEX_NODE_RUNTIME_KEY]->atomOrVar;
-    nodeAttr->methodKey = nodeInfo->headElements[NODE_ATTR_INDEX_METHOD_KEY]->atomOrVar;
-    nodeAttr->classKey = nodeInfo->headElements[NODE_ATTR_INDEX_CLASS_KEY]->atomOrVar;
-    nodeAttr->packageKey = nodeInfo->headElements[NODE_ATTR_INDEX_PACKAGE]->atomOrVar;
-    return nodeAttr;
 }
 
 void addTimeCountToRuleBody(vector<Term*>& ruleBody, const string& ruleName) {

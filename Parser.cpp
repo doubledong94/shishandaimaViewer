@@ -1,6 +1,5 @@
 #include "util/util.h"
 #include "util/ThreadPool.h"
-#include "GraphAttributes.h"
 #include "antlr4-runtime.h"
 #include "antlr/javaParser/JavaParser.h"
 #include "antlr/syntaxObject/JavaHeaderFile.h"
@@ -76,13 +75,6 @@ void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, Class
     FOR_EACH_ITEM(unaddressableMultiFileFunctorName2ArgCount, prologLines.push_back(getMultiFileDirective(item.first->toString(), to_string(item.second))););
     PrologDataBaseGen::genPrologDataBase(prologLines);
     PrologConstructor::writeToPrologFile(FileManager::prologUnaddressableFileDir + FileManager::convertFilePath2PrologFile(originSrcFilePath), prologLines);
-    ClassLevelVisitor::deleteAll();
-    StatementVisitor::deleteAll();
-    StructuralVisitor::deleteAll();
-    InitializerVisitor::deleteAll();
-    AnonymousVisitor::deleteAll();
-    ResolvingItem::deleteAll();
-    PrologConstructor::deleteAllTermInstance();
     CodeBlock::releaseMethodCodeBlocks();
     ErrorManager::mk2errorInfo.clear();
 }

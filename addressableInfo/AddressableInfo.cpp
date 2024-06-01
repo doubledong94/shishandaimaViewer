@@ -4,7 +4,6 @@
 #include "AddressableInfo.h"
 #include "../file/FileManager.h"
 #include "SWI-cpp2.h"
-#include "../GraphAttributes.h"
 #include "../prolog/PrologConstructor.h"
 #include "../antlr/syntaxObject/Modifier.h"
 

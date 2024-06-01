@@ -18,7 +18,6 @@
 #include "addressableInfo/AddressableInfo.h"
 #include "addressableInfo/GlobalInfo.h"
 #include "SWI-cpp.h"
-#include "GraphAttributes.h"
 #include "prolog/PrologConstructor.h"
 #include "prolog/PrologWrapper.h"
 #include "threepp/custom/Nodes.h"
@@ -58,7 +57,6 @@
 #include "gui/imDoubleCheckDialog.h"
 #include "gui/imEditLineAndGraph.h"
 #include "gui/imGraphSelector.h"
-#include "GraphAttributes.h"
 #include "file/FileManager.h"
 #include "threepp/helpers/AxesHelper.hpp"
 

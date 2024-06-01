@@ -3,7 +3,6 @@
 #include "../addressableInfo/AddressableInfo.h"
 #include "../file/FileManager.h"
 #include "SWI-cpp2.h"
-#include "../GraphAttributes.h"
 #include "PrologConstructor.h"
 #include "PrologWrapper.h"
 #include "../error/ErrorManager.h"

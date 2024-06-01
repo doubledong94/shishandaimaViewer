@@ -1,6 +1,5 @@
 #include "../util/util.h"
 #include "SWI-cpp2.h"
-#include "../GraphAttributes.h"
 #include "../antlr/syntaxObject/JavaHeaderFile.h"
 #include "../addressableInfo/AddressableInfo.h"
 #include "../prolog/PrologConstructor.h"
@@ -1416,7 +1415,6 @@ string SimpleView::NodeStyle::toString(map<int, string>& voc) const {
         + voc[SimpleViewLexer::NODE_SCALE] + ":" + to_string(nodeScale) + "; "
         + voc[SimpleViewLexer::LABEL_COLOR] + ":\"" + labelColor + "\"; "
         + voc[SimpleViewLexer::LABEL_SCALE] + ":" + to_string(labelScale) + "; "
-        + voc[SimpleViewLexer::LABEL_DETAIL_LEVEL] + ":" + (labelDetailLevel == LABEL_DETAIL_LEVEL_SIMPLE ? voc[SimpleViewLexer::LABEL_DETAIL_LEVEL_SIMPLE] : voc[SimpleViewLexer::LABEL_DETAIL_LEVEL_FULL]) + "; "
         + voc[SimpleViewLexer::POSITION_Z] + ":" + to_string(positionZ) + ";}";
 }
 
@@ -1911,37 +1909,6 @@ void SimpleView::LineInstance::unResolve(bool retract) {
     FOR_EACH_ITEM(paramNameToArgName, SimpleViewToGraphConverter::valNameToNode[item.second]->unResolve(););
     lineTemplate->unResolve();
     resolved = false;
-}
-
-void SimpleView::LineInstance::dispatchOutput(Term* term) {
-    Tail* tail = dynamic_cast<Tail*>(term);
-    int outputIndex = 0;
-    if (forwardLine != nullptr) {
-        forwardLine->dispatchOutput(tail->headElements[outputIndex]);
-        outputIndex++;
-    }
-    if (backwardLine != nullptr) {
-        backwardLine->dispatchOutput(tail->headElements[outputIndex]);
-        outputIndex++;
-    }
-}
-
-void SimpleView::LineInstance::collectNodeAttrs(list<NodeAttr*>& nodeAttrsWithDup) {
-    if (forwardLine != nullptr) {
-        forwardLine->collectNodeAttrs(nodeAttrsWithDup);
-    }
-    if (backwardLine != nullptr) {
-        backwardLine->collectNodeAttrs(nodeAttrsWithDup);
-    }
-}
-
-void SimpleView::LineInstance::addDistinctEdge(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph) {
-    if (forwardLine != nullptr) {
-        forwardLine->addDistinctEdge(nodeAttrs, pairGraph);
-    }
-    if (backwardLine != nullptr) {
-        backwardLine->addDistinctEdge(nodeAttrs, pairGraph);
-    }
 }
 
 void SimpleView::LineInstance::updateDisplayName() {
@@ -2640,57 +2607,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     ), ruleBody))->toString());
 }
 
-void SimpleView::HalfLineTheFA::applyStyle(list<NodeAttr*>& nodeAttrs) {
-    for (auto* nodeAttr : nodeAttrs) {
-        auto* nodeStyle = lineTemplate->charToNodeTemplate[nodeAttr->regexChar.front()]->nodeStyleSpec;
-        if (nodeStyle == nullptr) {
-            nodeStyle = defaultStyle;
-        }
-        nodeAttr->nodeColor = nodeStyle->nodeColor;
-        nodeAttr->labelColor = nodeStyle->labelColor;
-        nodeAttr->nodeSize = nodeStyle->nodeScale * basicStyle->basicNodeSize;
-        nodeAttr->labelSize = nodeStyle->labelScale * basicStyle->basicLabelSize;
-        nodeAttr->labelDetailLevel = nodeStyle->labelDetailLevel;
-    }
-}
-
-void SimpleView::HalfLineTheFA::collectNodeAttrs(list<NodeAttr*>& nodeAttrsWithDup) {
-    FOR_EACH_ITEM(linesOfNode, for (auto& i : item) nodeAttrsWithDup.push_back(i););
-}
-
-void SimpleView::HalfLineTheFA::addDistinctEdge(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph) {
-    for (auto& line : linesOfNode) {
-        NodeAttr* previousNode = nullptr;
-        for (auto& currentNode : line) {
-            if (previousNode != nullptr) {
-                int fromId;
-                int toId;
-                if (isBackward) {
-                    fromId = currentNode->nodeId;
-                    toId = previousNode->nodeId;
-                } else {
-                    fromId = previousNode->nodeId;
-                    toId = currentNode->nodeId;
-                }
-                if (not edgeExists(fromId, toId, pairGraph)) {
-                    pairGraph.push_back({ fromId, toId });
-                }
-            }
-            previousNode = currentNode;
-        }
-    }
-}
-
-void SimpleView::HalfLineTheFA::dispatchOutput(Term* term) {
-    Tail* l = dynamic_cast<Tail*>(term);
-    list<NodeAttr*> lineOfNode;
-    for (auto* node : l->headElements) {
-        lineOfNode.push_back(convertTermToNodeAttr(node));
-    }
-    applyStyle(lineOfNode);
-    linesOfNode.push_back(lineOfNode);
-}
-
 Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType) {
     Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
     return Tail::getInstanceByElements({
@@ -2757,21 +2673,6 @@ void SimpleView::GraphTemplate::unResolve(bool retract) {
     spdlog::get(ErrorManager::DebugTag)->info("unresolve graph template: {}; {}", valName.data(), innerValName.data());
     FOR_EACH_ITEM(lineInstances, item->unResolve(););
     resolved = false;
-}
-
-void SimpleView::GraphTemplate::dispatchOutput(Term* term) {
-    Tail* tail = dynamic_cast<Tail*>(term);
-    for (int i = 0; i < lineInstances.size(); ++i) {
-        lineInstances[i]->dispatchOutput(tail->headElements[i]);
-    }
-}
-
-void SimpleView::GraphTemplate::collectNodeAttrs(list<NodeAttr*>& nodeAttrsWithDup) {
-    FOR_EACH_ITEM(lineInstances, item->collectNodeAttrs(nodeAttrsWithDup););
-}
-
-void SimpleView::GraphTemplate::addDistinctEdge(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph) {
-    FOR_EACH_ITEM(lineInstances, item->addDistinctEdge(nodeAttrs, pairGraph););
 }
 
 string SimpleView::GraphTemplate::toString(map<int, string>& voc) {

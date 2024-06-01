@@ -4,7 +4,6 @@
 #include "../antlr/syntaxObject/JavaHeaderFile.h"
 #include "AddressableInfo.h"
 #include "SWI-cpp2.h"
-#include "../GraphAttributes.h"
 #include "../prolog/PrologConstructor.h"
 
 map<string, map<string, set<string>>> GlobalInfo::filePath2package2typeKeys;

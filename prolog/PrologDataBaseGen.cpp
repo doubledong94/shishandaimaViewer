@@ -1,5 +1,4 @@
 #include "../util/util.h"
-#include "../../GraphAttributes.h"
 #include "../../addressableInfo/GlobalInfo.h"
 #include "../../antlr/syntaxObject/JavaHeaderFile.h"
 #include "../../addressableInfo/AddressableInfo.h"

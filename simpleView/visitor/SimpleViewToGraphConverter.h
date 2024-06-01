@@ -51,8 +51,6 @@ namespace SimpleView {
 
         any visitShowCommand(SimpleViewParser::ShowCommandContext* ctx) override;
 
-        void makeGraph(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph);
-
         void release();
     };
 
@@ -67,10 +65,6 @@ namespace SimpleView {
     void clearAllAddedFacts();
 
     void clearAllAddedRules();
-
-    int indexOf(NodeAttr* n, vector<NodeAttr*>& ns);
-
-    bool edgeExists(int fromId, int toId, list<pair<int, int>>& pairGraph);
 
 }
 

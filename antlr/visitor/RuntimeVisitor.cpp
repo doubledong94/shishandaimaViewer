@@ -1,5 +1,4 @@
 #include "../../util/util.h"
-#include "../../GraphAttributes.h"
 #include "../javaParser/JavaParserBaseVisitor.h"
 #include "../../antlr/syntaxObject/JavaHeaderFile.h"
 #include "../syntaxObject/AntlrNodeToSyntaxObjectConverter.h"

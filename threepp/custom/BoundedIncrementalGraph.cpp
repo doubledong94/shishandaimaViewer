@@ -32,7 +32,6 @@
 #include "../../addressableInfo/AddressableInfo.h"
 #include "../../addressableInfo/GlobalInfo.h"
 #include "SWI-cpp2.h"
-#include "../../GraphAttributes.h"
 #include "../../prolog/PrologConstructor.h"
 #include "../../prolog/PrologWrapper.h"
 #include "../../error/ErrorManager.h"

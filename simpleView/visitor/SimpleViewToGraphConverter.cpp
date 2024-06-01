@@ -1,5 +1,4 @@
 #include "../../util/util.h"
-#include "../../GraphAttributes.h"
 #include "../SimpleViewLexer.h"
 #include "../SimpleViewBaseVisitor.h"
 #include "SWI-cpp.h"
@@ -14,26 +13,6 @@
 #include "../../res/Images.h"
 // #include <graphviz/gvc.h>
 // #include <graphviz/cgraph.h>
-
-void SimpleView::SimpleViewToGraphConverter::makeGraph(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph) {
-    nodeAttrs.clear();
-    pairGraph.clear();
-    list<NodeAttr*> nodeAttrsWithDup;
-    FOR_EACH_ITEM(showingGraph, dynamic_cast<GraphTemplate*>(valNameToGraph[item])->collectNodeAttrs(nodeAttrsWithDup););
-    for (auto& nodeAttr : nodeAttrsWithDup) {
-        int index = indexOf(nodeAttr, nodeAttrs);
-        if (index == nodeAttrs.size()) {
-            nodeAttrs.push_back(nodeAttr);
-        } else {
-            // if two nodes are the same, but NodeA is matched by Any, NodeB is not, then add NodeB instead of NodeA
-            if (nodeAttrs[index]->nodeType == SimpleView::Node::NODE_TYPE_ANY and nodeAttr->nodeType != SimpleView::Node::NODE_TYPE_ANY) {
-                nodeAttrs[index] = nodeAttr;
-            }
-        }
-        nodeAttr->nodeId = index;
-    }
-    FOR_EACH_ITEM(showingGraph, dynamic_cast<GraphTemplate*>(valNameToGraph[item])->addDistinctEdge(nodeAttrs, pairGraph););
-}
 
 void SimpleView::SimpleViewToGraphConverter::release() {
 }
@@ -548,24 +527,4 @@ void SimpleView::clearAllAddedRules() {
     PrologWrapper::retractAllRule(HEAD_RESOLVE_RUNTIME_CHECK->toString(), 4);
 
     PrologWrapper::retractAllRule(HEAD_RESOLVE->toString(), 2);
-}
-
-int SimpleView::indexOf(NodeAttr* n, vector<NodeAttr*>& ns) {
-    int i = 0;
-    for (auto& attr : ns) {
-        if (n->equal(attr)) {
-            return i;
-        }
-        i++;
-    }
-    return i;
-}
-
-bool SimpleView::edgeExists(int fromId, int toId, list<pair<int, int>>& pairGraph) {
-    for (auto& item : pairGraph) {
-        if (item.first == fromId and item.second == toId) {
-            return true;
-        }
-    }
-    return false;
 }

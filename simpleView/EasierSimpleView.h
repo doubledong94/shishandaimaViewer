@@ -15,7 +15,6 @@ namespace SimpleView {
         float nodeScale = 1.0f;
         string labelColor = "";
         float labelScale = 1.0f;
-        int labelDetailLevel = LABEL_DETAIL_LEVEL_SIMPLE;
         float positionZ = 0;
 
         string toString(map<int, string>& voc) const;
@@ -333,12 +332,6 @@ namespace SimpleView {
 
         void unResolve(bool retract = false) override;
 
-        void dispatchOutput(Term* term);
-
-        void collectNodeAttrs(list<NodeAttr*>& nodeAttrsWithDup);
-
-        void addDistinctEdge(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph);
-
         void updateDisplayName();
 
         LineInstance* copy();
@@ -381,8 +374,6 @@ namespace SimpleView {
         map<int, list<pair<int, int>>> charCodeToStateTransition;
         map<string, int> charToCharCode;
         map<int, list<string>> charCodeToChars;
-        // output
-        list<list<NodeAttr*>> linesOfNode;
         // style
         NodeStyle* defaultStyle = nullptr;
         BasicStyle* basicStyle = nullptr;
@@ -405,15 +396,7 @@ namespace SimpleView {
 
         void declareTransitionRuleI(int currentState, int nextState, string& regexChar);
 
-        void applyStyle(list<NodeAttr*>& nodeAttrs);
-
-        void collectNodeAttrs(list<NodeAttr*>& nodeAttrsWithDup);
-
-        void addDistinctEdge(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph);
-
         void printCharToCharCode(const string& regex);
-
-        void dispatchOutput(Term* term);
 
         Tail* getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType);
     };
@@ -440,12 +423,6 @@ namespace SimpleView {
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
 
         void unResolve(bool retract = false) override;
-
-        void dispatchOutput(Term* term);
-
-        void collectNodeAttrs(list<NodeAttr*>& nodeAttrsWithDup);
-
-        void addDistinctEdge(vector<NodeAttr*>& nodeAttrs, list<pair<int, int>>& pairGraph);
 
         string toString(map<int, string>& voc);
 
