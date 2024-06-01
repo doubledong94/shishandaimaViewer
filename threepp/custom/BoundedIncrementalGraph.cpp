@@ -214,6 +214,9 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
 };
 
 void BoundedIncrementalGraph::addBuffers(const vector<Tail*>& bufs) {
+    while (bufferSize() > 50) {
+        // wait until buffer size is under a specific value
+    }
     bufferLock.lock();
     FOR_EACH_ITEM(bufs, lineBuffer.push_back(item););
     bufferLock.unlock();
@@ -224,9 +227,19 @@ void BoundedIncrementalGraph::popBuffers(int count, vector<Tail*>& ret) {
     for (int i = 0;i < count;i++) {
         if (not lineBuffer.empty()) {
             ret.push_back(lineBuffer.front());
+            doneBuffer.push_back(lineBuffer.front());
             lineBuffer.pop_front();
         }
     }
+    bufferLock.unlock();
+}
+
+void BoundedIncrementalGraph::returnDoneBufferToPool() {
+    bufferLock.lock();
+    for (auto& done : doneBuffer) {
+        done->returnThisToPool();
+    }
+    doneBuffer.clear();
     bufferLock.unlock();
 }
 

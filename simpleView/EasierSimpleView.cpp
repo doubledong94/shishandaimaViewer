@@ -144,13 +144,10 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_VAR,Images::varIconId},
     };
-    vector<Term*> retList;
-    PrologWrapper::queryList(CompoundTerm::getPackageTerm(Term::getVar("A"), Term::getVar("B")), retList);
-    int count = retList.size() / 2;
-    for (int i = 0;i < count;i++) {
-        typeKeyInOrder.push_back(retList[i * 2 + 1]->atomOrVar);
-        typeToPackage[retList[i * 2 + 1]->atomOrVar] = retList[i * 2]->atomOrVar;
-    }
+    PrologWrapper::queryList(CompoundTerm::getPackageTerm(Term::getVar("A"), Term::getVar("B")), [&](vector<Term*>& retList) {
+        typeKeyInOrder.push_back(retList[1]->atomOrVar);
+        typeToPackage[retList[1]->atomOrVar] = retList[0]->atomOrVar;
+        });
     typeKeyInOrder.sort();
 
     PrologWrapper::declareFun(HEAD_RUNTIME_KEY->atomOrVar, 4);
@@ -190,41 +187,42 @@ void EasierSimpleView::declareStepRules() {
     Term* calledParam = Term::getVar("CalledParam");
     Term* calledMethod = Term::getVar("CalledMethod");
     Term* calledReturn = Term::getVar("CalledReturn");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod, calledMethod, calledReturn), {
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
-        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledParamToCalledReturnTerm(runtimeMethod, calledParam, calledReturn), {
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
-        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
-        CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod,calledMethod,calledReturn),
-        }))->toString());
-
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod, calledReturn, calledMethod), {
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
-        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledParam(runtimeMethod, calledReturn, calledParam), {
-        CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod,calledReturn,calledMethod),
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
-        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
-        }))->toString());
-
     Term* point = Term::getVar("Point");
     Term* addressablePoint = Term::getVar("AddressablePoint");
     Term* midStepKey = Term::getVar("MidStep");
     Term* nextStepKey = Term::getVar("NextStep");
     Term* currentSteps = Term::getVar("CurrentSteps");
     Term* nextSteps = Term::getVar("NextSteps");
-
     Term* param = Term::getVar("ParamKey");
     Term* returnKey = Term::getVar("ReturnKey");
     Term* innerMethod = Term::getVar("InnerMethodKey");
     Term* outerMethod = Term::getVar("OuterMethodKey");
     Term* step = Term::getVar("Step");
+    vector<Rule*> rules;
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod, calledMethod, calledReturn), {
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledParamToCalledReturnTerm(runtimeMethod, calledParam, calledReturn), {
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
+        CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod,calledMethod,calledReturn),
+        }));
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod, calledReturn, calledMethod), {
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledParam(runtimeMethod, calledReturn, calledParam), {
+        CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod,calledReturn,calledMethod),
+        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
+        CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+        }));
+
     // forward -----------------------------------------------------------------------------------------------------------------------------------------------
     // called method -> step -> step -> method (increase steps)
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardTimingStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardTimingStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
         // get addressable (addressablePoint=called method)
         CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
         // restore called key to normal key (innerMethod)
@@ -235,9 +233,9 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
         // called method to called return
         CompoundTerm::getCalledMethodToCalledReturnTerm(outerMethod, point, calledReturn),
-        }))->toString());
+        }));
     // called param -> step -> step -> param (increase steps)
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
         // get addressable key (addressablePoint=called parameter)
         CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
         // restore called key to normal key (param key), and get its method as inner method
@@ -248,14 +246,14 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         // called return to called return
         CompoundTerm::getCalledParamToCalledReturnTerm(outerMethod, point, calledReturn),
-        }))->toString());
+        }));
     // return -> step -> step -> called return (current steps != [])
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getDataFlowTerm(outerMethod,nextStepKey,calledReturn),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
-        }))->toString());
+        }));
     // return -> step -> step -> called return (current steps == [])
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key (addressablePoint=return)
         CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
         // return key to called return key
@@ -264,16 +262,16 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepTerm(calledReturn,step),
         // runtime step
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
-        }))->toString());
+        }));
     // backward -----------------------------------------------------------------------------------------------------------------------------------------------
     // method -> step -> step -> called method (current steps != [])
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getCalledReturnToCalledMethod(outerMethod,calledReturn,calledMethod),
         CompoundTerm::getDataFlowTerm(outerMethod,calledMethod,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
-        }))->toString());
+        }));
     // method -> step -> step -> called method (current steps == [])
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key (addressablePoint=method)
         CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
         // method key to called method key
@@ -282,15 +280,15 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepTerm(calledMethod,step),
         // runtime step
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
-        }))->toString());
+        }));
     // param -> step -> step -> called param (current steps != [])
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getCalledReturnToCalledParam(outerMethod,calledReturn,calledParam),
         CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
-        }))->toString());
+        }));
     // param -> step -> step -> called param (current steps == [])
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key (addressablePoint=method)
         CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
         // parameter key to called parameter key
@@ -299,9 +297,9 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepTerm(calledParam,step),
         // runtime step
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
-        }))->toString());
+        }));
     // called return -> step -> step -> return (increase steps)
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(outerMethod, calledReturn, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(outerMethod, calledReturn, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
         // get addressable key (addressablePoint=called return key)
         CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
         // restore called key to normal key (return key), and get its method as inner method
@@ -310,7 +308,30 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepTerm(returnKey,step),
         // step key to its runtime key
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
-        }))->toString());
+        }));
+
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
+    runtimeMethod->returnThisToPool();
+    calledParam->returnThisToPool();
+    calledMethod->returnThisToPool();
+    calledReturn->returnThisToPool();
+    point->returnThisToPool();
+    addressablePoint->returnThisToPool();
+    midStepKey->returnThisToPool();
+    nextStepKey->returnThisToPool();
+    currentSteps->returnThisToPool();
+    nextSteps->returnThisToPool();
+    param->returnThisToPool();
+    returnKey->returnThisToPool();
+    innerMethod->returnThisToPool();
+    outerMethod->returnThisToPool();
+    step->returnThisToPool();
+
 }
 
 void EasierSimpleView::searchClass(char* searchStr, vector<const char*>& searchResult) {
@@ -337,30 +358,32 @@ void EasierSimpleView::searchNode(const char* classKey, vector<const char*>& sea
     PrologWrapper::loadTypeKeyAddressable(classKey);
     if (not classToField.count(classKey)) {
         classToField[classKey] = list<string>();
-        vector<Term*> retList;
-        PrologWrapper::queryList(CompoundTerm::getFieldTerm(Term::getStr(classKey), Term::getVar("A")), retList);
-        FOR_EACH_ITEM(retList, classToField[classKey].push_back(item->atomOrVar););
+        PrologWrapper::queryList(CompoundTerm::getFieldTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
+            classToField[classKey].push_back(retList[0]->atomOrVar);
+            });
     }
     if (not classToMethod.count(classKey)) {
         classToMethod[classKey] = list<string>();
-        vector<Term*> retList;
-        PrologWrapper::queryList(CompoundTerm::getMethodTerm(Term::getStr(classKey), Term::getVar("A")), retList);
-        FOR_EACH_ITEM(retList, classToMethod[classKey].push_back(item->atomOrVar););
-        retList.clear();
-        PrologWrapper::queryList(CompoundTerm::getConstructorTerm(Term::getStr(classKey), Term::getVar("A")), retList);
-        FOR_EACH_ITEM(retList, classToMethod[classKey].push_back(item->atomOrVar););
+        PrologWrapper::queryList(CompoundTerm::getMethodTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
+            classToMethod[classKey].push_back(retList[0]->atomOrVar);
+            });
+        PrologWrapper::queryList(CompoundTerm::getConstructorTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
+            classToMethod[classKey].push_back(retList[0]->atomOrVar);
+            });
     }
     if (not classToParameter.count(classKey)) {
         classToParameter[classKey] = list<string>();
         vector<Term*> retList;
-        PrologWrapper::queryList(CompoundTerm::getParameterOfClassTerm(Term::getStr(classKey), Term::getVar("A")), retList);
-        FOR_EACH_ITEM(retList, classToParameter[classKey].push_back(item->atomOrVar););
+        PrologWrapper::queryList(CompoundTerm::getParameterOfClassTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
+            classToParameter[classKey].push_back(retList[0]->atomOrVar);
+            });
     }
     if (not classToReturn.count(classKey)) {
         classToReturn[classKey] = list<string>();
         vector<Term*> retList;
-        PrologWrapper::queryList(CompoundTerm::getReturnOfClassTerm(Term::getStr(classKey), Term::getVar("A")), retList);
-        FOR_EACH_ITEM(retList, classToReturn[classKey].push_back(item->atomOrVar););
+        PrologWrapper::queryList(CompoundTerm::getReturnOfClassTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
+            classToReturn[classKey].push_back(retList[0]->atomOrVar);
+            });
     }
     searchResult.clear();
     FOR_EACH_ITEM(classToField[classKey], searchResult.push_back(item.data()););
@@ -808,7 +831,7 @@ void SimpleView::ClassScope::resolve(std::function<void(int, int, const char*)>*
     }
     spdlog::get(ErrorManager::DebugTag)->info("resolve class scope: {}; {}", displayName.data(), innerValName.data());
     resolvedList.clear();
-    vector<Term*> termListForQuery;
+    std::function<void(vector<Term*>&)> termListForQuery = [&](vector<Term*>& retList) {resolvedList.insert(retList[0]->atomOrVar);};
     switch (classScopeType) {
     case CLASS_SCOPE_TYPE_KEY:
         resolvedList.insert(extraStr);
@@ -871,14 +894,13 @@ void SimpleView::ClassScope::resolve(std::function<void(int, int, const char*)>*
         PrologWrapper::addRule(
             Rule::getRuleInstance(CompoundTerm::getResolveTerm(Term::getStr(innerValName), keyTerm),
                 { CompoundTerm::getResolveTerm(Term::getStr(referenceClassScope->innerValName),keyTerm) }
-            )->toString()
+            )->toString(true)
         );
     } else {
-        FOR_EACH_ITEM(termListForQuery, resolvedList.insert(item->atomOrVar););
         int c = 0;
         FOR_EACH_ITEM(resolvedList, c++;if (update) (*update)(c, resolvedList.size(), item.data());PrologWrapper::loadTypeKeyAddressable(item););
         if (update) (*update)(resolvedList.size() + 1, resolvedList.size(), "");
-        FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString()););
+        FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString(true)););
     }
     resolved = true;
 }
@@ -887,11 +909,7 @@ void SimpleView::ClassScope::resolveForRuntime(std::function<void(int, int, cons
     resolve(update);
     set<string> usedBy;
     for (auto& typeKey : resolvedList) {
-        vector<Term*> retList;
-        PrologWrapper::queryList(CompoundTerm::getRelatedTypeTerm(Term::getStr(typeKey), Term::getVar("U")), retList);
-        for (auto& ret : retList) {
-            usedBy.insert(ret->atomOrVar);
-        }
+        PrologWrapper::queryList(CompoundTerm::getRelatedTypeTerm(Term::getStr(typeKey), Term::getVar("U")), [&](vector<Term*>& retList) {usedBy.insert(retList[0]->atomOrVar);});
     }
     int c = 0;
     FOR_EACH_ITEM(usedBy, c++;if (update) (*update)(c, usedBy.size(), item.data());PrologWrapper::loadTypeKeyAddressable(item););
@@ -912,7 +930,7 @@ void SimpleView::ClassScope::unResolve(bool retract) {
     }
     if (retract) {
         FOR_EACH_ITEM(resolvedList,
-            PrologWrapper::retractSingleFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString());
+            PrologWrapper::retractSingleFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString(true));
             );
     }
     resolved = false;
@@ -1071,7 +1089,7 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
     }
     spdlog::get(ErrorManager::DebugTag)->info("resolve node: {}; {}", displayName.data(), innerValName.data());
     resolvedList.clear();
-    vector<Term*> termListForQuery;
+    std::function<void(vector<Term*>&)> termListForQuery = [&](vector<Term*>& retList) {resolvedList.insert(retList[0]->atomOrVar);};
     set<string> classToLoad;
     switch (nodeType) {
     case NODE_TYPE_KEY:
@@ -1124,7 +1142,7 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         referenceNode->resolve(update);
         PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getVar("N")), {
                 CompoundTerm::getResolveTerm(Term::getStr(referenceNode->innerValName), Term::getVar("N"))
-            }))->toString());
+            }))->toString(true));
         break;
     case NODE_TYPE_UNION:
         operandForSetOperation.first->resolve(update);
@@ -1158,7 +1176,7 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         PrologWrapper::addRule(
             Rule::getRuleInstance(CompoundTerm::getResolveTerm(Term::getStr(innerValName), keyTerm),
                 { CompoundTerm::getResolveTerm(Term::getStr(referenceNode->innerValName),keyTerm) }
-            )->toString()
+            )->toString(true)
         );
     } else if (nodeType == NODE_TYPE_RUNTIME) {
         for (auto& runtimeNode : runtimeNodeList) {
@@ -1167,15 +1185,14 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
                 Term::getStr(std::get<0>(runtimeNode)), Term::getStr(std::get<1>(runtimeNode)),
                 Term::getStr(std::get<2>(runtimeNode)), Term::getInt(std::get<3>(runtimeNode))
             );
-            PrologWrapper::addFact(resolveRuntime->toString());
+            PrologWrapper::addFact(resolveRuntime->toString(true));
         }
     } else {
         int c = 0;
         FOR_EACH_ITEM(classToLoad, c++;if (update) (*update)(c, classToLoad.size(), item.data());PrologWrapper::loadTypeKeyAddressable(item););
         if (update) (*update)(classToLoad.size() + 1, classToLoad.size(), "");
 
-        FOR_EACH_ITEM(termListForQuery, resolvedList.insert(item->atomOrVar););
-        FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString()););
+        FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString(true)););
     }
     resolved = true;
 }
@@ -1200,7 +1217,7 @@ void SimpleView::Node::unResolve(bool retract) {
     }
     if (retract) {
         FOR_EACH_ITEM(resolvedList,
-            PrologWrapper::retractSingleFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString());
+            PrologWrapper::retractSingleFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString(true));
             );
     }
     this->resolved = false;
@@ -2010,7 +2027,7 @@ void SimpleView::LineInstance::prepareQuery(ClassScope* classScope, std::functio
         ruleBody.push_back(CompoundTerm::getHalfLineTerm(lineInstanceValNameTerm, classScopeTerm, splitTerm, intersectionTerms, outputTermB, true));
         outputTerm[1] = outputTermB;
     }
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getLineTerm(lineInstanceValNameTerm, classScopeTerm, intersectionTerms, Tail::getInstanceByElements(outputTerm)), ruleBody))->toString());
+    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getLineTerm(lineInstanceValNameTerm, classScopeTerm, intersectionTerms, Tail::getInstanceByElements(outputTerm)), ruleBody))->toString(true));
 }
 
 void SimpleView::LineInstance::onQueryFinished() {
@@ -2177,31 +2194,25 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 CompoundTerm::getToFileTerm(Term::getStr("-----------------------------"), Term::getStr("a.txt")),
                 CompoundTerm::getToFileTerm(Tail::getTailInstance(outputTerm, outputTailTerm), Term::getStr("a.txt")),
                 #endif
-        }))->toString());
+        }))->toString(true));
+    lineInstanceValNameTerm->returnThisToPool();
+    classScopeTerm->returnThisToPool();
+    initStateTerm->returnThisToPool();
+    nextStateTerm->returnThisToPool();
+    regexCharTerm->returnThisToPool();
+    outputTerm->returnThisToPool();
+    outputTailTerm->returnThisToPool();
+    nextMethodKeyTerm->returnThisToPool();
+    nextKeyTerm->returnThisToPool();
+    splitTerm->returnThisToPool();
 }
 
 void SimpleView::HalfLineTheFA::declareFaRules() {
+    auto& intersection = lineInstance->intersectionTerms;
     Term* classScopeTerm = Term::getVar("ClassScope");
     Term* lineInstanceValNameTerm = Term::getStr(lineInstance->innerValName);
-    auto& intersection = lineInstance->intersectionTerms;
-
-    // rule 1 end of recursive
     Term* acceptingState = Term::getVar("AcceptingState");
     Term* discardedTerm = Term::getIgnoredVar();
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
-        lineInstanceValNameTerm, classScopeTerm,
-        acceptingState,
-        discardedTerm,
-        discardedTerm,
-        intersection,
-        Tail::getInstanceByElements({}),
-        discardedTerm, isBackward), {
-            CompoundTerm::getEndingTransitionTerm(
-                lineInstanceValNameTerm, classScopeTerm,
-                acceptingState,
-                discardedTerm, isBackward) }))->toString());
-
-    // rule 2 the recursive
     Term* currentStateTerm = Term::getVar("CurrentState");
     Term* nextStateTerm = Term::getVar("NextState");
     Term* currentMethodKeyTerm = Term::getVar("CurrentMethodKey");
@@ -2220,13 +2231,29 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     Term* faOutput = Term::getVar("FaOutput");
     Term* expectingNextKeyTerm = Term::getVar("ExpectingNextKey");
     Term* flowTerm = NULL;
+    // rule 1 end of recursive
+    vector<Rule*> rules;
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
+        lineInstanceValNameTerm, classScopeTerm,
+        acceptingState,
+        discardedTerm,
+        discardedTerm,
+        intersection,
+        Tail::getInstanceByElements({}),
+        discardedTerm, isBackward), {
+            CompoundTerm::getEndingTransitionTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                acceptingState,
+                discardedTerm, isBackward) }));
+
+    // rule 2 the recursive
     if (isBackward) {
         flowTerm = CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, expectingNextKeyTerm, currentKeyTerm);
     } else {
         flowTerm = CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, expectingNextKeyTerm);
     }
     // fa impl
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
         currentPoint,
@@ -2252,7 +2279,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         CompoundTerm::getLengthTerm(history,Term::getVar("L")),
         CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
         #endif
-            new NegationTerm(CompoundTerm::getMemberTerm(nextPoint,history)),
+            NegationTerm::getNegInstance(CompoundTerm::getMemberTerm(nextPoint,history)),
             CompoundTerm::getFaTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 nextStateTerm,
@@ -2261,10 +2288,10 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 intersection,
                 outputTailTerm,
                 Tail::getTailInstance(nextPoint, history), isBackward),
-        }))->toString());
+        }));
 
     // make cache
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getCacheFaTerm(
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCacheFaTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
         currentPoint,
@@ -2280,7 +2307,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 intersection,
                 faOutput,
                 history, isBackward),
-            new AssertTerm(CompoundTerm::getFaCacheTerm(
+            AssertTerm::getAssertInstance(CompoundTerm::getFaCacheTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
@@ -2299,10 +2326,10 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 Term::getStr("a.txt")),
                 #endif
             Term::getAtom("fail"),
-        }))->toString());
+        }));
 
     // use cache
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
         currentPoint,
@@ -2316,10 +2343,10 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 currentStepsTerm,
                 faOutput,
                 isBackward)
-        }))->toString());
+        }));
 
     // there is no cache, if it is not called parameter nor return, just run the fa
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
         currentPoint,
@@ -2328,8 +2355,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         faOutput,
         history, isBackward), {
             // type check
-            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
-            new NegationTerm(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
+            NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
+            NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
             CompoundTerm::getFaImplTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
@@ -2338,10 +2365,10 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 intersection,
                 faOutput,
                 history, isBackward),
-        }))->toString());
+        }));
 
     // there is no cache, if it is called parameter or return, make cache and use cache
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getFaTerm(
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
         currentPoint,
@@ -2350,18 +2377,18 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         faOutput,
         history, isBackward), {
             // type check
-            new DisjunctionTerm(
+            DisjunctionTerm::getDisjunctionInstance(
                 CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
                 CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
             ),
                 // no cache yet
-                new NegationTerm(CompoundTerm::getFaDoneTerm(
+                NegationTerm::getNegInstance(CompoundTerm::getFaDoneTerm(
                     lineInstanceValNameTerm, classScopeTerm,
                     currentStateTerm,
                     currentPoint,
                     isBackward)),
                 // mark done
-            new AssertTerm(CompoundTerm::getFaDoneTerm(
+            AssertTerm::getAssertInstance(CompoundTerm::getFaDoneTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
@@ -2375,7 +2402,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 Term::getStr("a.txt")),
             #endif
                 // make cache
-                new NegationTerm(
+                NegationTerm::getNegInstance(
                 CompoundTerm::getCacheFaTerm(
                     lineInstanceValNameTerm, classScopeTerm,
                     currentStateTerm,
@@ -2393,7 +2420,37 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     currentStepsTerm,
                     faOutput,
                     isBackward),
-        }))->toString());
+        }));
+
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
+    classScopeTerm->returnThisToPool();
+    lineInstanceValNameTerm->returnThisToPool();
+    acceptingState->returnThisToPool();
+    discardedTerm->returnThisToPool();
+    currentStateTerm->returnThisToPool();
+    nextStateTerm->returnThisToPool();
+    currentMethodKeyTerm->returnThisToPool();
+    currentKeyTerm->returnThisToPool();
+    currentPoint->returnThisToPool();
+    currentStepsTerm->returnThisToPool();
+    nextMethodKeyTerm->returnThisToPool();
+    nextKeyTerm->returnThisToPool();
+    nextPoint->returnThisToPool();
+    nextStepsTerm->returnThisToPool();
+    outputItemTerm->returnThisToPool();
+    outputTailTerm->returnThisToPool();
+    currentExpectingPoint->returnThisToPool();
+    nextExpectingPoint->returnThisToPool();
+    history->returnThisToPool();
+    faOutput->returnThisToPool();
+    expectingNextKeyTerm->returnThisToPool();
+    flowTerm->returnThisToPool();
+
 }
 
 void SimpleView::HalfLineTheFA::declareTransitionRules() {
@@ -2420,7 +2477,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRules() {
                     Term::getStr(lineInstance->innerValName), Term::getVar("ClassScope"),
                     Term::getInt(endingTransition.first),
                     Term::getInt(endingTransition.second),
-                    isBackward)->toString());
+                    isBackward)->toString(true));
             }
         }
     }
@@ -2477,7 +2534,18 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
         nextPoint, Tail::getInstanceByElements({}), // next value
         lineInstance->intersectionTerms, // intersections
         getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), // output
-        isBackward), ruleBody))->toString());
+        isBackward), ruleBody))->toString(true));
+    lineInstanceValNameTerm->returnThisToPool();
+    classScopeTerm->returnThisToPool();
+    currentStateTerm->returnThisToPool();
+    nextStateTerm->returnThisToPool();
+    regexCharTerm->returnThisToPool();
+    nextMethodKeyTerm->returnThisToPool();
+    nextKeyTerm->returnThisToPool();
+    nextPoint->returnThisToPool();
+    outputAddressableKey->returnThisToPool();
+    outputKeyType->returnThisToPool();
+    nodeValNameTerm->returnThisToPool();
 }
 
 void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nextState, string& regexChar) {
@@ -2551,19 +2619,19 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     switch (nodeType) {
     case Node::NODE_TYPE_ANY:
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONDITION))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FIELD))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))));
-        ruleBody.push_back(new NegationTerm(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONDITION))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FIELD))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
         break;
     case Node::NODE_TYPE_REFERENCE:
     case Node::NODE_TYPE_CONDITION:
@@ -2604,7 +2672,18 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         nextStepsTerm,
         lineInstance->intersectionTerms,
         getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), isBackward
-    ), ruleBody))->toString());
+    ), ruleBody))->toString(true));
+    currentMethodKeyTerm->returnThisToPool();
+    currentKeyTerm->returnThisToPool();
+    currentPoint->returnThisToPool();
+    currentStepsTerm->returnThisToPool();
+    nextMethodKeyTerm->returnThisToPool();
+    nextKeyTerm->returnThisToPool();
+    nextPoint->returnThisToPool();
+    nextStepsTerm->returnThisToPool();
+    outputAddressableKey->returnThisToPool();
+    outputKeyType->returnThisToPool();
+    expectingNextKeyTerm->returnThisToPool();
 }
 
 Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType) {
@@ -3084,7 +3163,7 @@ void SimpleView::GraphInstance::prepareQuery(ClassScope* classScope, std::functi
         outputList.push_back(outputItem);
         lineCount++;
     }
-    PrologWrapper::addRule((Rule::getRuleInstance(getTerm(classScopeTerm, Tail::getInstanceByElements(outputList)), ruleBody))->toString());
+    PrologWrapper::addRule((Rule::getRuleInstance(getTerm(classScopeTerm, Tail::getInstanceByElements(outputList)), ruleBody))->toString(true));
 }
 
 void SimpleView::GraphInstance::onQueryFinished() {

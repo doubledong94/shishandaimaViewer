@@ -38,7 +38,7 @@ struct src_loc {
 string joinVector(const vector<string> &, const string &);
 
 template<typename ItemType>
-string joinVector(const vector<ItemType *> &strList, const string &sep, string (*itemToString)(const ItemType *item)) {
+string joinVector(const vector<ItemType *> &strList, const string &sep, string (*itemToString)(ItemType *item)) {
     if (strList.empty()) {
         return "";
     }
@@ -257,7 +257,13 @@ list<K> &extractFirstFromPair(list<pair<K, V>> &p, list<K> &l) {
 template<typename ItemType>
 class PooledItem {
 public:
+    bool isInPool = false;
+
     thread_local static list<ItemType *> itemsInPool;
+
+    static int inPoolItemCount;
+
+    static int outPoolItemCount;
 
     static ItemType *getInstance();
 
@@ -271,21 +277,38 @@ template<typename ItemType>
 thread_local list<ItemType *> PooledItem<ItemType>::itemsInPool;
 
 template<typename ItemType>
+int PooledItem<ItemType>::inPoolItemCount = 0;
+
+template<typename ItemType>
+int PooledItem<ItemType>::outPoolItemCount = 0;
+
+template<typename ItemType>
 ItemType *PooledItem<ItemType>::getInstance() {
     ItemType *ret;
     if (itemsInPool.empty()) {
         ret = new ItemType();
     } else {
+        inPoolItemCount--;
         ret = itemsInPool.front();
         itemsInPool.pop_front();
     }
     ret->reset();
+    ret->isInPool = false;
+    outPoolItemCount++;
+    // printf("getInstance:  in: %d\tout: %d\t%s\n",inPoolItemCount,outPoolItemCount, typeid(ItemType).name());
     return ret;
 }
 
 template<typename ItemType>
 void PooledItem<ItemType>::returnToPool(ItemType *ret) {
-    itemsInPool.emplace_back(ret);
+    if (ret->isInPool) {
+        return;
+    }
+    ret->isInPool = true;
+    itemsInPool.push_back(ret);
+    inPoolItemCount++;
+    outPoolItemCount--;
+    // printf("returnToPool:  in: %d\tout: %d\t%s\n",inPoolItemCount,outPoolItemCount, typeid(ItemType).name());
 }
 
 template<typename ItemType>

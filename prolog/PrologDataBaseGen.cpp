@@ -66,6 +66,7 @@ void PrologDataBaseGen::genPrologDataBase(list<string>& prologLines) {
     // ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeReadVisitor, prologLines);
     // prologLines.emplace_back("\% runtime write start");
     // ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeWriteVisitor, prologLines);
+    ResolvingItem::returnAllToPool();
 }
 
 void DataFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) {

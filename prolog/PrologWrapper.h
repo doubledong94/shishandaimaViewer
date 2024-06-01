@@ -8,7 +8,7 @@ public:
 
     static PlQuery* makeQuery(CompoundTerm *term, PlTermv* &result, int &outputIndex);
 
-    static void queryList(CompoundTerm *term, vector<Term *> &retList);
+    static void queryList(CompoundTerm *term, const std::function<void(vector<Term*>&)>& consumer);
 
     static int queryCount(CompoundTerm *term);
 
@@ -17,8 +17,6 @@ public:
     static void declareFun(const string &functorName, int arity);
 
     static void addFact(const string &factStr);
-
-    static bool factExist(CompoundTerm *factTerm);
 
     static void retractSingleFact(const string &factStr);
 

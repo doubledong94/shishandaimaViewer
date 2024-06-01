@@ -46,12 +46,28 @@ void ResolvingItem::set(const string& variableKey, TypeInfo* typeInfo, const str
     }
 }
 
+thread_local list<ResolvingItem*> ResolvingItem::itemsOutOfPool;
+
+ResolvingItem* ResolvingItem::getInstance2() {
+    auto ret = getInstance();
+    itemsOutOfPool.push_back(ret);
+    return ret;
+}
+
 static int relationCount = 0;
 ResolvingItem* ResolvingItem::getInstance2(const string& variableKey, TypeInfo* typeInfo, const string& structureKey, const string& sentenceIndex, const string& indexInsideExp, int keyType, const string& extraInfo) {
     relationCount++;
     ResolvingItem* ret = getInstance();
     ret->set(variableKey, typeInfo, structureKey, sentenceIndex, indexInsideExp, keyType, extraInfo);
+    itemsOutOfPool.push_back(ret);
     return ret;
+}
+
+void ResolvingItem::returnAllToPool() {
+    for (auto& item : itemsOutOfPool) {
+        returnToPool(item);
+    }
+    itemsOutOfPool.clear();
 }
 
 void ResolvingItem::addRuntimeProlog(string(*act)(const string& methodKey, const string& varKey, const string& runtimeKey, int keyType), const string& methodKey, list<string>& prologLines) {

@@ -26,6 +26,8 @@
 #include "absl/time/clock.h"
 #include "Parser.h"
 
+static bool debug_parser = false;
+
 void ErrorListener::syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line, size_t charPositionInLine, const string& msg, std::exception_ptr e) {
     easyPrint("xxxxxxxxxxxxxxxxxxxxxxxxxx error start xxxxxxxxxxxxxxxxxxxxxxxxxx");
     easyPrint("xxxxxx file:", filePath1);
@@ -98,7 +100,7 @@ void app::Parser::parse(const string& path) {
     totalCountPass = FileManager::allFiles.size();
     currentCountPass1 = 0;
     currentCountPass2 = 0;
-    ThreadPool threadPool(4);
+    ThreadPool threadPool(debug_parser ? 1 : 4);
 
     for (auto& filePath : FileManager::updatedFiles) {
         threadPool.submit([&]() {
@@ -129,7 +131,7 @@ void app::Parser::parse(const string& path) {
     FileScopeAndEnv::addImportedFieldAndMethodNameScopeAndEnvForAllFile();
 
     // runtime round
-    for (auto& filePath : FileManager::updatedFiles) {
+    for (auto& filePath : debug_parser ? FileManager::allFiles : FileManager::updatedFiles) {
         threadPool.submit([&]() {
             parseFile<JavaLexer, JavaParser, ClassLevelVisitor>(filePath.data(), filePath.data());
             parseTime = (absl::GetCurrentTimeNanos() - start) / 1000000000;

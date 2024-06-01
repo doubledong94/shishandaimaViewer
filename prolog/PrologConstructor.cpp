@@ -143,7 +143,7 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
     writeToPrologFile(FileManager::prologAddressableFileDir + FileManager::convertFilePath2PrologFile(filePath), lines);
 }
 
-string termToString(const Term* term) {
+string termToString(Term* term) {
     return term->toString();
 }
 
@@ -157,16 +157,22 @@ MinusTerm::MinusTerm(Term* remainderTerm, Term* minuendTerm, Term* subtrahend) {
     this->subtrahend = subtrahend;
 }
 
-string MinusTerm::toString() const {
+string MinusTerm::toString(bool returnToPool) {
     return remainderTerm->toString() + " is " + minuendTerm->toString() + " - " + subtrahend->toString();
 }
 
 
-NegationTerm::NegationTerm(Term* t) {
-    term = t;
+NegationTerm* NegationTerm::getNegInstance(Term* t) {
+    NegationTerm* ret = PooledItem<NegationTerm>::getInstance();
+    ret->term = t;
+    return ret;
 }
 
-string NegationTerm::toString() const {
+void NegationTerm::reset() {
+    term = NULL;
+}
+
+string NegationTerm::toString(bool returnToPool) {
     return "\\+" + term->toString();
 }
 
@@ -178,13 +184,8 @@ Term::Term(const string& s, int termType) {
     this->termType = termType;
 }
 
-Term* Term::ignoredVar;
-
 Term* Term::getIgnoredVar() {
-    if (not ignoredVar) {
-        ignoredVar = new Term("_", Term::TERM_TYPE_VAR);
-    }
-    return ignoredVar;
+    return Term::getVar("_");
 }
 
 Term* Term::getInt(int integer) {
@@ -235,13 +236,17 @@ PlTerm* Term::toPlTerm() {
     return nullptr;
 }
 
+void Term::returnThisToPool() {
+    PooledItem<Term>::returnToPool(this);
+}
+
 void Term::reset() {
     atomOrVar.clear();
     integer = 0;
     termType = 0;
 }
 
-string Term::toString() const {
+string Term::toString(bool returnToPool) {
     if (termType == TERM_TYPE_VAR) {
         return atomOrVar;
     } else if (termType == TERM_TYPE_ATOM) {
@@ -257,11 +262,14 @@ string Term::toString() const {
     return "";
 }
 
-string CompoundTerm::toString() const {
+string CompoundTerm::toString(bool returnToPool) {
     string ret = head->toString();
     ret.push_back('(');
     ret += joinVector(args, ",", termToString);
     ret.push_back(')');
+    if (returnToPool) {
+        returnThisToPool();
+    }
     return ret;
 }
 
@@ -321,7 +329,7 @@ CompoundTerm* CompoundTerm::getDataFlowTerm(Term* mk, Term* src, Term* dst) {
 }
 
 string CompoundTerm::getDataFlowFact(const string& mk, const string& src, const string& dst) {
-    string ret = getDataFlowTerm(Term::getStr(mk), Term::getStr(src), Term::getStr(dst))->toString();
+    string ret = getDataFlowTerm(Term::getStr(mk), Term::getStr(src), Term::getStr(dst))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -339,7 +347,7 @@ CompoundTerm* CompoundTerm::getLengthTerm(Term* list_, Term* length) {
 }
 
 string CompoundTerm::getCodeOrderFact(const string& mk, const string& src, const string& dst) {
-    string ret = getCodeOrderTerm(Term::getStr(mk), Term::getStr(src), Term::getStr(dst))->toString();
+    string ret = getCodeOrderTerm(Term::getStr(mk), Term::getStr(src), Term::getStr(dst))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -349,7 +357,7 @@ CompoundTerm* CompoundTerm::getRuntimeReadTerm(Term* mk, Term* variable, Term* r
 }
 
 string CompoundTerm::getRuntimeReadFact(const string& mk, const string& variable, const string& runtimeReadKey) {
-    string ret = getRuntimeReadTerm(Term::getStr(mk), Term::getStr(variable), Term::getStr(runtimeReadKey))->toString();
+    string ret = getRuntimeReadTerm(Term::getStr(mk), Term::getStr(variable), Term::getStr(runtimeReadKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -359,25 +367,25 @@ CompoundTerm* CompoundTerm::getRuntimeWriteTerm(Term* mk, Term* variable, Term* 
 }
 
 string CompoundTerm::getRuntimeWriteFact(const string& mk, const string& variable, const string& runtimeWriteKey) {
-    string ret = getRuntimeWriteTerm(Term::getStr(mk), Term::getStr(variable), Term::getStr(runtimeWriteKey))->toString();
+    string ret = getRuntimeWriteTerm(Term::getStr(mk), Term::getStr(variable), Term::getStr(runtimeWriteKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
 
 string CompoundTerm::getAddressableFileFact(const string& typeKey, const string& filePath) {
-    string ret = makeTerm(HEAD_ADDRESSABLE_FILE, Term::getStr(typeKey), Term::getStr(filePath))->toString();
+    string ret = makeTerm(HEAD_ADDRESSABLE_FILE, Term::getStr(typeKey), Term::getStr(filePath))->toString(true);
     ret.push_back('.');
     return ret;
 }
 
 string CompoundTerm::getUnaddressableFileFact(const string& typeKey, const string& filePath) {
-    string ret = makeTerm(HEAD_UNADDRESSABLE_FILE, Term::getStr(typeKey), Term::getStr(filePath))->toString();
+    string ret = makeTerm(HEAD_UNADDRESSABLE_FILE, Term::getStr(typeKey), Term::getStr(filePath))->toString(true);
     ret.push_back('.');
     return ret;
 }
 
 string CompoundTerm::getPackageFact(const string& package, const string& typeKey) {
-    string ret = getPackageTerm(Term::getStr(package), Term::getStr(typeKey))->toString();
+    string ret = getPackageTerm(Term::getStr(package), Term::getStr(typeKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -391,13 +399,13 @@ CompoundTerm* CompoundTerm::getSubTypeTerm(Term* typeKey, Term* subTypeKey) {
 }
 
 string CompoundTerm::getSubTypeFact(const string& typeKey, const string& subTypeKey) {
-    string ret = getSubTypeTerm(Term::getStr(typeKey), Term::getStr(subTypeKey))->toString();
+    string ret = getSubTypeTerm(Term::getStr(typeKey), Term::getStr(subTypeKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
 
 string CompoundTerm::getRelatedTypeFact(const string& typeKey, const string& typeKeyItUsed) {
-    string ret = getRelatedTypeTerm(Term::getStr(typeKey), Term::getStr(typeKeyItUsed))->toString();
+    string ret = getRelatedTypeTerm(Term::getStr(typeKey), Term::getStr(typeKeyItUsed))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -407,7 +415,7 @@ CompoundTerm* CompoundTerm::getRelatedTypeTerm(Term* typeKey, Term* typeKeyUsedB
 }
 
 string CompoundTerm::getMethodFact(const string& typeKey, const string& methodKey) {
-    string ret = getMethodTerm(Term::getStr(typeKey), Term::getStr(methodKey))->toString();
+    string ret = getMethodTerm(Term::getStr(typeKey), Term::getStr(methodKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -417,7 +425,7 @@ CompoundTerm* CompoundTerm::getMethodTerm(Term* typeKey, Term* methodKey) {
 }
 
 string CompoundTerm::getConstructorFact(const string& typeKey, const string& constructorKey) {
-    string ret = getConstructorTerm(Term::getStr(typeKey), Term::getStr(constructorKey))->toString();
+    string ret = getConstructorTerm(Term::getStr(typeKey), Term::getStr(constructorKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -427,7 +435,7 @@ CompoundTerm* CompoundTerm::getConstructorTerm(Term* typeKey, Term* constructorK
 }
 
 string CompoundTerm::getParameterFact(const string& methodKey, const string& parameterKey) {
-    string ret = getParameterTerm(Term::getStr(methodKey), Term::getStr(parameterKey))->toString();
+    string ret = getParameterTerm(Term::getStr(methodKey), Term::getStr(parameterKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -437,7 +445,7 @@ CompoundTerm* CompoundTerm::getParameterTerm(Term* methodKey, Term* parameterKey
 }
 
 string CompoundTerm::getReturnFact(const string& methodKey, const string& returnKey) {
-    string ret = getReturnTerm(Term::getStr(methodKey), Term::getStr(returnKey))->toString();
+    string ret = getReturnTerm(Term::getStr(methodKey), Term::getStr(returnKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -455,7 +463,7 @@ CompoundTerm* CompoundTerm::getReturnOfClassTerm(Term* classKey, Term* returnKey
 }
 
 string CompoundTerm::getCalledMethodFact(const string& methodKey, const string& calledMethodKey) {
-    string ret = getCalledMethodTerm(Term::getStr(methodKey), Term::getStr(calledMethodKey))->toString();
+    string ret = getCalledMethodTerm(Term::getStr(methodKey), Term::getStr(calledMethodKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -469,7 +477,7 @@ CompoundTerm* CompoundTerm::getCalledParamTerm(Term* paramKey, Term* calledParam
 }
 
 string CompoundTerm::getCalledParamFact(const string& paramKey, const string& calledParameterKey) {
-    string ret = getCalledParamTerm(Term::getStr(paramKey), Term::getStr(calledParameterKey))->toString();
+    string ret = getCalledParamTerm(Term::getStr(paramKey), Term::getStr(calledParameterKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -479,7 +487,7 @@ CompoundTerm* CompoundTerm::getCalledReturnTerm(Term* returnKey, Term* calledRet
 }
 
 string CompoundTerm::getCalledReturnFact(const string& returnKey, const string& calledReturnKey) {
-    string ret = getCalledReturnTerm(Term::getStr(returnKey), Term::getStr(calledReturnKey))->toString();
+    string ret = getCalledReturnTerm(Term::getStr(returnKey), Term::getStr(calledReturnKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -505,7 +513,7 @@ CompoundTerm* CompoundTerm::getStepTerm(Term* key, Term* stepKey) {
 }
 
 string CompoundTerm::getStepFact(const string& key, const string& stepKey) {
-    string ret = getStepTerm(Term::getStr(key), Term::getStr(stepKey))->toString();
+    string ret = getStepTerm(Term::getStr(key), Term::getStr(stepKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -515,7 +523,7 @@ CompoundTerm* CompoundTerm::getVarTerm(Term* t) {
 }
 
 string CompoundTerm::getFieldFact(const string& typeKey, const string& fieldKey) {
-    string ret = getFieldTerm(Term::getStr(typeKey), Term::getStr(fieldKey))->toString();
+    string ret = getFieldTerm(Term::getStr(typeKey), Term::getStr(fieldKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -525,7 +533,7 @@ CompoundTerm* CompoundTerm::getFieldTerm(Term* typeKey, Term* fieldKey) {
 }
 
 string CompoundTerm::getInstanceOfFact(const string& instanceKey, const string& typeKey) {
-    string ret = getInstanceOfTerm(Term::getStr(instanceKey), Term::getStr(typeKey))->toString();
+    string ret = getInstanceOfTerm(Term::getStr(instanceKey), Term::getStr(typeKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -543,7 +551,7 @@ CompoundTerm* CompoundTerm::getCalledReturnInstanceOfTerm(Term* instanceKey, Ter
 }
 
 string CompoundTerm::getSimpleNameFact(const string& key, const string& simpleName) {
-    string ret = getSimpleNameTerm(Term::getStr(key), Term::getStr(simpleName))->toString();
+    string ret = getSimpleNameTerm(Term::getStr(key), Term::getStr(simpleName))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -553,7 +561,7 @@ CompoundTerm* CompoundTerm::getSimpleNameTerm(Term* key, Term* simpleName) {
 }
 
 string CompoundTerm::getIsFinalFact(const string& key) {
-    string ret = getIsFinalTerm(Term::getStr(key))->toString();
+    string ret = getIsFinalTerm(Term::getStr(key))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -563,7 +571,7 @@ Term* CompoundTerm::getIsFinalTerm(Term* key) {
 }
 
 string CompoundTerm::getRuntimeFact(const string& methodKey, const string& key, const string& runtimeKey, int keyType) {
-    string ret = getRuntimeTerm(Term::getStr(methodKey), Term::getStr(key), Term::getStr(runtimeKey), Term::getInt(keyType))->toString();
+    string ret = getRuntimeTerm(Term::getStr(methodKey), Term::getStr(key), Term::getStr(runtimeKey), Term::getInt(keyType))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -937,33 +945,12 @@ void CompoundTerm::addVarTermArg() {
     args.push_back(Term::getVar("A" + to_string(args.size() + 1)));
 }
 
-CompoundTerm::CompoundTerm() {
-
-}
-
-CompoundTerm::CompoundTerm(const string& head) {
-    this->head = Term::getAtom(head);
-}
-
-CompoundTerm::CompoundTerm(Term* h) : Term() {
-    head = h;
-}
-
 PlTerm* CompoundTerm::toPlTerm() {
     PlTermv plTermv(args.size());
     for (int i = 0; i < args.size(); ++i) {
         plTermv[i].unify_term(*args[i]->toPlTerm());
     }
     return new PlCompound(head->toString(), plTermv);
-}
-
-Unification::Unification() {
-
-}
-
-Unification::Unification(Term* first, Term* second) {
-    firstTerm = first;
-    secondTerm = second;
 }
 
 Unification* Unification::getUnificationInstance(Term* first, Term* second) {
@@ -973,7 +960,7 @@ Unification* Unification::getUnificationInstance(Term* first, Term* second) {
     return ret;
 }
 
-string Unification::toString() const {
+string Unification::toString(bool returnToPool) {
     string ret = firstTerm->toString();
     ret.push_back('=');
     ret += secondTerm->toString();
@@ -983,21 +970,6 @@ string Unification::toString() const {
 void Unification::reset() {
     this->firstTerm = nullptr;
     this->secondTerm = nullptr;
-}
-
-Tail::Tail() {
-
-}
-
-Tail::Tail(Term* h, Term* tail) {
-    headElements.push_back(h);
-    this->tail = tail;
-}
-
-Tail::Tail(Term* h1, Term* h2, Term* tail) {
-    headElements.push_back(h1);
-    headElements.push_back(h2);
-    this->tail = tail;
 }
 
 Tail* Tail::getTailInstance(Term* h, Term* tail) {
@@ -1042,7 +1014,7 @@ Tail* Tail::getCompleteOutputList(Term* regexChar, Term* nodeType, Term* nodeLab
     return ret;
 }
 
-string Tail::toString() const {
+string Tail::toString(bool returnToPool) {
     if (tail == nullptr) {
         if (headElements.empty()) {
             return "[]";
@@ -1126,15 +1098,6 @@ Term* convertPlTermToTerm(PlTerm* plTerm) {
     return nullptr;
 }
 
-Rule::Rule() {
-
-}
-
-Rule::Rule(Term* head, const vector<Term*>& conditions) {
-    this->head = head;
-    FOR_EACH_ITEM(conditions, this->conditions.push_back(item););
-}
-
 Rule* Rule::getRuleInstance(Term* head, const vector<Term*>& conditions) {
     auto* ret = getInstance();
     ret->head = head;
@@ -1147,11 +1110,14 @@ void Rule::reset() {
     this->conditions.clear();
 }
 
-string Rule::toString() const {
+string Rule::toString(bool returnToPool) {
     string ret = head->toString();
     ret += ":- (";
     ret += joinVector(conditions, ",", termToString);
     ret.push_back(')');
+    if (returnToPool) {
+        returnThisToPool();
+    }
     return ret;
 }
 
@@ -1193,10 +1159,10 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
     if (isParam) {
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(innerMethod, parameter, runtimeParameter, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)));
     } else {
-        ruleBody.push_back(new DisjunctionTerm({
+        ruleBody.push_back(DisjunctionTerm::getDisjunctionInstance(
             CompoundTerm::getRuntimeTerm(innerMethod, method, runtimeMethod, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR)),
-            CompoundTerm::getRuntimeTerm(innerMethod, method, runtimeMethod, Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
-            }));
+            CompoundTerm::getRuntimeTerm(innerMethod, method, runtimeMethod, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))
+        ));
     }
     // get calledMethod if it is param
     if (isParam) {
@@ -1204,15 +1170,15 @@ Rule* Rule::getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledPara
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledMethod, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)));
     }
     // get calledReturn as step out point
-    ruleBody.push_back(new DisjunctionTerm(
-        new ConjunctionTerm({
-            new NegationTerm(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)),
+    ruleBody.push_back(DisjunctionTerm::getDisjunctionInstance(
+        ConjunctionTerm::getConjunctionInstance({
+            NegationTerm::getNegInstance(CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod)),
             CompoundTerm::getDataFlowTerm(outerMethod, calledMethod, calledReturnTerm),
             CompoundTerm::getRuntimeTerm(outerMethod, Term::getIgnoredVar(), calledReturnTerm, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)) }),
-        new ConjunctionTerm({
-            CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod),
-            Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
-        ));
+            ConjunctionTerm::getConjunctionInstance({
+                CompoundTerm::getIsCalledMethodReturnVoid(outerMethod, calledMethod),
+                Unification::getUnificationInstance(calledReturnTerm, Term::getStr("void")) })
+                ));
     if (isParam) {
         return Rule::getRuleInstance(CompoundTerm::getStepTerm(Term::getInt(1),
             Tail::getInstanceByElements({ outerMethod,calledParameter }),
@@ -1243,10 +1209,10 @@ Rule* Rule::getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* 
     if (isParam) {
         typeCheckTerm = CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER));
     } else {
-        typeCheckTerm = new DisjunctionTerm({
-        CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod,Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR)),
-        CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
-            });
+        typeCheckTerm = DisjunctionTerm::getDisjunctionInstance(
+            CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR)),
+            CompoundTerm::getRuntimeTerm(innerMethod, parameterOrMethod, runtimeParameterOrMethod, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))
+        );
     }
     Term* stepTypeTerm = NULL;
     if (isParam) {
@@ -1261,7 +1227,7 @@ Rule* Rule::getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* 
         shorterSteps,
         longerSteps
     ), {
-        new NegationTerm(CompoundTerm::getVarTerm(longerSteps)),
+        NegationTerm::getNegInstance(CompoundTerm::getVarTerm(longerSteps)),
         Unification::getUnificationInstance(longerSteps, Tail::getInstanceByElements({})),
         typeCheckTerm,
         Unification::getUnificationInstance(shorterSteps, Tail::getInstanceByElements({}))
@@ -1315,7 +1281,7 @@ Rule* Rule::getStepOutTermOutOfSteps(Term* innerMethod, Term* outerMethod, Term*
     ), {
         // the LongerSteps has a value, because this predicate is used in a forward line
         // backward line will not use this predicate
-        new NegationTerm(CompoundTerm::getVarTerm(longerSteps)),
+        NegationTerm::getNegInstance(CompoundTerm::getVarTerm(longerSteps)),
         Unification::getUnificationInstance(longerSteps, Tail::getInstanceByElements({})),
         CompoundTerm::getRuntimeTerm(innerMethod, returnTerm, runtimeReturn,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
         Unification::getUnificationInstance(shorterSteps, Tail::getInstanceByElements({}))
@@ -1338,31 +1304,50 @@ string Rule::getStepOutRuleOutOfSteps(const string& innerMethod, const string& o
     return getStepOutTermOutOfSteps(Term::getStr(innerMethod), Term::getStr(outerMethod), Term::getStr(returnTerm), Term::getStr(step), Term::getStr(calledReturn))->toString() + ".";
 }
 
-DisjunctionTerm::DisjunctionTerm(Term* t1, Term* t2) {
-    term1 = t1;
-    term2 = t2;
+DisjunctionTerm* DisjunctionTerm::getDisjunctionInstance(Term* t1, Term* t2) {
+    DisjunctionTerm* ret = PooledItem<DisjunctionTerm>::getInstance();
+    ret->term1 = t1;
+    ret->term2 = t2;
+    return ret;
 }
 
-string DisjunctionTerm::toString() const {
+void DisjunctionTerm::reset() {
+    term1 = NULL;
+    term2 = NULL;
+}
+
+string DisjunctionTerm::toString(bool returnToPool) {
     return "(" + term1->toString() + "; " + term2->toString() + ")";
 }
 
-ConjunctionTerm::ConjunctionTerm(const vector<Term*>& terms) {
-    FOR_EACH_ITEM(terms, this->terms.push_back(item););
+ConjunctionTerm* ConjunctionTerm::getConjunctionInstance(const vector<Term*>& terms) {
+    ConjunctionTerm* ret = PooledItem<ConjunctionTerm>::getInstance();
+    FOR_EACH_ITEM(terms, ret->terms.push_back(item););
+    return ret;
 }
 
-string ConjunctionTerm::toString() const {
+void ConjunctionTerm::reset() {
+    terms.clear();
+}
+
+string ConjunctionTerm::toString(bool returnToPool) {
     string ret = "(";
     ret += joinVector(terms, ",", termToString);
     ret.push_back(')');
     return ret;
 }
 
-AssertTerm::AssertTerm(Term* term) {
-    this->term = term;
+AssertTerm* AssertTerm::getAssertInstance(Term* term) {
+    AssertTerm* ret = PooledItem<AssertTerm>::getInstance();
+    ret->term = term;
+    return ret;
 }
 
-string AssertTerm::toString() const {
+void AssertTerm::reset() {
+    term = NULL;
+}
+
+string AssertTerm::toString(bool returnToPool) {
     return HEAD_ASSERTZ->toString() + "((" + term->toString() + "))";
 }
 
@@ -1453,3 +1438,64 @@ CompoundTerm* CompoundTerm::getCalledReturnToCalledMethod(Term* runtimeMethodKey
     ret->addArg(calledMethod);
     return ret;
 }
+
+void CompoundTerm::returnThisToPool() {
+    for (auto& item : args) {
+        item->returnThisToPool();
+    }
+    PooledItem<CompoundTerm>::returnToPool(this);
+}
+
+void Tail::returnThisToPool() {
+    for (auto& item : headElements) {
+        item->returnThisToPool();
+    }
+    if (tail) {
+        tail->returnThisToPool();
+    }
+    PooledItem<Tail>::returnToPool(this);
+}
+
+void MinusTerm::returnThisToPool() {
+    remainderTerm->returnThisToPool();
+    minuendTerm->returnThisToPool();
+    subtrahend->returnThisToPool();
+}
+
+void NegationTerm::returnThisToPool() {
+    term->returnThisToPool();
+    PooledItem<NegationTerm>::returnToPool(this);
+}
+
+void DisjunctionTerm::returnThisToPool() {
+    term1->returnThisToPool();
+    term2->returnThisToPool();
+    PooledItem<DisjunctionTerm>::returnToPool(this);
+}
+
+void ConjunctionTerm::returnThisToPool() {
+    for (auto& t : terms) {
+        t->returnThisToPool();
+    }
+    PooledItem<ConjunctionTerm>::returnToPool(this);
+}
+
+void Unification::returnThisToPool() {
+    firstTerm->returnThisToPool();
+    secondTerm->returnThisToPool();
+    PooledItem<Unification>::returnToPool(this);
+}
+
+void AssertTerm::returnThisToPool() {
+    term->returnThisToPool();
+    PooledItem<AssertTerm>::returnToPool(this);
+}
+
+void Rule::returnThisToPool() {
+    head->returnThisToPool();
+    for (auto& c : conditions) {
+        c->returnThisToPool();
+    }
+    PooledItem<Rule>::returnToPool(this);
+}
+

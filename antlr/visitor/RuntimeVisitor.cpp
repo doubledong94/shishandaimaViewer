@@ -987,7 +987,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
     }
     auto* referencedScope = referencedBy->typeInfo->classScopeAndEnv;
     classScopeAndEnv->addUsage(referencedBy->typeInfo);
-    auto* resolvingItem = ResolvingItem::getInstance();
+    auto* resolvingItem = ResolvingItem::getInstance2();
     if (ctx->identifier() != nullptr) {
         if (!referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType)) {
             spdlog::get(ErrorManager::DebugTag)->warn("visitExpressionReference: did not find id for name: {} referenced by {} in method: {}", ctx->identifier()->getText(), referencedBy->typeInfo->typeKey, methodScopeAndEnv->methodKey);
@@ -998,7 +998,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
     } else if (ctx->methodCall() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertMethodCall(ctx->methodCall(), &methodCall);
-        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance();
+        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         calledMethodResolvingItem->referencedBy = referencedBy;
         resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         if (abort) {
@@ -1010,7 +1010,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
     } else if (ctx->NEW() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertInnerCreator(ctx->innerCreator(), &methodCall);
-        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance();
+        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         calledMethodResolvingItem->referencedBy = referencedBy;
         resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem, true);
         if (abort) {
@@ -1019,7 +1019,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
     } else if (ctx->SUPER() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertSuperSuffix(ctx->superSuffix(), &methodCall);
-        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance();
+        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         calledMethodResolvingItem->referencedBy = referencedBy;
         resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         if (abort) {
@@ -1028,7 +1028,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
     } else if (ctx->explicitGenericInvocation() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertExplicitGenericInvocationSuffix(ctx->explicitGenericInvocation()->explicitGenericInvocationSuffix(), &methodCall);
-        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance();
+        ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         calledMethodResolvingItem->referencedBy = referencedBy;
         resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         if (abort) {
@@ -1092,13 +1092,13 @@ std::any StatementVisitor::visitExpressionNew(JavaParser::ExpressionNewContext* 
                 anonymousVisitor->makeClassScopeEnv();
                 anonymousVisitor->visitForMembers(ctx->creator()->classCreatorRest()->classBody());
                 anonymousVisitor->visitClassBody(ctx->creator()->classCreatorRest()->classBody());
-                AnonymousVisitor::returnToPool(anonymousVisitor);
                 auto calledReturnItem = resolveMethod(methodCall, classScopeAndEnv, true);
                 auto anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
                     codeBlock->structure_key, getSentence()->sentenceIndexStr,
                     getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
                 );
                 new Relation(getSentence(), calledReturnItem, anonymousItem);
+                AnonymousVisitor::returnToPool(anonymousVisitor);
                 return anonymousItem;
             } else {
                 unhandledError();
@@ -1418,10 +1418,9 @@ any StatementVisitor::visitExpressionLambda(JavaParser::ExpressionLambdaContext*
                 anonymousVisitor->makeTypeInfo();
                 anonymousVisitor->makeClassScopeEnv();
                 anonymousVisitor->visitLambda(ctx->lambdaExpression(), m, paramNames);
-                AnonymousVisitor::returnToPool(anonymousVisitor);
 
-                ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance();
-                ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance();
+                ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance2();
+                ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
                 handleMethodInfo(constructor, {}, calledReturnResolvingItem, calledMethodResolvingItem);
 
                 auto anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
@@ -1429,6 +1428,7 @@ any StatementVisitor::visitExpressionLambda(JavaParser::ExpressionLambdaContext*
                     getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
                 );
                 new Relation(getSentence(), calledReturnResolvingItem, anonymousItem);
+                AnonymousVisitor::returnToPool(anonymousVisitor);
                 return anonymousItem;
             }
         }
@@ -1546,8 +1546,8 @@ void StatementVisitor::iterNDimArrayRecur(ResolvingItem* superDimItem, JavaParse
 }
 
 ResolvingItem* StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAndEnv* scopeAndEnv, bool creator) {
-    ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance();
-    ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance();
+    ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance2();
+    ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
     resolveMethod(methodCall, scopeAndEnv, calledReturnResolvingItem, calledMethodResolvingItem, creator);
     return calledReturnResolvingItem;
 }

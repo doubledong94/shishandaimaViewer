@@ -401,101 +401,133 @@ void SimpleView::declareClassResolveRules() {
     Term* ClassScopeName1 = Term::getVar("ClassScopeName1");
     Term* ClassScopeName2 = Term::getVar("ClassScopeName2");
     Term* ResolvedClass = Term::getVar("ResolvedClass");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeUsedBy(ClassScopeName1, ClassToBeResolved), {
+    vector<Rule*> rules;
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeUsedBy(ClassScopeName1, ClassToBeResolved), {
             CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getRelatedTypeTerm(ResolvedClass, ClassToBeResolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeUse(ClassScopeName1, ClassToBeResolved), {
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeUse(ClassScopeName1, ClassToBeResolved), {
             CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getRelatedTypeTerm(ClassToBeResolved, ResolvedClass)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeSuper(ClassScopeName1, ClassToBeResolved), {
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeSuper(ClassScopeName1, ClassToBeResolved), {
             CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeTerm(ClassToBeResolved, ResolvedClass)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeSub(ClassScopeName1, ClassToBeResolved), {
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeSub(ClassScopeName1, ClassToBeResolved), {
             CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeTerm(ResolvedClass, ClassToBeResolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeUnionTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
-            new DisjunctionTerm(CompoundTerm::getResolveTerm(ClassScopeName1, ClassToBeResolved), CompoundTerm::getResolveTerm(ClassScopeName2, ClassToBeResolved))
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeIntersectionTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeUnionTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
+            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getResolveTerm(ClassScopeName1, ClassToBeResolved), CompoundTerm::getResolveTerm(ClassScopeName2, ClassToBeResolved))
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeIntersectionTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
             CompoundTerm::getResolveTerm(ClassScopeName1, ClassToBeResolved), CompoundTerm::getResolveTerm(ClassScopeName2, ClassToBeResolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getClassScopeDifferenceTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
-            CompoundTerm::getResolveTerm(ClassScopeName1, ClassToBeResolved), new NegationTerm(CompoundTerm::getResolveTerm(ClassScopeName2, ClassToBeResolved))
-        }))->toString());
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeDifferenceTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
+            CompoundTerm::getResolveTerm(ClassScopeName1, ClassToBeResolved), NegationTerm::getNegInstance(CompoundTerm::getResolveTerm(ClassScopeName2, ClassToBeResolved))
+        }));
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
 }
 
 void SimpleView::declareNodeResolveRules() {
     Term* Resolved = Term::getVar("Resolved");
     Term* ClassScopeValName = Term::getVar("ClassScopeValName");
     Term* Class = Term::getVar("Class");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeFieldOfTerm(ClassScopeValName, Resolved), {
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getFieldTerm(Class, Resolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeMethodOfTerm(ClassScopeValName, Resolved), {
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getMethodTerm(Class, Resolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeConstructorOfTerm(ClassScopeValName, Resolved), {
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getConstructorTerm(Class, Resolved)
-        }))->toString());
     Term* ClassValName = Term::getVar("ClassValName");
     Term* ClassType = Term::getVar("ClassType");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeInstanceOf(ClassScopeValName, ClassValName, Resolved), {
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class),
-            CompoundTerm::getResolveTerm(ClassValName, ClassType),
-            CompoundTerm::getFieldTerm(Class,Resolved),
-            CompoundTerm::getInstanceOfTerm(Resolved, ClassType)
-        }))->toString());
-
     Term* MethodValName = Term::getVar("MethodValName");
     Term* Method = Term::getVar("Method");
     Term* ParamValName = Term::getVar("ParamValName");
     Term* Param = Term::getVar("Param");
     Term* ReturnValName = Term::getVar("ReturnValName");
     Term* Return = Term::getVar("Return");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeParameterOf(MethodValName, Resolved), {
-            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getParameterTerm(Method, Resolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeReturnOf(MethodValName, Resolved), {
-            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getReturnTerm(Method, Resolved)
-        }))->toString());
-
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeCalledMethodOf(MethodValName, Resolved), {
-            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getCalledMethodTerm(Method, Resolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeCalledParameterOf(ParamValName, Resolved), {
-            CompoundTerm::getResolveTerm(ParamValName, Param), CompoundTerm::getCalledParamTerm(Param, Resolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeCalledReturnOf(ReturnValName, Resolved), {
-            CompoundTerm::getResolveTerm(ReturnValName, Return), CompoundTerm::getCalledReturnTerm(Return, Resolved)
-        }))->toString());
-
     Term* Node1 = Term::getVar("Node1");
     Term* Node2 = Term::getVar("Node2");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeUnion(Node1, Node2, Resolved), {
-            new DisjunctionTerm(CompoundTerm::getResolveTerm(Node1, Resolved), CompoundTerm::getResolveTerm(Node2, Resolved))
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeIntersection(Node1, Node2, Resolved), {
-            CompoundTerm::getResolveTerm(Node1, Resolved), CompoundTerm::getResolveTerm(Node2, Resolved)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getNodeDifference(Node1, Node2, Resolved), {
-            CompoundTerm::getResolveTerm(Node1, Resolved), new NegationTerm(CompoundTerm::getResolveTerm(Node2, Resolved))
-        }))->toString());
     Term* RuntimeKey = Term::getVar("RuntimeKey");
     Term* nodeValName = Term::getVar("NodeValName");
     Term* node = Term::getVar("Node");
     Term* keyType = Term::getVar("KeyType");
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getResolveRuntimeTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
+    vector<Rule*> rules;
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeFieldOfTerm(ClassScopeValName, Resolved), {
+            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getFieldTerm(Class, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeMethodOfTerm(ClassScopeValName, Resolved), {
+            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getMethodTerm(Class, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeConstructorOfTerm(ClassScopeValName, Resolved), {
+            CompoundTerm::getResolveTerm(ClassScopeValName, Class), CompoundTerm::getConstructorTerm(Class, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeInstanceOf(ClassScopeValName, ClassValName, Resolved), {
+            CompoundTerm::getResolveTerm(ClassScopeValName, Class),
+            CompoundTerm::getResolveTerm(ClassValName, ClassType),
+            CompoundTerm::getFieldTerm(Class,Resolved),
+            CompoundTerm::getInstanceOfTerm(Resolved, ClassType)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeParameterOf(MethodValName, Resolved), {
+            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getParameterTerm(Method, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeReturnOf(MethodValName, Resolved), {
+            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getReturnTerm(Method, Resolved)
+        }));
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledMethodOf(MethodValName, Resolved), {
+            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getCalledMethodTerm(Method, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledParameterOf(ParamValName, Resolved), {
+            CompoundTerm::getResolveTerm(ParamValName, Param), CompoundTerm::getCalledParamTerm(Param, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledReturnOf(ReturnValName, Resolved), {
+            CompoundTerm::getResolveTerm(ReturnValName, Return), CompoundTerm::getCalledReturnTerm(Return, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeUnion(Node1, Node2, Resolved), {
+            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getResolveTerm(Node1, Resolved), CompoundTerm::getResolveTerm(Node2, Resolved))
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeIntersection(Node1, Node2, Resolved), {
+            CompoundTerm::getResolveTerm(Node1, Resolved), CompoundTerm::getResolveTerm(Node2, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeDifference(Node1, Node2, Resolved), {
+            CompoundTerm::getResolveTerm(Node1, Resolved), NegationTerm::getNegInstance(CompoundTerm::getResolveTerm(Node2, Resolved))
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
             CompoundTerm::getResolveTerm(nodeValName, node),
             CompoundTerm::getResolveTerm(ClassScopeValName, Class),
-            new DisjunctionTerm(CompoundTerm::getMethodTerm(Class, Method),CompoundTerm::getConstructorTerm(Class, Method)) ,
+            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(Class, Method),CompoundTerm::getConstructorTerm(Class, Method)) ,
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType)
-        }))->toString());
-    PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType),
             CompoundTerm::getResolveTerm(nodeValName, node),
-            new DisjunctionTerm(CompoundTerm::getMethodTerm(Class, Method),CompoundTerm::getConstructorTerm(Class, Method)) ,
+            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(Class, Method),CompoundTerm::getConstructorTerm(Class, Method)) ,
             CompoundTerm::getResolveTerm(ClassScopeValName, Class)
-        }))->toString());
+        }));
+
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
+    Resolved->returnThisToPool();
+    ClassScopeValName->returnThisToPool();
+    Class->returnThisToPool();
+    ClassValName->returnThisToPool();
+    ClassType->returnThisToPool();
+    MethodValName->returnThisToPool();
+    Method->returnThisToPool();
+    ParamValName->returnThisToPool();
+    Param->returnThisToPool();
+    ReturnValName->returnThisToPool();
+    Return->returnThisToPool();
+    Node1->returnThisToPool();
+    Node2->returnThisToPool();
+    RuntimeKey->returnThisToPool();
+    nodeValName->returnThisToPool();
+    node->returnThisToPool();
+    keyType->returnThisToPool();
+
 }
 
 void SimpleView::clearAllAddedFacts() {

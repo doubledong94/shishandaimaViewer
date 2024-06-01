@@ -8,8 +8,6 @@ public:
     const static int TERM_TYPE_STRING = 3;
     const static int TERM_TYPE_INTEGER = 4;
 
-    static Term* ignoredVar;
-
     string atomOrVar;
     int integer = 0;
     int termType = 0;
@@ -30,14 +28,16 @@ public:
 
     static Term* getInt(int integer);
 
-    virtual string toString() const;
+    virtual string toString(bool returnToPool = false);
 
     virtual PlTerm* toPlTerm();
+
+    virtual void returnThisToPool();
 
     void reset() override;
 };
 
-string termToString(const Term* term);
+string termToString(Term* term);
 
 string getMultiFileDirective(const string& functorName, const string& arityCount);
 
@@ -49,36 +49,55 @@ public:
 
     MinusTerm(Term* remainderTerm, Term* minuendTerm, Term* subtrahend);
 
-    string toString() const override;
+    string toString(bool returnToPool = false) override;
+
+    void returnThisToPool() override;
 };
 
-class NegationTerm : public Term {
+class NegationTerm : public Term, public PooledItem<NegationTerm> {
 public:
+    using PooledItem<NegationTerm>::isInPool;
+
     Term* term;
 
-    NegationTerm(Term* t);
+    static NegationTerm* getNegInstance(Term* t);
 
-    string toString() const override;
+    string toString(bool returnToPool = false) override;
 
+    void reset() override;
+
+    void returnThisToPool() override;
 };
 
-class DisjunctionTerm : public Term {
+class DisjunctionTerm : public Term, public PooledItem<DisjunctionTerm>  {
 public:
+    using PooledItem<DisjunctionTerm>::isInPool;
+
     Term* term1;
     Term* term2;
 
-    DisjunctionTerm(Term* t1, Term* t2);
+    static DisjunctionTerm* getDisjunctionInstance(Term* t1, Term* t2);
 
-    string toString() const override;
+    void reset() override;
+
+    string toString(bool returnToPool = false) override;
+
+    void returnThisToPool() override;
 };
 
-class ConjunctionTerm : public Term {
+class ConjunctionTerm : public Term, public PooledItem<ConjunctionTerm> {
 public:
+    using PooledItem<ConjunctionTerm>::isInPool;
+
     vector<Term*> terms;
 
-    ConjunctionTerm(const vector<Term*>& terms);
+    static ConjunctionTerm* getConjunctionInstance(const vector<Term*>& terms);
 
-    string toString() const override;
+    void reset() override;
+
+    string toString(bool returnToPool = false) override;
+
+    void returnThisToPool() override;
 };
 
 static Term* HEAD_ADDRESSABLE_FILE = new Term("addressableFile", Term::TERM_TYPE_ATOM);
@@ -179,16 +198,12 @@ static map<Term*, int> addressableMultiFileFunctorName2ArgCount;
 class CompoundTerm : public Term, public PooledItem<CompoundTerm> {
 public:
 
+    using PooledItem<CompoundTerm>::isInPool;
+
     Term* head = nullptr;
     vector<Term*> args;
 
     void reset() override;
-
-    CompoundTerm();
-
-    CompoundTerm(const string& head);
-
-    CompoundTerm(Term* h);
 
     void addArg(Term* arg);
 
@@ -476,37 +491,35 @@ public:
 
     static CompoundTerm* getIsCalledMethodReturnVoid(Term* MethodScope, Term* CalledMethod);
 
-    string toString() const;
+    string toString(bool returnToPool = false) override;
 
     PlTerm* toPlTerm() override;
+
+    void returnThisToPool() override;
 };
 
-class Unification : public Term, PooledItem<Unification> {
+class Unification : public Term, public PooledItem<Unification> {
 public:
+    using PooledItem<Unification>::isInPool;
+
     Term* firstTerm = nullptr;
     Term* secondTerm = nullptr;
 
-    Unification();
-
-    Unification(Term* first, Term* second);
-
     static Unification* getUnificationInstance(Term* first, Term* second);
 
-    string toString() const;
+    string toString(bool returnToPool = false) override;
 
     void reset() override;
+
+    void returnThisToPool() override;
 };
 
-class Tail : public Term, PooledItem<Tail> {
+class Tail : public Term, public PooledItem<Tail> {
 public:
+    using PooledItem<Tail>::isInPool;
+
     vector<Term*> headElements;
     Term* tail = nullptr;
-
-    Tail();
-
-    Tail(Term* h, Term* tail);
-
-    Tail(Term* h1, Term* h2, Term* tail);
 
     static Tail* getTailInstance(Term* h, Term* tail);
 
@@ -518,9 +531,11 @@ public:
 
     static Tail* getCompleteOutputList(Term* regexChar, Term* nodeType, Term* nodeLabel, Term* keyVar, Term* runtimeKeyVar, Term* methodKeyVar, Term* classKeyVar, Term* packageKeyVar);
 
-    string toString() const;
+    string toString(bool returnToPool = false) override;
 
     PlTerm* toPlTerm() override;
+
+    void returnThisToPool() override;
 
     void addElement(Term* term);
 
@@ -529,11 +544,16 @@ public:
     void reverse();
 };
 
-class AssertTerm : public Term, PooledItem<AssertTerm> {
+class AssertTerm : public Term, public PooledItem<AssertTerm> {
 public:
+    using PooledItem<AssertTerm>::isInPool;
+
     Term* term = NULL;
-    AssertTerm(Term* term);
-    string toString() const;
+    static AssertTerm* getAssertInstance(Term* term);
+    void reset() override;
+    string toString(bool returnToPool = false) override;
+
+    void returnThisToPool() override;
 };
 
 class Rule : public PooledItem<Rule> {
@@ -541,13 +561,9 @@ public:
     Term* head = nullptr;
     vector<Term*> conditions;
 
-    Rule();
-
-    Rule(Term* head, const vector<Term*>& conditions);
-
     static Rule* getRuleInstance(Term* head, const vector<Term*>& conditions);
 
-    string toString() const;
+    string toString(bool returnToPool = false);
 
     static Rule* getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledParameterOrCalledMethod, Term* step, Term* parameterOrMethod, bool isParam);
 
@@ -566,6 +582,8 @@ public:
     static string getStepOutRuleOutOfSteps(const string& innerMethod, const string& outerMethod, const string& returnTerm, const string& step, const string& calledReturn);
 
     void reset() override;
+
+    void returnThisToPool();
 };
 
 void addTimeCountToRuleBody(vector<Term*>& ruleBody, const string& ruleName);

@@ -72,8 +72,8 @@ PlQuery* PrologWrapper::makeQuery(CompoundTerm* term, PlTermv*& result, int& out
     return nullptr;
 }
 
-void PrologWrapper::queryList(CompoundTerm* term, vector<Term*>& retList) {
-    retList.clear();
+void PrologWrapper::queryList(CompoundTerm* term, const std::function<void(vector<Term*>&)>& consumer) {
+    vector<Term*> retList;
     PlTermv av(term->args.size());
     list<int> outputIndex;
     for (int i = 0; i < term->args.size(); ++i) {
@@ -86,11 +86,17 @@ void PrologWrapper::queryList(CompoundTerm* term, vector<Term*>& retList) {
     try {
         PlQuery q(term->head->toString(), av);
         while (q.next_solution()) {
+            retList.clear();
             for (int i : outputIndex) {
                 PlTerm plT = av[i];
                 retList.push_back(convertPlTermToTerm(&plT));
             }
+            consumer(retList);
+            for (auto& item : retList) {
+                item->returnThisToPool();
+            }
         }
+        term->returnThisToPool();
     } catch (PlException& e) {
         easyPrint(e.as_string());
         exit(1);
@@ -117,12 +123,10 @@ int PrologWrapper::queryCount(CompoundTerm* term) {
 
 void PrologWrapper::queryLoadedTypeKeys(list<string>& loadedTypeKeys) {
     loadedTypeKeys.clear();
-    vector<Term*> ret;
     auto* plTerm = PooledItem<CompoundTerm>::getInstance();
     plTerm->head = HEAD_LOADED;
     plTerm->addVarTermArg();
-    queryList(plTerm, ret);
-    FOR_EACH_ITEM(ret, loadedTypeKeys.push_back(REMOVE_QUOTATION(item->toString())););
+    queryList(plTerm, [&](vector<Term*>& ret) {loadedTypeKeys.push_back(REMOVE_QUOTATION(ret[0]->toString()));});
 }
 
 void PrologWrapper::declareFun(const string& functorName, int arity) {
@@ -133,12 +137,6 @@ void PrologWrapper::addFact(const string& factStr) {
     debug_prolog_file << factStr << "." << "\n";
     debug_prolog_file.flush();
     PlCall("assertz(" + factStr + ").");
-}
-
-bool PrologWrapper::factExist(CompoundTerm* factTerm) {
-    vector<Term*> ret;
-    queryList(factTerm, ret);
-    return !ret.empty();
 }
 
 void PrologWrapper::retractSingleFact(const string& factStr) {
