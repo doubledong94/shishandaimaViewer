@@ -1511,8 +1511,20 @@ ResolvingItem* StatementVisitor::handleNewArray(NameAndRelatedExp& methodCall) {
     // todo init array
     auto* typeInfo = classScopeAndEnv->getTypeInfoWithFileScope(methodCall.name);
     auto* ret = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ARRAY_INIT, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ARRAY_INIT, GlobalInfo::GLOBAL_KEY_ARRAY_INIT);
-    if (methodCall.arrayInitValues != nullptr) {
+    if (methodCall.arrayInitValues) {
         iterNDimArrayRecur(ret, methodCall.arrayInitValues, methodCall.dim, GlobalInfo::GLOBAL_KEY_ARRAY_INIT);
+    }
+    if (methodCall.initExpression) {
+        const any& itemOrNull = methodCall.initExpression->accept(this);
+        ResolvingItem* valueItem = NULL;
+        if (abort) {
+            valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(methodCall.initExpression->getText()),
+                AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+            abort = false;
+        } else {
+            valueItem = any_cast<ResolvingItem*>(itemOrNull);
+        }
+        new Relation(getSentence(), valueItem, ret);
     }
     return ret;
 }

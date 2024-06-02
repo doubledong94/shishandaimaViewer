@@ -24,8 +24,8 @@ bool TypeCheckAndInference::isAssignable(TypeInfo* typeInfo, TypeInfo* superType
         return isNumberAssignable(typeInfo, superTypeInfo);
     }
 
-    for (auto& suerTypeInfoI : typeInfo->superTypeInfos) {
-        if (isAssignable(suerTypeInfoI, superTypeInfo)) {
+    for (auto& superTypeInfoI : typeInfo->superTypeInfos) {
+        if (isAssignable(superTypeInfoI, superTypeInfo)) {
             return true;
         }
     }
