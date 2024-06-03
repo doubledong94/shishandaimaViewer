@@ -608,11 +608,7 @@ bool MethodScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo
         FieldInfo*& pInfo = name2paramInfo[name];
         key = pInfo->fieldKey;
         typeInfo = pInfo->typeInfo;
-        if (paramUsedAsLv.count(key)) {
-            keyType = GlobalInfo::KEY_TYPE_LOCAL_VARIABLE;
-        } else {
-            keyType = GlobalInfo::KEY_TYPE_METHOD_PARAMETER;
-        }
+        keyType = GlobalInfo::KEY_TYPE_METHOD_PARAMETER;
         return true;
     }
     return false;
@@ -625,10 +621,6 @@ TypeInfo* MethodScopeAndEnv::getTypeInfoWithFileScope(const list<string>& typeNa
         auto classScopeAndEnv = dynamic_cast<ClassScopeAndEnv*>(outerScopeAndEnv);
         return classScopeAndEnv->getTypeInfoWithFileScope(typeNames);
     }
-}
-
-void MethodScopeAndEnv::markParamAsLV(const string& paramKey) {
-    paramUsedAsLv.insert(paramKey);
 }
 
 PackageScopeAndEnv* MethodScopeAndEnv::getPackageScope() {

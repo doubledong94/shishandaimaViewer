@@ -82,9 +82,10 @@ void DataFlowVisitor::afterRunSplitCodeBlock(CodeBlock* superCodeBlock, SplitCod
     if (splitCodeBlocks->isClosed()) {
         for (auto& lv2lastWriteKeys : superCodeBlock->lvToLastWrittenKeys) {
             bool lvIsUpdatedByEveryBranch = splitCodeBlocks->blocks.size() > 0;
-            FOR_EACH_ITEM(splitCodeBlocks->blocks, if (!item->updatedLvKeys.count(lv2lastWriteKeys.first)) { lvIsUpdatedByEveryBranch = false; });
+            FOR_EACH_ITEM(splitCodeBlocks->blocks, if (!item->lvKeysUpdatedByThisBlock100Percent.count(lv2lastWriteKeys.first)) { lvIsUpdatedByEveryBranch = false; });
             if (lvIsUpdatedByEveryBranch) {
                 superCodeBlock->lvToLastWrittenKeys[lv2lastWriteKeys.first].clear();
+                superCodeBlock->lvKeysUpdatedByThisBlock100Percent.insert(lv2lastWriteKeys.first);
             }
         }
     }
@@ -106,7 +107,7 @@ void DataFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* su
 void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) {
     auto& read = relation->read;
     auto& writen = relation->writen;
-    // data flow from lvToLastWrittenKeys 
+    // data flow from lvToLastWrittenKeys
     genDataFlowForLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // data flow of this relation
     prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
@@ -137,7 +138,7 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
         codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
         codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
-        codeBlock->updatedLvKeys.insert(writen->variableKey);
+        codeBlock->lvKeysUpdatedByThisBlock100Percent.insert(writen->variableKey);
     }
 }
 
@@ -149,15 +150,15 @@ void DataFlowVisitor::genDataFlowForLastWrittenLvs(const string& methodKey, Reso
     if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         if (codeBlock->lvToLastWrittenKeys.count(read->variableKey) > 0) {
             FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, read->runtimeKey)););
+            if (not codeBlock->lvKeysUpdatedByThisBlock100Percent.count(read->variableKey)) {
+                addStepToParam(methodKey, read, prologLines);
+            }
         } else {
             if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE) {
                 spdlog::get(ErrorManager::DebugTag)->warn("local variable {} read before write in {}", read->variableKey, methodKey);
             } else {
                 // step -> param -> ...
-                string stepKey = AddressableInfo::makeStepKey(read->variableKey);
-                string stepRuntimeKey = ResolvingItem::makeRuntimeKey(stepKey, read->structureKey, read->sentenceIndex, read->indexInsideStatement);
-                prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepRuntimeKey, read->runtimeKey));
-                dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntimeKey });
+                addStepToParam(methodKey, read, prologLines);
             }
         }
     }
@@ -171,6 +172,13 @@ void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlo
         genDataFlowForLastWrittenLvs(methodKey, codeBlock->toConditionValue, codeBlock, prologLines);
     }
     GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
+}
+
+void DataFlowVisitor::addStepToParam(const string& methodKey, ResolvingItem* paramItem, list<string>& prologLines) {
+    string stepKey = AddressableInfo::makeStepKey(paramItem->variableKey);
+    string stepRuntimeKey = ResolvingItem::makeRuntimeKey(stepKey, paramItem->structureKey, paramItem->sentenceIndex, paramItem->indexInsideStatement);
+    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepRuntimeKey, paramItem->runtimeKey));
+    dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntimeKey });
 }
 
 void LogicFlowVisitor::genToCondition(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {

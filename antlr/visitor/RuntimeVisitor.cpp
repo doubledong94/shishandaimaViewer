@@ -1159,14 +1159,11 @@ std::any StatementVisitor::visitExpressionIncDec(JavaParser::ExpressionIncDecCon
         increasedItem1->structureKey,
         increasedItem1->sentenceIndex,
         getIncreasedIndexInsideExp(),
-        increasedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER ? GlobalInfo::KEY_TYPE_LOCAL_VARIABLE : increasedItem1->keyType
+        increasedItem1->keyType
     );
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, increasedItem1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, optr);
     new Relation(getSentence(), increasedItem1, returnItem);
     new Relation(getSentence(), returnItem, increasedItem2);
-    if (increasedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
-        methodScopeAndEnv->markParamAsLV(increasedItem1->variableKey);
-    }
     return increasedItem2;
 }
 
@@ -1379,7 +1376,7 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
         assignedItem1->structureKey,
         assignedItem1->sentenceIndex,
         getIncreasedIndexInsideExp(),
-        assignedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER ? GlobalInfo::KEY_TYPE_LOCAL_VARIABLE : assignedItem1->keyType
+        assignedItem1->keyType
     );
     expectingTypeInfo.clear();
     expectingTypeInfo.push_back(assignedItem1->typeInfo);
@@ -1398,9 +1395,6 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
         new Relation(getSentence(), returnItem, assignedItem2);
     } else {
         new Relation(getSentence(), item2, assignedItem1);
-    }
-    if (assignedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
-        methodScopeAndEnv->markParamAsLV(assignedItem1->variableKey);
     }
     return item2;
 }

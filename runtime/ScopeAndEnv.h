@@ -159,8 +159,6 @@ public:
     string methodFinallyKey;
 
     map<string, FieldInfo*> name2paramInfo;
-    set<string> paramUsedAsLv;
-    void markParamAsLV(const string& paramKey);
     FieldInfo* returnFieldInfo;
     list<CodeBlockScopeAndEnv*> codeBlockScopeAndEnvs;
     map<string, map<TypeInfo*, TypeInfo*>> lv2typeParam2typeArg;

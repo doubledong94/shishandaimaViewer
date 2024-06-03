@@ -29,7 +29,7 @@ CodeBlock::CodeBlock(CodeStructure *parent, const string &structureKey, bool clo
 
 void CodeBlock::release() {
     lvToLastWrittenKeys.clear();
-    updatedLvKeys.clear();
+    lvKeysUpdatedByThisBlock100Percent.clear();
     for (auto &iter : sentences) {
         iter->release();
         delete iter;

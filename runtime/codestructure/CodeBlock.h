@@ -12,7 +12,7 @@ public:
     bool closed;
     bool has_return_sentence;
     map<string, set<string>> lvToLastWrittenKeys;
-    set<string> updatedLvKeys;
+    set<string> lvKeysUpdatedByThisBlock100Percent;
     CodeStructure* parent = nullptr;
 
     CodeBlock(CodeStructure* parent, const string& structureKey, bool closed);

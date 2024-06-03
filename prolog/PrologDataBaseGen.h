@@ -27,6 +27,8 @@ public:
     void visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) override;
 
     void visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) override;
+
+    void addStepToParam(const string& methodKey, ResolvingItem* paramItem, list<string>& prologLines);
 };
 class LogicFlowVisitor : public GenDataVisitor {
 public:
