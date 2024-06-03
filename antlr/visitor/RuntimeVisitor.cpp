@@ -1152,12 +1152,22 @@ std::any StatementVisitor::visitExpressionIncDec(JavaParser::ExpressionIncDecCon
     if (abort) {
         return nullptr;
     }
-    auto* increasedItem = any_cast<ResolvingItem*>(itemOrNull);
-    auto* finalValueItem = ResolvingItem::getInstance2("final:1", AddressableInfo::primitive_intTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FINAL);
-    auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, increasedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, optr);
-    new Relation(getSentence(), finalValueItem, returnItem);
-    new Relation(getSentence(), returnItem, increasedItem);
-    return increasedItem;
+    auto* increasedItem1 = any_cast<ResolvingItem*>(itemOrNull);
+    auto* increasedItem2 = ResolvingItem::getInstance2(
+        increasedItem1->variableKey,
+        increasedItem1->typeInfo,
+        increasedItem1->structureKey,
+        increasedItem1->sentenceIndex,
+        getIncreasedIndexInsideExp(),
+        increasedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER ? GlobalInfo::KEY_TYPE_LOCAL_VARIABLE : increasedItem1->keyType
+    );
+    auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, increasedItem1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, optr);
+    new Relation(getSentence(), increasedItem1, returnItem);
+    new Relation(getSentence(), returnItem, increasedItem2);
+    if (increasedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+        methodScopeAndEnv->markParamAsLV(increasedItem1->variableKey);
+    }
+    return increasedItem2;
 }
 
 std::any StatementVisitor::visitExpressionPosNegSign(JavaParser::ExpressionPosNegSignContext* ctx) {
@@ -1362,9 +1372,17 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
     if (abort) {
         return nullptr;
     }
-    auto* item1 = any_cast<ResolvingItem*>(itemOrNull1);
+    auto* assignedItem1 = any_cast<ResolvingItem*>(itemOrNull1);
+    auto* assignedItem2 = ResolvingItem::getInstance2(
+        assignedItem1->variableKey,
+        assignedItem1->typeInfo,
+        assignedItem1->structureKey,
+        assignedItem1->sentenceIndex,
+        getIncreasedIndexInsideExp(),
+        assignedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER ? GlobalInfo::KEY_TYPE_LOCAL_VARIABLE : assignedItem1->keyType
+    );
     expectingTypeInfo.clear();
-    expectingTypeInfo.push_back(item1->typeInfo);
+    expectingTypeInfo.push_back(assignedItem1->typeInfo);
     const any& itemOrNull2 = ctx->e2->accept(this);
     expectingTypeInfo.clear();
     if (abort) {
@@ -1373,12 +1391,16 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
     auto* item2 = any_cast<ResolvingItem*>(itemOrNull2);
     if (ctx->bop->getText().size() > 1) {
         auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_PARAMETER1, item2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_PARAMETER1, getOptrParam(ctx->bop->getText(), 1));
-        auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, item1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, ctx->bop->getText());
+        auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, assignedItem1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, ctx->bop->getText());
         new Relation(getSentence(), item2, param1);
         new Relation(getSentence(), param1, returnItem);
-        new Relation(getSentence(), returnItem, item1);
+        new Relation(getSentence(), assignedItem1, returnItem);
+        new Relation(getSentence(), returnItem, assignedItem2);
     } else {
-        new Relation(getSentence(), item2, item1);
+        new Relation(getSentence(), item2, assignedItem1);
+    }
+    if (assignedItem1->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+        methodScopeAndEnv->markParamAsLV(assignedItem1->variableKey);
     }
     return item2;
 }
@@ -2113,6 +2135,7 @@ void AnonymousVisitor::reset() {
 void RuntimeVisitor::addTypeArgForResolvingItem(ResolvingItem* item) {
     if (item->keyType == GlobalInfo::KEY_TYPE_FIELD or
         item->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
+        item->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
         if (AddressableInfo::fieldKey2fieldInfo.count(item->variableKey)) {
             FieldInfo* fieldInfo = AddressableInfo::fieldKey2fieldInfo[item->variableKey];

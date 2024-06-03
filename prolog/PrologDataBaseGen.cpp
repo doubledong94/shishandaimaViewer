@@ -106,6 +106,10 @@ void DataFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* su
 void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) {
     auto& read = relation->read;
     auto& writen = relation->writen;
+    // data flow from lvToLastWrittenKeys 
+    genDataFlowForLastWrittenLvs(methodKey, read, codeBlock, prologLines);
+    // data flow of this relation
+    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
     // data flow of step
     // called param -> step
     if (read->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
@@ -128,12 +132,9 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, stepRuntime));
         dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntime });
     }
-    // data flow of this relation
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
-    // data flow from lvToLastWrittenKeys 
-    genDataFlowForLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // mark local variable
-    if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+    if (read->keyType != GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN and
+        (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
         codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
         codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
         codeBlock->updatedLvKeys.insert(writen->variableKey);
