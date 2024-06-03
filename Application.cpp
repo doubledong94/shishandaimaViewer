@@ -59,6 +59,7 @@
 #include "gui/imGraphSelector.h"
 #include "file/FileManager.h"
 #include "threepp/helpers/AxesHelper.hpp"
+#include "absl/time/clock.h"
 
 using namespace threepp;
 
@@ -178,6 +179,8 @@ int app::Application::ApplicationMain() {
     "Default Value",
     "null/true/false",
     };
+    static int64_t startSearchTime = 0;
+    static int searchTime = 0;
 
     // all hotkey functions
     HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {
@@ -244,6 +247,7 @@ int app::Application::ApplicationMain() {
                 if (searchingInProgress) {
                     return;
                 }
+                startSearchTime = absl::GetCurrentTimeNanos();
                 searchingInProgress = true;
                 printf("PL_set_engine: %d\n", PL_set_engine(pl_engine_for_earching, NULL));
                 lineInstance->startSearching(classScope, &loadingAddressableProgress, &loadingUnaddressableProgress);
@@ -286,6 +290,7 @@ int app::Application::ApplicationMain() {
                 if (searchingInProgress) {
                     return;
                 }
+                startSearchTime = absl::GetCurrentTimeNanos();
                 searchingInProgress = true;
                 printf("PL_set_engine: %d\n", PL_set_engine(pl_engine_for_earching, NULL));
                 graphInstance->startSearching(classScope, &loadingAddressableProgress, &loadingUnaddressableProgress);
@@ -840,6 +845,7 @@ int app::Application::ApplicationMain() {
                         if (searchingInProgress) {
                             return;
                         }
+                        startSearchTime = absl::GetCurrentTimeNanos();
                         searchingInProgress = true;
                         printf("PL_set_engine: %d\n", PL_set_engine(pl_engine_for_earching, NULL));
                         lineInstance->startSearching(classScope, &loadingAddressableProgress, &loadingUnaddressableProgress);
@@ -963,7 +969,10 @@ int app::Application::ApplicationMain() {
                     }
                 }
                 if (searchingInProgress) {
-                    ImGui::Text("search in progress");
+                    searchTime = (absl::GetCurrentTimeNanos() - startSearchTime) / 1000000000;
+                    int minute = searchTime / 60;
+                    int seconds = searchTime % 60;
+                    ImGui::Text(("search in progress: " + to_string(minute) + "m " + to_string(seconds) + "s").data());
                 }
             }
             ImGui::End();
