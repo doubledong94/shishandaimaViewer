@@ -724,6 +724,7 @@ Term* CompoundTerm::getFaDoneTerm(
     Term* classScopeValName,
     Term* currentState,
     Term* currentPoint,
+    Term* currentSteps,
     bool isBackward) {
     auto ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = isBackward ? HEAD_BACKWARD_FA_DONE : HEAD_FORWARD_FA_DONE;
@@ -731,6 +732,7 @@ Term* CompoundTerm::getFaDoneTerm(
     ret->addArg(classScopeValName);
     ret->addArg(currentState);
     ret->addArg(currentPoint);
+    ret->addArg(currentSteps);
     return ret;
 }
 
@@ -768,9 +770,9 @@ void CompoundTerm::retractAllFaCacheTerm(bool isBackward) {
 
 void CompoundTerm::retractAllFaDoneTerm(bool isBackward) {
     if (isBackward) {
-        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_DONE->toString(), 4);
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_DONE->toString(), 5);
     } else {
-        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_DONE->toString(), 4);
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_DONE->toString(), 5);
     }
 }
 

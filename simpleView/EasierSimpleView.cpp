@@ -2386,18 +2386,21 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     lineInstanceValNameTerm, classScopeTerm,
                     currentStateTerm,
                     currentPoint,
+                    currentStepsTerm,
                     isBackward)),
                 // mark done
             AssertTerm::getAssertInstance(CompoundTerm::getFaDoneTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
+                currentStepsTerm,
                 isBackward)),
             #ifdef DEBUG_PROLOG
             CompoundTerm::getToFileTerm(CompoundTerm::getFaDoneTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 currentStateTerm,
                 currentPoint,
+                currentStepsTerm,
                 isBackward),
                 Term::getStr("a.txt")),
             #endif

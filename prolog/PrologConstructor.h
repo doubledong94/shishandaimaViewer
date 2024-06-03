@@ -402,6 +402,7 @@ public:
         Term* classScopeValName,
         Term* currentState,
         Term* currentPoint,
+        Term* currentSteps,
         bool isBackward);
 
     static void retractAllFaTerm(bool isBackward, int intersectionCount);
