@@ -147,18 +147,20 @@ void DataFlowVisitor::genDataFlowForLastWrittenLvs(const string& methodKey, Reso
         return;
     }
     read->readFromLastWriteAdded = true;
-    if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
-        if (codeBlock->lvToLastWrittenKeys.count(read->variableKey) > 0) {
+    bool isReadParam = read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER;
+    if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or isReadParam) {
+        if (codeBlock->lvToLastWrittenKeys.count(read->variableKey)) {
             FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, read->runtimeKey)););
-            if (not codeBlock->lvKeysUpdatedByThisBlock100Percent.count(read->variableKey)) {
+            if (isReadParam and not codeBlock->lvUpdatedByBlockStack100Percent(read->variableKey)) {
+                // step -> param -> ...
                 addStepToParam(methodKey, read, prologLines);
             }
         } else {
-            if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE) {
-                spdlog::get(ErrorManager::DebugTag)->warn("local variable {} read before write in {}", read->variableKey, methodKey);
-            } else {
+            if (isReadParam) {
                 // step -> param -> ...
                 addStepToParam(methodKey, read, prologLines);
+            } else {
+                spdlog::get(ErrorManager::DebugTag)->warn("local variable {} read before write in {}", read->variableKey, methodKey);
             }
         }
     }

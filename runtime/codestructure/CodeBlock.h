@@ -15,6 +15,8 @@ public:
     set<string> lvKeysUpdatedByThisBlock100Percent;
     CodeStructure* parent = nullptr;
 
+    bool lvUpdatedByBlockStack100Percent(const string& lvKey);
+
     CodeBlock(CodeStructure* parent, const string& structureKey, bool closed);
 
     list<Sentence*> sentences;
