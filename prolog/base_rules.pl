@@ -3,8 +3,8 @@
 :- dynamic unaddressableLoaded/1.
 :- dynamic forwardFaCache/6.
 :- dynamic backwardFaCache/6.
-:- dynamic forwardFaDone/4.
-:- dynamic backwardFaDone/4.
+:- dynamic forwardFaDone/5.
+:- dynamic backwardFaDone/5.
 
 toFile(Str):-
     open("a.txt",append,S),write(S,Str),nl(S),close(S).
