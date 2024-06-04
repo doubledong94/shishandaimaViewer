@@ -113,7 +113,8 @@ git submodule update --init --remote --recursive
 2. Reference，可搜索类嵌套方向，具体请看[类嵌套方向](#类嵌套方向)
 3. Condition，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
 4. Else，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
-5. Step，可搜索时机传递方向与数据流动方向，具体请看[时机传递方向](#时机传递方向) [数据流动方向](#数据流动方向)
+5. DataStep，可搜索跨函数的数据流动方向，具体请看[数据流动方向](#数据流动方向)
+6. TimingStep，可搜索时机传递方向，具体请看[时机传递方向](#时机传递方向)
 
 ### 类范围
 一个项目会有成千上万个类，而矢山在搜索时，需要把所搜索的类加载到内存中。如果为了搜一个类要把上万个类都加载到内存中，是非常不划算的。因此用户需要指定搜索范围，也就是要指定：你搜索的时机传递/数据流动等，发生在哪些类的函数中。
@@ -137,7 +138,7 @@ git submodule update --init --remote --recursive
 #### 时机传递方向
 时机传递对应的是函数调用。为了让代码能被正则搜索，矢山给函数调用场景添加了一些特殊节点类型。由于这些节点类型不像fieldOf那样直观，需要进行说明。        
 
-**举例**说明**普通字符**规则calledMethod 和 **特殊字符**Step    
+**举例**说明**普通字符**规则calledMethod 和 **特殊字符**TimingStep    
 ```java
 class A {
     void a() {
@@ -152,9 +153,9 @@ class A {
 }
 ```
 对于上面的函数调用，在矢山中的时机传递表示为：    
-发生在A.c中：  A.c::: -> A.b:::# -> Step -> A.b:::     
-发生在A.b中：  A.b::: -> A.a:::# -> Step -> A.a:::     
-其中这些冒号是矢山表示函数的方式，->表示传递方向。有#号后缀的就是函数的calledMethod节点，此类节点区别于函数本身。例如当b中调用了5次a时，就会有5个a的calledMethod节点，这些节点都指向Step，然后Step指向唯一的a节点。    
+发生在A.c中：  A.c::: -> A.b:::# -> TimingStep -> A.b:::     
+发生在A.b中：  A.b::: -> A.a:::# -> TimingStep -> A.a:::     
+其中这些冒号是矢山表示函数的方式，->表示传递方向。有#号后缀的就是函数的calledMethod节点，此类节点区别于函数本身。例如当b中调用了5次a时，就会有5个a的calledMethod节点，这些节点都指向TimingStep，然后TimingStep指向唯一的a节点。    
 
 **举例**说明**特殊字符**Condition 和 Else   
 ```java
@@ -182,9 +183,9 @@ class A {
 }
 ``` 
 对于上面的函数调用，在矢山中的时机传递表示为：    
-A.b::: -> Condition1 -> A.a1:::# -> Step -> A.a1:::     
-A.b::: -> Condition2 -> A.a2:::# -> Step -> A.a2:::     
-A.b::: -> Condition3 -> A.a3:::# -> Step -> A.a3:::     
+A.b::: -> Condition1 -> A.a1:::# -> TimingStep -> A.a1:::     
+A.b::: -> Condition2 -> A.a2:::# -> TimingStep -> A.a2:::     
+A.b::: -> Condition3 -> A.a3:::# -> TimingStep -> A.a3:::     
 这里的Condition对应于代码中的条件分支，函数b中有三个条件分支，因此有三个Condition节点。这三个Condition节点之间有Else节点连接：     
 Condition1->Else->Condition2->Else->Condition3    
 
@@ -217,7 +218,7 @@ Node method_view = MethodOf ( class_view );
 Node called_method_view = CalledMethodOf ( method_view );
 
 // 定义正则搜索
-Line timing_call_stack_of_view = method_view->Condition*->called_method_view->Step->method_view;
+Line timing_call_stack_of_view = method_view->Condition*->called_method_view->TimingStep->method_view;
 
 ```
 搜索结果：
@@ -278,7 +279,7 @@ Line logic_controledBy_flag_view = field_view_flag->Any*->Condition*->called_met
 #### 数据流动方向
 数据流动对应的是赋值，传参和函数返回。     
 
-**举例**说明**普通字符**规则calledParam calledReturn 和 **特殊字符**Step          
+**举例**说明**普通字符**规则calledParam calledReturn 和 **特殊字符**DataStep          
 ```
 class A {
     int mI;
@@ -294,12 +295,12 @@ class A {
 }
 ```
 对于上面的传参与返回值，在矢山中的数据流动表示为：     
-发生在A.c中：  A.mI -> A.b::int:i# -> Step -> A.b::int:i       
-发生在A.b中：  A.b::int:i -> A.a::int:i# -> Step -> A.a::int:i      
-发生在A.a中：  A.a::int:i -> + -> A.a::int:return -> Step -> A.a::int:return#     
-发生在A.b中：  A.a::int:return# -> A.b::int:return -> Step -> A.b::int:return#     
+发生在A.c中：  A.mI -> A.b::int:i# -> DataStep -> A.b::int:i       
+发生在A.b中：  A.b::int:i -> A.a::int:i# -> DataStep -> A.a::int:i      
+发生在A.a中：  A.a::int:i -> + -> A.a::int:return -> DataStep -> A.a::int:return#     
+发生在A.b中：  A.a::int:return# -> A.b::int:return -> DataStep -> A.b::int:return#     
 发生在A.c中：  A.b::int:return# -> A.mI     
-从上面可以看出，对于正向的数据流动，calledParam指向Step指向param，而return指向Step指向calledReturn，与param正好相反。    
+从上面可以看出，对于正向的数据流动，calledParam指向DataStep指向param，而return指向DataStep指向calledReturn，与param正好相反。    
 为了表达calledParam，calledReturn，calledMethod的关系，数据流动的表示需要增加：   
 发生在A.c中：  A.b::int:i# -> A.b::int:# -> A.b::int:return#        
 发生在A.b中：  A.a::int:i# -> A.a::int:# -> A.a::int:return#        
