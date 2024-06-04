@@ -44,6 +44,9 @@ public:
     float getLineWidth();
 
     static std::shared_ptr<FlowLine> create(float initLineWidth);
+
+    void toFile(ofstream& f);
+    void fromFile(ifstream& f);
 private:
     threepp::Matrix4 tmpMatrix;
     threepp::Vector3 cameraDirVec;

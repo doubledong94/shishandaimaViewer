@@ -236,6 +236,12 @@ std::shared_ptr<FlowLine> FlowLine::create(float initLineWidth) {
     return std::shared_ptr<FlowLine>(new FlowLine(initLineWidth));
 }
 
+void FlowLine::toFile(ofstream& f) {
+}
+
+void FlowLine::fromFile(ifstream& f) {
+}
+
 void FlowLine::updateLineWidth(float lineWidth) {
     shaderMaterial->uniforms.at("lineHalfWidth").setValue(lineWidth);
 }

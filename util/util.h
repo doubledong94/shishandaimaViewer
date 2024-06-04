@@ -56,6 +56,10 @@ string joinVector(const vector<ItemType *> &strList, const string &sep, string (
     return ret;
 }
 
+int getInt(ifstream& f);
+
+float getFloat(ifstream& f);
+
 string joinList(const list<string> &, const string &);
 
 string joinList(list<string> &, const string &, int startPos, int length);

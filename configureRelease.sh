@@ -1,4 +1,5 @@
 mkdir -p build
+mkdir -p build/graph
 mkdir -p build/config
 mkdir -p build/fonts
 mkdir -p build/resource/

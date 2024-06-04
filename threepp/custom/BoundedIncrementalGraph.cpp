@@ -344,6 +344,36 @@ void NodeInfo::makeTypeKey() {
     }
 }
 
+void NodeInfo::toFile(ofstream& f) {
+    f << positionInRegex.size() << "\n";
+    FOR_EACH_ITEM(positionInRegex, item->toFile(f););
+    f << methodOfRuntime << "\n";
+    f << runtimeKey << "\n";
+    f << key << "\n";
+    f << keyType << "\n";
+    f << uniKey << "\n";
+    f << nodeId << "\n";
+    f << typeKey << "\n";
+    f << simpleName << "\n";
+}
+
+void NodeInfo::fromFile(ifstream& f) {
+    int c = getInt(f);
+    for (int i = 0;i < c;i++) {
+        PositionInRegex* p = new PositionInRegex();
+        p->fromFile(f);
+        positionInRegex.push_back(p);
+    }
+    getline(f, methodOfRuntime);
+    getline(f, runtimeKey);
+    getline(f, key);
+    keyType = getInt(f);
+    getline(f, uniKey);
+    nodeId = getInt(f);
+    getline(f, typeKey);
+    getline(f, simpleName);
+}
+
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
     auto& nodeInfo = nodesOrderedByNodeId[index];
     uniKeyToNodeInfo.erase(nodeInfo->uniKey);
@@ -1838,6 +1868,171 @@ void BoundedIncrementalGraph::invalidateAllGraphInfo() {
     distance.needUpdate = true;
 }
 
+void BoundedIncrementalGraph::groupToFile(ofstream& f, set<int>& group) {
+    f << group.size() << "\n";
+    for (int i : group) {
+        f << i << "\n";
+    }
+}
+
+void BoundedIncrementalGraph::groupFromFile(ifstream& f, set<int>& group) {
+    int groupSize = getInt(f);
+    for (int i = 0;i < groupSize;i++) {
+        group.insert(getInt(f));
+    }
+}
+
+void BoundedIncrementalGraph::toFile(ofstream& f) {
+    f << searchingGraphName << "\n";
+    // dimension
+    bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
+    if (is2D) {
+        f << 2 << "\n";
+    } else {
+        f << 3 << "\n";
+    }
+    // node info
+    f << nodesOrderedByNodeId.size() << "\n";
+    FOR_EACH_ITEM(nodesOrderedByNodeId, item->toFile(f););
+    // edge pair
+    f << edgePairs.size() << "\n";
+    for (auto& edge : edgePairs) {
+        f << edge.first << "\n";
+        f << edge.second << "\n";
+    }
+    // position
+    for (auto& p : points) {
+        f << p.x << "\n";
+        f << p.y << "\n";
+        f << p.z << "\n";
+    }
+    // weight
+    for (int i = 0;i < igraph_vector_size(weights);i++) {
+        float w = VECTOR(*weights)[i];
+        f << w << "\n";
+    }
+    // group
+    f << groups.size() << "\n";
+    FOR_EACH_ITEM(groups, groupToFile(f, item););
+    f << xCoordFixed.size() << "\n";
+    FOR_EACH_ITEM(xCoordFixed, groupToFile(f, item););
+    f << yCoordFixed.size() << "\n";
+    FOR_EACH_ITEM(yCoordFixed, groupToFile(f, item););
+    // node obj
+    nodesObj->toFile(f);
+    // edge obj
+    linesObj->toFile(f);
+}
+
+void BoundedIncrementalGraph::fromFile(ifstream& f) {
+    layoutThreadPool->submit([&]() {
+        graphGenerateAndConsumeLock.lock();
+        nodesOrderedByNodeId.clear();
+        textLoaded.clear();
+        textLoading.clear();
+        textAdded.clear();
+        edgePairs.clear();
+        points.clear();
+        groups.clear();
+        xCoordFixed.clear();
+        yCoordFixed.clear();
+        textMesh.clear();
+
+        getline(f, searchingGraphName);
+        // dimension
+        int dim = getInt(f);
+        bool is2D = dim == 2;
+        if (is2D) {
+            layoutState = LAYOUT_STATE_2D;
+        } else {
+            layoutState = LAYOUT_STATE_3D;
+        }
+        // node info
+        int nodeCount = getInt(f);
+        for (int i = 0;i < nodeCount;i++) {
+            textMesh.push_back(NULL);
+        }
+        for (int i = 0;i < nodeCount;i++) {
+            NodeInfo* nodeInfo = new NodeInfo();
+            nodeInfo->fromFile(f);
+            nodesOrderedByNodeId.push_back(nodeInfo);
+            saveNodeInfo(nodeInfo);
+        }
+        // edge pair
+        int edgeCount = getInt(f);
+        for (int i = 0;i < edgeCount;i++) {
+            int from = getInt(f);
+            int to = getInt(f);
+            edgePairs.push_back({ from,to });
+        }
+        // position
+        for (int i = 0; i < nodeCount;i++) {
+            float x = getFloat(f);
+            float y = getFloat(f);
+            float z = getFloat(f);
+            points.push_back(threepp::Vector3(x, y, z));
+        }
+        // weight
+        igraph_vector_destroy(weights);
+        weights = new igraph_vector_t();
+        igraph_vector_init(weights, edgeCount);
+        igraph_vector_fill(weights, 1);
+        for (int i = 0;i < edgeCount;i++) {
+            VECTOR(*weights)[i] = getFloat(f);
+        }
+        // group
+        int groupCount = getInt(f);
+        for (int i = 0; i < groupCount;i++) {
+            set<int> g;
+            groupFromFile(f, g);
+            groups.push_back(g);
+        }
+        groupCount = getInt(f);
+        for (int i = 0; i < groupCount;i++) {
+            set<int> g;
+            groupFromFile(f, g);
+            xCoordFixed.push_back(g);
+        }
+        groupCount = getInt(f);
+        for (int i = 0; i < groupCount;i++) {
+            set<int> g;
+            groupFromFile(f, g);
+            yCoordFixed.push_back(g);
+        }
+        // node obj
+        nodesObj->fromFile(f);
+        nodesObj->setPointPositions(points);
+        // edge obj
+        linesObj->fromFile(f);
+        linesObj->setEdges(points, edgePairs);
+        // graph
+        igraph_destroy(theOriginalGraph);
+        theOriginalGraph = new igraph_t;
+        igraph_empty(theOriginalGraph, nodeCount, IGRAPH_DIRECTED);
+        igraph_integer_t edgesArray[edgeCount * 2];
+        int i = 0;
+        for (auto& edge : edgePairs) {
+            edgesArray[i * 2] = edge.first;
+            edgesArray[i * 2 + 1] = edge.second;
+            i++;
+        }
+        igraph_vector_int_t newEdges_;
+        igraph_vector_int_view(&newEdges_, edgesArray, edgeCount * 2);
+        igraph_add_edges(theOriginalGraph, &newEdges_, NULL);
+        // layout
+        reCreateLayout(nodeCount, is2D, false);
+        for (int i = 0;i < nodeCount;i++) {
+            MATRIX(*layoutMatrix, i, 0) = points[i].x;
+            MATRIX(*layoutMatrix, i, 1) = points[i].y;
+            if (not is2D) {
+                MATRIX(*layoutMatrix, i, 2) = points[i].z;
+            }
+        }
+        graphGenerateAndConsumeLock.unlock();
+        f.close();
+        });
+}
+
 void BoundedIncrementalGraph::changeTextSize(bool increase) {
     float s = 0;
     if (increase) {
@@ -1871,6 +2066,21 @@ PositionInRegex::PositionInRegex(const string& graphName, const string& lineName
     this->graphName = graphName;
     this->lineName = lineName;
     this->regex = regex;
+}
+
+PositionInRegex::PositionInRegex() {
+}
+
+void PositionInRegex::toFile(ofstream& f) {
+    f << graphName << "\n";
+    f << lineName << "\n";
+    f << regex << "\n";
+}
+
+void PositionInRegex::fromFile(ifstream& f) {
+    getline(f, graphName);
+    getline(f, lineName);
+    getline(f, regex);
 }
 
 void BoundedIncrementalGraph::fixPosition() {

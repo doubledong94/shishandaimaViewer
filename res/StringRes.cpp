@@ -145,6 +145,11 @@ char* ChineseStringRes::getHotKeyTitle_searchDownward() {
     return hotKeyTitle_ExploreDownward.data();
 }
 
+char* ChineseStringRes::getHotKeyTitle_cat_saveAndRestoreGraph() { return hotKeyTitle_cat_saveAndRestoreGraph.data(); }
+char* ChineseStringRes::getHotKeyTitle_saveGraph() { return hotKeyTitle_saveGraph.data(); }
+char* ChineseStringRes::getHotKeyTitle_restoreGraph() { return hotKeyTitle_restoreGraph.data(); }
+char* ChineseStringRes::getHotKeyTitle_deleteSavedGraph() { return hotKeyTitle_deleteSavedGraph.data(); }
+
 char* ChineseStringRes::getHint_press1ToShowHotkey() {
     return hint_press1ToShowHotkey.data();
 }
@@ -277,4 +282,9 @@ char* EnglishStringRes::getHotKeyTitle_searchDownward() {
 char* EnglishStringRes::getHint_press1ToShowHotkey() {
     return hint_press1ToShowHotkey.data();
 }
+
+char* EnglishStringRes::getHotKeyTitle_cat_saveAndRestoreGraph() { return hotKeyTitle_cat_saveAndRestoreGraph.data(); }
+char* EnglishStringRes::getHotKeyTitle_saveGraph() { return hotKeyTitle_saveGraph.data(); }
+char* EnglishStringRes::getHotKeyTitle_restoreGraph() { return hotKeyTitle_restoreGraph.data(); }
+char* EnglishStringRes::getHotKeyTitle_deleteSavedGraph() { return hotKeyTitle_deleteSavedGraph.data(); }
 

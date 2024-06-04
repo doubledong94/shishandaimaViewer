@@ -1,9 +1,12 @@
 class PositionInRegex {
 public:
     PositionInRegex(const string& graphName, const string& lineName, const string& regex);
+    PositionInRegex();
     string graphName;
     string lineName;
     string regex;
+    void toFile(ofstream& f);
+    void fromFile(ifstream& f);
 };
 
 class NodeInfo {
@@ -23,6 +26,8 @@ public:
     string& getSimpleName();
     string& getTypeKey();
     void makeTypeKey();
+    void toFile(ofstream& f);
+    void fromFile(ifstream& f);
 };
 
 template<typename T>
@@ -79,6 +84,8 @@ public:
     vector<set<int>> groups;
     vector<set<int>> xCoordFixed;
     vector<set<int>> yCoordFixed;
+    void groupToFile(ofstream& f, set<int>& group);
+    void groupFromFile(ifstream& f, set<int>& group);
     vector<std::shared_ptr<threepp::Mesh>> textMesh;
     threepp::Font font;
     void updateGraph();
@@ -274,7 +281,7 @@ public:
 
     void transitiveReductionImpl();
 
-    void grid(vector<set<int>> &toBeGruped);
+    void grid(vector<set<int>>& toBeGruped);
 
     list<pair<string, string>> getSelectedKey();
 
@@ -320,6 +327,11 @@ public:
         LAYOUT_STATE_3D_UNFINISHED,
     };
     int layoutState = -1;
+
+    void toFile(ofstream& f);
+
+    void fromFile(ifstream& f);
+
 private:
 
     float alphaForUnselected = 0.3f;

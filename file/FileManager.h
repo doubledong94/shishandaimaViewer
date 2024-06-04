@@ -8,6 +8,10 @@ public:
 
     static void getAllFiles(const string &dir_name, const string &postfix);
 
+    static void getFileNameInDir(const string& dirPath, list<string> &fileNames);
+
+    static void deleteFile(const string& filePath);
+
     static void filterUpdatedFilePath();
 
     static string srcjsonBaseDir;
@@ -76,5 +80,6 @@ public:
     static string alphabetIconUPath;
     static string alphabetIconVPath;
     static string alphabetIconWPath;
+    static string graphSaveAndRestorePath;
 };
 

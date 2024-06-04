@@ -151,7 +151,12 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SEARCH_UPWARD, "search upward", 0xffff6c03,SINGLE_CLICK},
     
     // for next round
-    {SAVE_SELECTED_NODE, "save selected node", 0xffff3401,SINGLE_CLICK},
+    {SAVE_SELECTED_NODE, "save selected node", 0xffff3501,SINGLE_CLICK},
+
+    // save and restore graph
+    {SAVE_GRAPH, "save graph", 0xffff3401,SINGLE_CLICK},
+    {RESTORE_GRAPH, "restore graph", 0xffff3101,SINGLE_CLICK},
+    {DELETE_SAVED_GRAPH, "delete saved graph", 0xffff3103,SINGLE_CLICK},
 };
 
 map<int, ClickStyleHandler> HotkeyConfig::keyToClickHandler;
@@ -272,6 +277,9 @@ void HotkeyConfig::init() {
     hotkeyMap[AUTO_GROUP_X]->functionName = StringRes::singleton->getHotKeyTitle_autoGroupX();
     hotkeyMap[AUTO_GROUP_Y]->functionName = StringRes::singleton->getHotKeyTitle_autoGroupY();
     hotkeyMap[AUTO_GROUP_XY]->functionName = StringRes::singleton->getHotKeyTitle_autoGroupXY();
+    hotkeyMap[SAVE_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_saveGraph();
+    hotkeyMap[RESTORE_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_restoreGraph();
+    hotkeyMap[DELETE_SAVED_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_deleteSavedGraph();
 }
 
 void HotkeyConfig::saveHotkeyConfig(const string& filePath) {

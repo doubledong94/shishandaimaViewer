@@ -259,6 +259,9 @@ namespace ImHotKey {
                 if (i == 67) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_next_round());
                 }
+                if (i == 68) {
+                    ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cat_saveAndRestoreGraph());
+                }
                 addHotKeySelectable(hotkey[i], i);
             }
         }

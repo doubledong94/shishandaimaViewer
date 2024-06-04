@@ -9,8 +9,8 @@ static void showDoubleCheckDialog(const char* name, bool* open, const std::funct
     float mainWindowWidth = io.DisplaySize.x;
     float mainWindowHeight = io.DisplaySize.y;
     float fontSize = ImGui::GetFontSize();
-    float dialogWidth = 9 * fontSize;
-    float dialogHeight = 5 * fontSize;
+    float dialogWidth = 18 * fontSize;
+    float dialogHeight = 8 * fontSize;
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(dialogWidth, dialogHeight), ImGuiCond_Always);
     if (*open) {

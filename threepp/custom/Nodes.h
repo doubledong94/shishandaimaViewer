@@ -45,6 +45,9 @@ public:
 
     int nodeCount = 0;
     int nodeCapacity = 0;
+
+    void toFile(ofstream& f);
+    void fromFile(ifstream& f);
 private:
     threepp::Matrix4 tmpMatrix;
     threepp::Matrix4 tmpMatrix2;

@@ -134,6 +134,7 @@ int app::Application::ApplicationMain() {
     static bool chooseLineDownPopupOpen = false;
     static bool chooseLineUpPopupOpen = false;
     static bool aboutToParseFile = false;
+    static bool aboutToDeleteGraph = false;
     static bool selectByInDegreePopupOpen = false;
     static bool selectByOutDegreePopupOpen = false;
     static bool selectByDegreePopupOpen = false;
@@ -143,8 +144,11 @@ int app::Application::ApplicationMain() {
     static bool showColorSelectorWindow = false;
     static bool openParsingProgress = false;
     static bool openPopupForSaveNodes = false;
+    static bool openPopupForSaveGraph = false;
     static bool showTooltip = false;
     static bool showTooltipSwitchOn = true;
+    static bool restoreGraphPopupOpen = false;
+    static bool deleteGraphPopupOpen = false;
 
     static list<bool*> openedWindows;
 
@@ -160,7 +164,7 @@ int app::Application::ApplicationMain() {
     static int selected_graph_instance = -1;
     static int graph_instance_starting_count = -1;
     static char* graphAndGraphInstanceNames[500];
-    static char saveNodeName[100];
+    static char saveNodeOrGraphName[100];
     static char* nodeType[] = { "Field",
     "Constructor",
     "Method",
@@ -181,6 +185,9 @@ int app::Application::ApplicationMain() {
     };
     static int64_t startSearchTime = 0;
     static int searchTime = 0;
+
+    static list<string> graphsTeBeRestored;
+    static string graphToBeDeleted;
 
     // all hotkey functions
     HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {
@@ -528,6 +535,18 @@ int app::Application::ApplicationMain() {
         showTooltip = false;
         openPopupForSaveNodes = true;
         };
+    HotkeyConfig::functionEnumToFunction[SAVE_GRAPH] = [&]() {
+        showTooltip = false;
+        openPopupForSaveGraph = true;
+        };
+    HotkeyConfig::functionEnumToFunction[RESTORE_GRAPH] = [&]() {
+        showTooltip = false;
+        restoreGraphPopupOpen = true;
+        };
+    HotkeyConfig::functionEnumToFunction[DELETE_SAVED_GRAPH] = [&]() {
+        showTooltip = false;
+        deleteGraphPopupOpen = true;
+        };
     HotkeyConfig::functionEnumToFunction[SHOW_AND_HIDE_TOOLTIP] = [&]() {
         showTooltipSwitchOn = !showTooltipSwitchOn;
         };
@@ -626,6 +645,8 @@ int app::Application::ApplicationMain() {
         };
     scene->add(boundedGraph);
 
+    std::function<void()> restoreGraph = []() {};
+
     bool show_demo_window = false;
     auto ui = ImguiFunctionalContext(canvas.windowPtr(), [&] {
         if (show_demo_window) {
@@ -637,8 +658,10 @@ int app::Application::ApplicationMain() {
             !editLineAndGraphOpen and
             !searchedLineAndGraphOpen and
             !aboutToParseFile and
+            !aboutToDeleteGraph and
             !parser->parsing and
-            !openPopupForSaveNodes) {
+            !openPopupForSaveNodes and
+            !openPopupForSaveGraph) {
             HotkeyConfig::onFrame();
         }
 
@@ -655,7 +678,10 @@ int app::Application::ApplicationMain() {
                 ImGui::IsPopupOpen("chooseLineInstancePopup") or
                 ImGui::IsPopupOpen("chooseGraphInstancePopup") or
                 ImGui::IsPopupOpen("parsingProgress") or
-                ImGui::IsPopupOpen("saveNodeNameInput")
+                ImGui::IsPopupOpen("saveNodeNameInput") or
+                ImGui::IsPopupOpen("saveGraphNameInput") or
+                ImGui::IsPopupOpen("restoreGraphPopupOpen") or
+                ImGui::IsPopupOpen("deleteGraphPopupOpen")
                 );
         }
         if (showTooltip) {
@@ -702,17 +728,24 @@ int app::Application::ApplicationMain() {
             searchedLineAndGraphOpen = false;
             showColorSelectorWindow = false;
             aboutToParseFile = false;
+            aboutToDeleteGraph = false;
             openPopupForSaveNodes = false;
+            openPopupForSaveGraph = false;
         }
 
         if (aboutToParseFile) {
-            showDoubleCheckDialog("are you suer to parse src", &aboutToParseFile, [&]() {
+            showDoubleCheckDialog("are you sure to parse src", &aboutToParseFile, [&]() {
                 if (!parser->parsing) {
                     std::thread parserWorker([](Application* app, char* dir) { app->parser->parse(dir); }, this, FileManager::srcPath.data());
                     parserWorker.detach();
                     openParsingProgress = true;
                 }
                 });
+        }
+        if (aboutToDeleteGraph) {
+            showDoubleCheckDialog("are you sure to delete graph", &aboutToDeleteGraph, [&]() {
+                FileManager::deleteFile(FileManager::graphSaveAndRestorePath + graphToBeDeleted);
+            });
         }
 
         shishan::editLineAndGraph(editLineAndGraphOpen);
@@ -757,6 +790,39 @@ int app::Application::ApplicationMain() {
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(degreeAndNodes.second);
                 }
+            }
+            ImGui::EndPopup();
+        }
+        if (restoreGraphPopupOpen) {
+            ImGui::OpenPopup("restoreGraphPopupOpen");
+            FileManager::getFileNameInDir(FileManager::graphSaveAndRestorePath, graphsTeBeRestored);
+            restoreGraphPopupOpen = false;
+        }
+        if (ImGui::BeginPopup("restoreGraphPopupOpen")) {
+            ImGui::SeparatorText("select graph to restore");
+            for (auto& g : graphsTeBeRestored) {
+                if (ImGui::Selectable(g.data())) {
+                    restoreGraph = [&, g]() {
+                        ifstream* f = new ifstream;
+                        f->open(FileManager::graphSaveAndRestorePath + g);
+                        boundedGraph->fromFile(*f);
+                        };
+                };
+            }
+            ImGui::EndPopup();
+        }
+        if (deleteGraphPopupOpen) {
+            ImGui::OpenPopup("deleteGraphPopupOpen");
+            FileManager::getFileNameInDir(FileManager::graphSaveAndRestorePath, graphsTeBeRestored);
+            deleteGraphPopupOpen = false;
+        }
+        if (ImGui::BeginPopup("deleteGraphPopupOpen")) {
+            ImGui::SeparatorText("select graph to delete");
+            for (auto& g : graphsTeBeRestored) {
+                if (ImGui::Selectable(g.data())) {
+                    graphToBeDeleted = g;
+                    aboutToDeleteGraph = true;
+                };
             }
             ImGui::EndPopup();
         }
@@ -1016,12 +1082,36 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopupModal("saveNodeNameInput", &openPopupForSaveNodes, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
             ImGui::Text("input node name and press enter");
-            if (ImGui::InputTextEx("##saveNodeName", "", saveNodeName, 100, { 15 * fontSize,fontSize * 1.5 }, ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_EnterReturnsTrue)) {
-                string s = saveNodeName;
-                if (not s.empty() and shishan::checkValNameCommon(saveNodeName)) {
+            if (ImGui::InputTextEx("##saveNodeName", "", saveNodeOrGraphName, 100, { 15 * fontSize,fontSize * 1.5 }, ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_EnterReturnsTrue)) {
+                string s = saveNodeOrGraphName;
+                if (not s.empty() and shishan::checkValNameCommon(saveNodeOrGraphName)) {
                     SimpleView::SimpleViewToGraphConverter::addNode(s, boundedGraph->getSelectedKey());
+                    saveNodeOrGraphName[0] = '\0';
                 }
                 openPopupForSaveNodes = false;
+            }
+            ImGui::SetKeyboardFocusHere(-1);
+            ImGui::EndPopup();
+        }
+        if (openPopupForSaveGraph) {
+            float dialogWidth = 15 * fontSize;
+            float dialogHeight = 5 * fontSize;
+            ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+            ImGui::SetNextWindowSize(ImVec2(dialogWidth, dialogHeight), ImGuiCond_Always);
+            ImGui::OpenPopup("saveGraphNameInput");
+        }
+        if (ImGui::BeginPopupModal("saveGraphNameInput", &openPopupForSaveGraph, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize)) {
+            ImGui::Text("input graph name and press enter");
+            if (ImGui::InputTextEx("##saveGraphName", "", saveNodeOrGraphName, 100, { 15 * fontSize,fontSize * 1.5 }, ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_EnterReturnsTrue)) {
+                string s = saveNodeOrGraphName;
+                if (not s.empty() and shishan::checkValNameCommon(saveNodeOrGraphName)) {
+                    ofstream f;
+                    f.open(FileManager::graphSaveAndRestorePath + s);
+                    boundedGraph->toFile(f);
+                    f.close();
+                    saveNodeOrGraphName[0] = '\0';
+                }
+                openPopupForSaveGraph = false;
             }
             ImGui::SetKeyboardFocusHere(-1);
             ImGui::EndPopup();
@@ -1072,6 +1162,8 @@ int app::Application::ApplicationMain() {
 
 
     auto f = [&]() {
+        restoreGraph();
+        restoreGraph = []() {};
         for (auto* l : listeners) {
             l->reactOnMouseEvent();
         }

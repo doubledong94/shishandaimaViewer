@@ -135,6 +135,9 @@ enum HotkeyFunction {
     AUTO_GROUP_X,
     AUTO_GROUP_Y,
     AUTO_GROUP_XY,
+    SAVE_GRAPH,
+    RESTORE_GRAPH,
+    DELETE_SAVED_GRAPH,
 };
 
 enum ClickStyle {

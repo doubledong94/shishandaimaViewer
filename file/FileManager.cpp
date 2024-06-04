@@ -49,6 +49,31 @@ void FileManager::getAllFiles(const std::string& dir_name, const string& postfix
     closedir(dir);
 }
 
+void FileManager::getFileNameInDir(const string& dirPath, list<string>& fileNames) {
+    fileNames.clear();
+    DIR* dir;
+    dirent* entry;
+    struct stat info {};
+    dir = opendir(dirPath.data());
+    if (!dir) {
+        printf("directory %s was not found", dirPath.data());
+        return;
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_name[0] != '.') {
+            string path = dirPath + "/" + string(entry->d_name);
+            stat(path.data(), &info);
+            if (not S_ISDIR(info.st_mode)) {
+                fileNames.push_back(entry->d_name);
+            }
+        }
+    }
+}
+
+void FileManager::deleteFile(const string& filePath) {
+    std::remove(filePath.data());
+}
+
 string FileManager::baseFolder = "";
 string baseDataFolder = "";
 
@@ -93,6 +118,7 @@ string FileManager::alphabetIconSPath = "";
 string FileManager::alphabetIconUPath = "";
 string FileManager::alphabetIconVPath = "";
 string FileManager::alphabetIconWPath = "";
+string FileManager::graphSaveAndRestorePath = "";
 
 
 void FileManager::initCurrentDir() {
@@ -125,6 +151,7 @@ void FileManager::initCurrentDir() {
     simpleViewConfig = configBaseDir + "simpleView.config";
     srcPathConfig = configBaseDir + "srcPath.txt";
     resourceBaseDir = baseFolder + "resource/";
+    graphSaveAndRestorePath = baseFolder + "graph/";
     alphabetIconAndPath = resourceBaseDir + "alphabetIconAnd.png";
     alphabetIconPlusPath = resourceBaseDir + "alphabetIconPlus.png";
     alphabetIconMinusPath = resourceBaseDir + "alphabetIconMinus.png";

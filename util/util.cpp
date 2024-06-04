@@ -1,6 +1,18 @@
 #include <unistd.h>
 #include "util.h"
 
+int getInt(ifstream& f) {
+    string countStr;
+    std::getline(f, countStr);
+    return stoi(countStr);
+}
+
+float getFloat(ifstream& f) {
+    string countStr;
+    std::getline(f, countStr);
+    return stof(countStr);
+}
+
 string joinVector(const vector<string> &strList, const string &sep) {
     if (strList.empty()) {
         return "";

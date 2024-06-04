@@ -188,6 +188,44 @@ void Nodes::mapNodeColorForDeletion(igraph_vector_int_t* mapForDeleteNodes) {
     }
 }
 
+void Nodes::toFile(ofstream& f) {
+    f << positionFixed.size() << "\n";
+    for (int i : positionFixed) {
+        f << i << "\n";
+    }
+    f << colorSpecified.size() << "\n";
+    for (int i : colorSpecified) {
+        f << i << "\n";
+    }
+    f << specifiedColors.size() << "\n";
+    for (auto& c : specifiedColors) {
+        f << c.r << "\n";
+        f << c.g << "\n";
+        f << c.b << "\n";
+    }
+}
+
+void Nodes::fromFile(ifstream& f) {
+    positionFixed.clear();
+    colorSpecified.clear();
+    specifiedColors.clear();
+    int positionFixedSize = getInt(f);
+    for (int i = 0;i < positionFixedSize;i++) {
+        positionFixed.insert(getInt(f));
+    }
+    int colorSpecifiedSize = getInt(f);
+    for (int i = 0;i < colorSpecifiedSize;i++) {
+        colorSpecified.insert(getInt(f));
+    }
+    int colorCount = getInt(f);
+    for (int i = 0;i < colorCount;i++) {
+        float r = getFloat(f);
+        float g = getFloat(f);
+        float b = getFloat(f);
+        specifiedColors.push_back({ r,g,b });
+    }
+}
+
 std::string Nodes::vertexSource() {
     return R"(
                #version 330 core

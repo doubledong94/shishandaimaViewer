@@ -89,6 +89,10 @@ public:
 
     virtual char* getHint_press1ToShowHotkey() { return NULL; };
 
+    virtual char* getHotKeyTitle_cat_saveAndRestoreGraph() { return NULL; };
+    virtual char* getHotKeyTitle_saveGraph() { return NULL; };
+    virtual char* getHotKeyTitle_restoreGraph() { return NULL; };
+    virtual char* getHotKeyTitle_deleteSavedGraph() { return NULL; };
 };
 
 class ChineseStringRes :public StringRes {
@@ -180,6 +184,11 @@ private:
     string hotKeyTitle_ExploreDownward = "以选中的节点为始端进行搜索";
     string hotKeyTitle_ExploreUpward = "以选中的节点为末端进行搜索";
 
+    string hotKeyTitle_cat_saveAndRestoreGraph = "保存与恢复图";
+    string hotKeyTitle_saveGraph = "保存图";
+    string hotKeyTitle_restoreGraph = "恢复图";
+    string hotKeyTitle_deleteSavedGraph = "删除图";
+
     string hint_press1ToShowHotkey = "[按1显示快捷键]";
 
 public:
@@ -269,6 +278,11 @@ public:
     char* getHotKeyTitle_SaveSelectedNode() override;
     char* getHotKeyTitle_searchUpward() override;
     char* getHotKeyTitle_searchDownward() override;
+
+    char* getHotKeyTitle_cat_saveAndRestoreGraph() override;
+    char* getHotKeyTitle_saveGraph() override;
+    char* getHotKeyTitle_restoreGraph() override;
+    char* getHotKeyTitle_deleteSavedGraph() override;
 
     char* getHint_press1ToShowHotkey() override;
 };
@@ -362,6 +376,11 @@ private:
     string hotKeyTitle_ExploreDownward = "以选中的节点为始端进行搜索";
     string hotKeyTitle_ExploreUpward = "以选中的节点为末端进行搜索";
 
+    string hotKeyTitle_cat_saveAndRestoreGraph = "保存与恢复图";
+    string hotKeyTitle_saveGraph = "保存图";
+    string hotKeyTitle_restoreGraph = "恢复图";
+    string hotKeyTitle_deleteSavedGraph = "删除图";
+
     string hint_press1ToShowHotkey = "[按1显示快捷键]";
 
 public:
@@ -452,7 +471,11 @@ public:
     char* getHotKeyTitle_searchUpward() override;
     char* getHotKeyTitle_searchDownward() override;
 
-    char* getHint_press1ToShowHotkey() override;
+    char* getHotKeyTitle_cat_saveAndRestoreGraph() override;
+    char* getHotKeyTitle_saveGraph() override;
+    char* getHotKeyTitle_restoreGraph() override;
+    char* getHotKeyTitle_deleteSavedGraph() override;
 
+    char* getHint_press1ToShowHotkey() override;
 };
 
