@@ -2028,6 +2028,7 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
                 MATRIX(*layoutMatrix, i, 2) = points[i].z;
             }
         }
+        invalidateAllGraphInfo();
         graphGenerateAndConsumeLock.unlock();
         f.close();
         });
