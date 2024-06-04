@@ -1809,6 +1809,7 @@ bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<con
         for (auto& nameAndLine : SimpleView::SimpleViewToGraphConverter::valNameToLine) {
             nameAndLine.second->resolved = false;
             nameAndLine.second->updateDisplayText();
+            nameAndLine.second->encode();
         }
     } else {
         updateDisplayText();
