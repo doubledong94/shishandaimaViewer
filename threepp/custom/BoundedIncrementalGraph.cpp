@@ -435,9 +435,10 @@ void BoundedIncrementalGraph::saveNodeInfo(NodeInfo* nodeInfo) {
 NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
     string& methodOfRuntime = tail->headElements[2]->atomOrVar;
     string& runtimeKey = tail->headElements[3]->atomOrVar;
+    string& key = tail->headElements[4]->atomOrVar;
     int keyType = tail->headElements[5]->integer;
     if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
-        return NULL;
+        runtimeKey = key;
     }
     string uniKey = NodeInfo::makeUniKey(keyType, methodOfRuntime, runtimeKey);
     NodeInfo* nodeInfo = getExistingNodeInfo(uniKey);
@@ -448,7 +449,7 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
         nodeInfo->positionInRegex.push_back(new PositionInRegex(searchingGraphName, lineInstanceName, regexChar));
         nodeInfo->methodOfRuntime = methodOfRuntime;
         nodeInfo->runtimeKey = runtimeKey;
-        nodeInfo->key = tail->headElements[4]->atomOrVar;
+        nodeInfo->key = key;
         nodeInfo->keyType = keyType;
         nodeInfo->uniKey = uniKey;
     } else {
