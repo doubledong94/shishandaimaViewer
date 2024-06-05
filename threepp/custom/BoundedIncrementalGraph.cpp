@@ -601,6 +601,23 @@ void BoundedIncrementalGraph::reCreateLayout(int nodeCount, bool is2D, bool dime
     resetLayoutBound(is2D);
 }
 
+void BoundedIncrementalGraph::reCreateLayoutWithNoOldLayoutInfo(int nodeCount, bool is2D, bool dimensionChanged) {
+    spdlog::get(ErrorManager::DebugTag)->info("node count {}", nodeCount);
+    igraph_matrix_destroy(layoutMatrix);
+    igraph_matrix_init(layoutMatrix, nodeCount, is2D ? 2 : 3);
+    igraph_matrix_fill(layoutMatrix, 0.0);
+
+    int countToDestroy = is2D ^ dimensionChanged ? 4 : 6;
+    for (int i = 0; i < countToDestroy; i++) {
+        igraph_vector_destroy(layoutBounds[i]);
+    }
+    int countToCreate = is2D ? 4 : 6;
+    for (int i = 0; i < countToCreate; i++) {
+        igraph_vector_init(layoutBounds[i], nodeCount);
+    }
+    resetLayoutBound(is2D);
+}
+
 void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     if (nodesOrderedByNodeId.empty() and bufferSize() == 0) {
         return;
@@ -2025,7 +2042,7 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         igraph_vector_int_view(&newEdges_, edgesArray, edgeCount * 2);
         igraph_add_edges(theOriginalGraph, &newEdges_, NULL);
         // layout
-        reCreateLayout(nodeCount, is2D, false);
+        reCreateLayoutWithNoOldLayoutInfo(nodeCount, is2D, false);
         for (int i = 0;i < nodeCount;i++) {
             MATRIX(*layoutMatrix, i, 0) = points[i].x;
             MATRIX(*layoutMatrix, i, 1) = points[i].y;

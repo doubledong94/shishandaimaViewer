@@ -90,6 +90,7 @@ public:
     threepp::Font font;
     void updateGraph();
     void reCreateLayout(int nodeCount, bool is2D, bool dimensionChanged = false, igraph_vector_int_t* mapFromNewToOldNodeId = NULL);
+    void reCreateLayoutWithNoOldLayoutInfo(int nodeCount, bool is2D, bool dimensionChanged = false);
     void updateAnim(threepp::Camera& camera);
 
     bool updatePosByGroup(vector<set<int>>& groups, int which);
