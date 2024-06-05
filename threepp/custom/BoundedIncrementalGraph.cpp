@@ -595,7 +595,6 @@ void BoundedIncrementalGraph::reCreateLayout(int nodeCount, bool is2D, bool dime
     }
     int countToCreate = is2D ? 4 : 6;
     for (int i = 0; i < countToCreate; i++) {
-        layoutBounds[i] = new igraph_vector_t();
         igraph_vector_init(layoutBounds[i], nodeCount);
     }
     resetLayoutBound(is2D);
@@ -1667,6 +1666,7 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
         VECTOR(*weights)[newEdgeId] = VECTOR(*oldWeights)[oldEdgeId];
     }
     igraph_vector_destroy(oldWeights);
+    delete oldWeights;
 
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     reCreateLayout(nodesOrderedByNodeId.size(), is2D, false, &mapFromNewToOldNodeId);
@@ -1996,7 +1996,6 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         }
         // weight
         igraph_vector_destroy(weights);
-        weights = new igraph_vector_t();
         igraph_vector_init(weights, edgeCount);
         igraph_vector_fill(weights, 1);
         for (int i = 0;i < edgeCount;i++) {
@@ -2029,7 +2028,6 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         linesObj->setEdges(points, edgePairs);
         // graph
         igraph_destroy(theOriginalGraph);
-        theOriginalGraph = new igraph_t;
         igraph_empty(theOriginalGraph, nodeCount, IGRAPH_DIRECTED);
         igraph_integer_t edgesArray[edgeCount * 2];
         int i = 0;
@@ -2365,7 +2363,7 @@ void BoundedIncrementalGraph::transitiveReductionImpl() {
         edgePairs.push_back({ source,target });
     }
     // recreate weights
-    weights = new igraph_vector_t();
+    igraph_vector_destroy(weights);
     igraph_vector_init(weights, igraph_ecount(theOriginalGraph));
     igraph_vector_fill(weights, 1);
     invalidateAllGraphInfo();
