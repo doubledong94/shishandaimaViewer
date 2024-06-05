@@ -1931,6 +1931,9 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         nodesOrderedByNodeId.clear();
         textLoaded.clear();
         textLoading.clear();
+        for (int i : textAdded) {
+            remove(*textMesh[i]);
+        }
         textAdded.clear();
         edgePairs.clear();
         points.clear();
@@ -1938,6 +1941,7 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         xCoordFixed.clear();
         yCoordFixed.clear();
         textMesh.clear();
+        nodesObj->selected.clear();
 
         getline(f, searchingGraphName);
         // dimension
