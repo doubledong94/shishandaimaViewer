@@ -500,8 +500,6 @@ void SimpleView::declareNodeResolveRules() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType),
             CompoundTerm::getResolveTerm(nodeValName, node),
-            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(Class, Method),CompoundTerm::getConstructorTerm(Class, Method)) ,
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class)
         }));
 
     for (auto& rule : rules) {

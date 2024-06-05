@@ -69,7 +69,7 @@ public:
     void returnThisToPool() override;
 };
 
-class DisjunctionTerm : public Term, public PooledItem<DisjunctionTerm>  {
+class DisjunctionTerm : public Term, public PooledItem<DisjunctionTerm> {
 public:
     using PooledItem<DisjunctionTerm>::isInPool;
 
@@ -192,6 +192,10 @@ static Term* HEAD_MEMBER = new Term("member", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LENGTH = new Term("length", Term::TERM_TYPE_ATOM);
 static Term* HEAD_COUNT = new Term("count", Term::TERM_TYPE_ATOM);
 
+static Term* HEAD_STEP_KEY_TO_CLASS_KEY = new Term("stepKeyToClassKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_LOAD_RUNTIME_BY_STEP_KEY = new Term("loadRuntimeByStepKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_LOAD_RUNTIME = new Term("load_unaddressable", Term::TERM_TYPE_ATOM);
+
 static map<Term*, int> addressableMultiFileFunctorName2ArgCount;
 
 class CompoundTerm : public Term, public PooledItem<CompoundTerm> {
@@ -217,6 +221,12 @@ public:
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4);
 
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5, Term* arg6);
+
+    static CompoundTerm* getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey);
+
+    static CompoundTerm* getLoadRuntimeByStepKeyTerm(Term* stepKey);
+
+    static CompoundTerm* getLoadRuntimeTerm(Term* classKey);
 
     static CompoundTerm* getMemberTerm(Term* m, Term* l);
 

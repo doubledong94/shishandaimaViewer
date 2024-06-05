@@ -324,6 +324,18 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     return ret;
 }
 
+CompoundTerm* CompoundTerm::getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey) {
+    return makeTerm(HEAD_STEP_KEY_TO_CLASS_KEY, stepKey, classKey);
+}
+
+CompoundTerm* CompoundTerm::getLoadRuntimeByStepKeyTerm(Term* stepKey) {
+    return makeTerm(HEAD_LOAD_RUNTIME_BY_STEP_KEY, stepKey);
+}
+
+CompoundTerm* CompoundTerm::getLoadRuntimeTerm(Term* classKey) {
+    return makeTerm(HEAD_LOAD_RUNTIME, classKey);
+}
+
 CompoundTerm* CompoundTerm::getDataFlowTerm(Term* mk, Term* src, Term* dst) {
     return makeTerm(HEAD_DATA_FLOW, mk, src, dst);
 }

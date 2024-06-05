@@ -159,6 +159,7 @@ void EasierSimpleView::init() {
     SimpleView::declareClassResolveRules();
     SimpleView::declareNodeResolveRules();
     declareStepRules();
+    declareLoadRuntimeByStepKey();
 
     spdlog::get(ErrorManager::TimerTag)->info("simple init started.");
     std::ifstream stream(FileManager::simpleViewConfig);
@@ -332,6 +333,58 @@ void EasierSimpleView::declareStepRules() {
     outerMethod->returnThisToPool();
     step->returnThisToPool();
 
+}
+
+void EasierSimpleView::declareLoadRuntimeByStepKey() {
+    vector<Rule*> rules;
+    Term* stepKey = Term::getVar("StepKey");
+    Term* classKey = Term::getVar("ClassKey");
+    Term* methodKey = Term::getVar("MethodKey");
+    Term* calledMethodKey = Term::getVar("CalledMethodKey");
+    Term* paramKey = Term::getVar("ParamKey");
+    Term* calledParamKey = Term::getVar("CalledParamKey");
+    Term* returnKey = Term::getVar("ReturnKey");
+    Term* calledReturnKey = Term::getVar("CalledReturnKey");
+    Term* methodToClassTerm = DisjunctionTerm::getDisjunctionInstance(
+        CompoundTerm::getMethodTerm(classKey, methodKey), CompoundTerm::getConstructorTerm(classKey, methodKey)
+    );
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepTerm(methodKey,stepKey),methodToClassTerm
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepTerm(calledMethodKey,stepKey),CompoundTerm::getCalledMethodTerm(methodKey,calledMethodKey),methodToClassTerm
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKey,paramKey),methodToClassTerm
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepTerm(calledParamKey,stepKey),CompoundTerm::getCalledParamTerm(paramKey,calledParamKey),CompoundTerm::getParameterTerm(methodKey,paramKey),methodToClassTerm
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToClassTerm
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToClassTerm
+        }));
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadRuntimeByStepKeyTerm(stepKey), {
+        CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey))
+        }));
+
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
+    stepKey->returnThisToPool();
+    classKey->returnThisToPool();
+    methodKey->returnThisToPool();
+    calledMethodKey->returnThisToPool();
+    paramKey->returnThisToPool();
+    calledParamKey->returnThisToPool();
+    returnKey->returnThisToPool();
+    calledReturnKey->returnThisToPool();
 }
 
 void EasierSimpleView::searchClass(char* searchStr, vector<const char*>& searchResult) {
@@ -2599,8 +2652,10 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (isStep) {
         Term* midStepTermRuntime = Term::getVar("MidStepRuntime");
         ruleBody.push_back(Unification::getUnificationInstance(midStepTermRuntime, expectingNextKeyTerm));
+        Term* stepAddressable = Term::getVar("StepAddressable");
         // check type
-        ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), midStepTermRuntime, Term::getInt(specialKeyType)));
+        ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, stepAddressable, midStepTermRuntime, Term::getInt(specialKeyType)));
+        ruleBody.push_back(CompoundTerm::getLoadRuntimeByStepKeyTerm(stepAddressable));
         // generate the next method key and next steps
         if (nodeType == Node::NODE_TYPE_DATA_STEP) {
             if (isBackward) {
