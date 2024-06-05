@@ -260,6 +260,7 @@ Condition1->Else->Condition2->Else->Condition3
 
 **举例**说明逻辑控制方向的搜索      
 搜索"android.view.View.mViewFlags"控制了哪些函数的调用    
+(为了让例子看起来简单点，例子中的Any匹配了**普通字符**，实际使用中则不会)
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -307,6 +308,7 @@ class A {
 
 **举例**说明数据流动方向的搜索      
 搜索：构造android.view.View对象时，给它的参数context是如何被使用的    
+(为了让例子看起来简单点，例子中的Any匹配了**普通字符**，实际使用中则不会)
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
@@ -344,7 +346,8 @@ B.a -> Reference -> A.a::int:#
 注意这里使用的是calledMethod节点。       
 
 **举例**说明类嵌套方向的搜索      
-上面搜索到的结果非常少，大概是因为没有搜索类嵌套方向，下面我们加入类嵌套方向的搜索
+上面搜索到的结果非常少，大概是因为没有搜索类嵌套方向，下面我们加入类嵌套方向的搜索   
+(为了让例子看起来简单点，例子中的Any匹配了**普通字符**，实际使用中则不会)
 ```
 // 定义类范围
 ClassScope class_view = "android.view.View";
