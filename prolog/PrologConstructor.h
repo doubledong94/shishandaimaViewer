@@ -187,7 +187,6 @@ static Term* HEAD_TO_FILE = new Term("toFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_STATISTICS = new Term("statistics", Term::TERM_TYPE_ATOM);
 static Term* HEAD_ASSERTZ = new Term("assertz", Term::TERM_TYPE_ATOM);
 static Term* TERM_NEXT_LINE = new Term("nl", Term::TERM_TYPE_ATOM);
-static Term* TERM_IS_CALLED_METHD_RETURN_VOID = new Term("isCalledMethodReturnVoid", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_MEMBER = new Term("member", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LENGTH = new Term("length", Term::TERM_TYPE_ATOM);
@@ -490,8 +489,6 @@ public:
 
     static CompoundTerm* getStatisticsTerm(Term* startOrStop);
 
-    static CompoundTerm* getIsCalledMethodReturnVoid(Term* MethodScope, Term* CalledMethod);
-
     string toString(bool returnToPool = false) override;
 
     PlTerm* toPlTerm() override;
@@ -565,22 +562,6 @@ public:
     static Rule* getRuleInstance(Term* head, const vector<Term*>& conditions);
 
     string toString(bool returnToPool = false);
-
-    static Rule* getStepInTerm(Term* outerMethod, Term* innerMethod, Term* calledParameterOrCalledMethod, Term* step, Term* parameterOrMethod, bool isParam);
-
-    static string getStepInRule(const string& outerMethod, const string& innerMethod, const string& calledParameterOrCalledMethod, const string& step, const string& parameterOrMethod, bool isParam);
-
-    static Rule* getStepInTermOutOfSteps(Term* outerMethod, Term* innerMethod, Term* calledParameterOrCalledMethod, Term* step, Term* parameterOrMethod, bool isParam);
-
-    static string getStepInRuleOutOfSteps(const string& outerMethod, const string& innerMethod, const string& calledParameterOrCalledMethod, const string& step, const string& parameterOrMethod, bool isParam);
-
-    static Rule* getStepOutTerm(Term* innerMethod, Term* outerMethod, Term* returnTerm, Term* step, Term* calledReturn);
-
-    static string getStepOutRule(const string& innerMethod, const string& outerMethod, const string& returnTerm, const string& step, const string& calledReturn);
-
-    static Rule* getStepOutTermOutOfSteps(Term* innerMethod, Term* outerMethod, Term* returnTerm, Term* step, Term* calledReturn);
-
-    static string getStepOutRuleOutOfSteps(const string& innerMethod, const string& outerMethod, const string& returnTerm, const string& step, const string& calledReturn);
 
     void reset() override;
 
