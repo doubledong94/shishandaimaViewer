@@ -81,6 +81,14 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::ELSE);
     saveVocabulary(lexer, SimpleViewLexer::DATA_STEP);
     saveVocabulary(lexer, SimpleViewLexer::TIMING_STEP);
+    saveVocabulary(lexer, SimpleViewLexer::FIELD);
+    saveVocabulary(lexer, SimpleViewLexer::METHOD);
+    saveVocabulary(lexer, SimpleViewLexer::CONSTRUCTOR);
+    saveVocabulary(lexer, SimpleViewLexer::CALLED_METHOD);
+    saveVocabulary(lexer, SimpleViewLexer::PARAMETER);
+    saveVocabulary(lexer, SimpleViewLexer::CALLED_PARAMETER);
+    saveVocabulary(lexer, SimpleViewLexer::RETURN);
+    saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN);
     // line
     saveVocabulary(lexer, SimpleViewLexer::LINE);
     saveVocabulary(lexer, SimpleViewLexer::CODE_ORDER);
@@ -141,6 +149,14 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_ELSE,Images::elseIconId},
                 {SimpleView::Node::NODE_TYPE_DATA_STEP,Images::stepIconId},
                 {SimpleView::Node::NODE_TYPE_TIMING_STEP,Images::stepIconId},
+                {SimpleView::Node::NODE_TYPE_FIELD,Images::fieldIconId},
+                {SimpleView::Node::NODE_TYPE_METHOD,Images::methodIconId},
+                {SimpleView::Node::NODE_TYPE_CONSTRUCTOR,Images::creatorIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_METHOD,Images::methodIconId},
+                {SimpleView::Node::NODE_TYPE_PARAMETER,Images::parameterIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
+                {SimpleView::Node::NODE_TYPE_RETURN,Images::returnIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_RETURN,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_VAR,Images::varIconId},
     };
@@ -172,6 +188,14 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_ELSE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ELSE);
     SimpleView::Node::NODE_DATA_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_STEP);
     SimpleView::Node::NODE_TIMING_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_STEP);
+    SimpleView::Node::NODE_FIELD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FIELD);
+    SimpleView::Node::NODE_METHOD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_METHOD);
+    SimpleView::Node::NODE_CONSTRUCTOR = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONSTRUCTOR);
+    SimpleView::Node::NODE_CALLED_METHOD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CALLED_METHOD);
+    SimpleView::Node::NODE_PARAMETER = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_PARAMETER);
+    SimpleView::Node::NODE_CALLED_PARAMETER = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CALLED_PARAMETER);
+    SimpleView::Node::NODE_RETURN = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_RETURN);
+    SimpleView::Node::NODE_CALLED_RETURN = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CALLED_RETURN);
 
     antlr4::CommonTokenStream tokenStream(&lexer);
     SimpleViewParser parser(&tokenStream);
@@ -1097,6 +1121,15 @@ SimpleView::Node* SimpleView::Node::NODE_ELSE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_DATA_STEP = NULL;
 SimpleView::Node* SimpleView::Node::NODE_TIMING_STEP = NULL;
 
+SimpleView::Node* SimpleView::Node::NODE_FIELD = NULL;
+SimpleView::Node* SimpleView::Node::NODE_METHOD = NULL;
+SimpleView::Node* SimpleView::Node::NODE_CONSTRUCTOR = NULL;
+SimpleView::Node* SimpleView::Node::NODE_CALLED_METHOD = NULL;
+SimpleView::Node* SimpleView::Node::NODE_PARAMETER = NULL;
+SimpleView::Node* SimpleView::Node::NODE_CALLED_PARAMETER = NULL;
+SimpleView::Node* SimpleView::Node::NODE_RETURN = NULL;
+SimpleView::Node* SimpleView::Node::NODE_CALLED_RETURN = NULL;
+
 SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     auto* node = new Node();
     node->nodeType = nodeType;
@@ -1124,6 +1157,38 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_TIMING_STEP:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::TIMING_STEP];
         node->iconId = Images::stepIconId;
+        break;
+    case Node::NODE_TYPE_FIELD:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::FIELD];
+        node->iconId = Images::fieldIconId;
+        break;
+    case Node::NODE_TYPE_METHOD:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::METHOD];
+        node->iconId = Images::methodIconId;
+        break;
+    case Node::NODE_TYPE_CONSTRUCTOR:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CONSTRUCTOR];
+        node->iconId = Images::creatorIconId;
+        break;
+    case Node::NODE_TYPE_CALLED_METHOD:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CALLED_METHOD];
+        node->iconId = Images::methodIconId;
+        break;
+    case Node::NODE_TYPE_PARAMETER:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::PARAMETER];
+        node->iconId = Images::parameterIconId;
+        break;
+    case Node::NODE_TYPE_CALLED_PARAMETER:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CALLED_PARAMETER];
+        node->iconId = Images::parameterIconId;
+        break;
+    case Node::NODE_TYPE_RETURN:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::RETURN];
+        node->iconId = Images::returnIconId;
+        break;
+    case Node::NODE_TYPE_CALLED_RETURN:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CALLED_RETURN];
+        node->iconId = Images::returnIconId;
         break;
     default:
         break;
@@ -1324,6 +1389,22 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::DATA_STEP];
     case NODE_TYPE_TIMING_STEP:
         return voc[SimpleViewLexer::TIMING_STEP];
+    case NODE_TYPE_FIELD:
+        return voc[SimpleViewLexer::FIELD];
+    case NODE_TYPE_METHOD:
+        return voc[SimpleViewLexer::METHOD];
+    case NODE_TYPE_CONSTRUCTOR:
+        return voc[SimpleViewLexer::CONSTRUCTOR];
+    case NODE_TYPE_CALLED_METHOD:
+        return voc[SimpleViewLexer::CALLED_METHOD];
+    case NODE_TYPE_PARAMETER:
+        return voc[SimpleViewLexer::PARAMETER];
+    case NODE_TYPE_CALLED_PARAMETER:
+        return voc[SimpleViewLexer::CALLED_PARAMETER];
+    case NODE_TYPE_RETURN:
+        return voc[SimpleViewLexer::RETURN];
+    case NODE_TYPE_CALLED_RETURN:
+        return voc[SimpleViewLexer::CALLED_RETURN];
     case NODE_TYPE_INTERSECTION:
         return operandForSetOperation.first->displayName + " & " + operandForSetOperation.second->displayName;
     case NODE_TYPE_UNION:
@@ -1344,7 +1425,15 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_CONDITION
         and nodeType != NODE_TYPE_ELSE
         and nodeType != NODE_TYPE_DATA_STEP
-        and nodeType != NODE_TYPE_TIMING_STEP;
+        and nodeType != NODE_TYPE_TIMING_STEP
+        and nodeType != NODE_TYPE_FIELD
+        and nodeType != NODE_TYPE_METHOD
+        and nodeType != NODE_TYPE_CONSTRUCTOR
+        and nodeType != NODE_TYPE_CALLED_METHOD
+        and nodeType != NODE_TYPE_PARAMETER
+        and nodeType != NODE_TYPE_CALLED_PARAMETER
+        and nodeType != NODE_TYPE_RETURN
+        and nodeType != NODE_TYPE_CALLED_RETURN;
 }
 
 void SimpleView::Node::release() {
@@ -1767,6 +1856,14 @@ bool SimpleView::LineTemplate::hasRepeatOnceNodeExceptFor(const string& exceptio
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_REFERENCE
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_DATA_STEP
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_TIMING_STEP
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_FIELD
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_METHOD
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CONSTRUCTOR
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CALLED_METHOD
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_PARAMETER
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CALLED_PARAMETER
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_RETURN
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CALLED_RETURN
             and nodeAndRepeatTypeI->repeatType == SimpleView::LineTemplate::REPEAT_TYPE_ONE) {
             foundRepeatTypeOnce = true;
             break;
@@ -1798,7 +1895,14 @@ bool SimpleView::LineTemplate::checkValidation(vector<const char*>& values, vect
                 and node != SimpleView::Node::NODE_CONDITION
                 and node != SimpleView::Node::NODE_ELSE
                 and node != SimpleView::Node::NODE_DATA_STEP
-                and node != SimpleView::Node::NODE_TIMING_STEP) {
+                and node != SimpleView::Node::NODE_FIELD
+                and node != SimpleView::Node::NODE_METHOD
+                and node != SimpleView::Node::NODE_CONSTRUCTOR
+                and node != SimpleView::Node::NODE_CALLED_METHOD
+                and node != SimpleView::Node::NODE_PARAMETER
+                and node != SimpleView::Node::NODE_CALLED_PARAMETER
+                and node != SimpleView::Node::NODE_RETURN
+                and node != SimpleView::Node::NODE_CALLED_RETURN) {
                 foundRepeatTypeOnce = true;
                 break;
             }
@@ -2647,6 +2751,30 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_TIMING_STEP:
         specialKeyType = GlobalInfo::KEY_TYPE_TIMING_STEP;
         break;
+    case Node::NODE_TYPE_FIELD:
+        specialKeyType = GlobalInfo::KEY_TYPE_FIELD;
+        break;
+    case Node::NODE_TYPE_METHOD:
+        specialKeyType = GlobalInfo::KEY_TYPE_METHOD;
+        break;
+    case Node::NODE_TYPE_CONSTRUCTOR:
+        specialKeyType = GlobalInfo::KEY_TYPE_CONSTRUCTOR;
+        break;
+    case Node::NODE_TYPE_CALLED_METHOD:
+        specialKeyType = GlobalInfo::KEY_TYPE_CALLED_METHOD;
+        break;
+    case Node::NODE_TYPE_PARAMETER:
+        specialKeyType = GlobalInfo::KEY_TYPE_METHOD_PARAMETER;
+        break;
+    case Node::NODE_TYPE_CALLED_PARAMETER:
+        specialKeyType = GlobalInfo::KEY_TYPE_CALLED_PARAMETER;
+        break;
+    case Node::NODE_TYPE_RETURN:
+        specialKeyType = GlobalInfo::KEY_TYPE_METHOD_RETURN;
+        break;
+    case Node::NODE_TYPE_CALLED_RETURN:
+        specialKeyType = GlobalInfo::KEY_TYPE_CALLED_RETURN;
+        break;
     }
     // generate nextKeyTerm by dataflow term
     if (isStep) {
@@ -2697,6 +2825,14 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_ELSE:
     case Node::NODE_TYPE_DATA_STEP:
     case Node::NODE_TYPE_TIMING_STEP:
+    case Node::NODE_TYPE_FIELD:
+    case Node::NODE_TYPE_METHOD:
+    case Node::NODE_TYPE_CONSTRUCTOR:
+    case Node::NODE_TYPE_CALLED_METHOD:
+    case Node::NODE_TYPE_PARAMETER:
+    case Node::NODE_TYPE_CALLED_PARAMETER:
+    case Node::NODE_TYPE_RETURN:
+    case Node::NODE_TYPE_CALLED_RETURN:
         // check by node type
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));

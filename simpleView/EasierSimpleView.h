@@ -118,6 +118,14 @@ namespace SimpleView {
             NODE_TYPE_DATA_STEP,
             NODE_TYPE_TIMING_STEP,
             NODE_TYPE_ELSE,
+            NODE_TYPE_FIELD,
+            NODE_TYPE_METHOD,
+            NODE_TYPE_CONSTRUCTOR,
+            NODE_TYPE_CALLED_METHOD,
+            NODE_TYPE_PARAMETER,
+            NODE_TYPE_CALLED_PARAMETER,
+            NODE_TYPE_RETURN,
+            NODE_TYPE_CALLED_RETURN,
 
             NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,
             NODE_TYPE_RUNTIME,
@@ -133,6 +141,15 @@ namespace SimpleView {
         static Node* NODE_ELSE;
         static Node* NODE_DATA_STEP;
         static Node* NODE_TIMING_STEP;
+
+        static Node* NODE_FIELD;
+        static Node* NODE_METHOD;
+        static Node* NODE_CONSTRUCTOR;
+        static Node* NODE_CALLED_METHOD;
+        static Node* NODE_PARAMETER;
+        static Node* NODE_CALLED_PARAMETER;
+        static Node* NODE_RETURN;
+        static Node* NODE_CALLED_RETURN;
 
         int nodeType = -1;
         string extraStr;

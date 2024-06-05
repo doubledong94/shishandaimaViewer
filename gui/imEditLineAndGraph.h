@@ -110,7 +110,7 @@ namespace shishan {
     static int nodeEditingIndex = -1;
     static char nodeEditingName[1000];
     static int nodeEditingTypeIndex = -1;
-    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","creatorOf","parameterOf","returnOf","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
+    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","constructorOf","parameterOf","returnOf","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
     static vector<const char*> nodeEditValues;
     static vector<const char*> typeKeyForNodeKey;
     static char* openedTypeKey;
@@ -740,6 +740,16 @@ namespace shishan {
         return ret;
     }
 
+    static void addSpecialKeyButton(const char* buttonText, SimpleView::Node* specialNode) {
+        if (ImGui::Button(buttonText)) {
+            cleanLineEditIfItIsHint();
+            lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, specialNode->displayName.data());
+            lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
+            insertIntersectionPointInLineTemplate(specialNode->displayName.data(), false, lineEditValueSelectedIndex + 1);
+            lineEditValueSelectedIndex++;
+        };
+    }
+
     static void addLineEditItem(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
         ImGui::InputTextEx("##editingLineName", "", lineEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
@@ -834,58 +844,46 @@ namespace shishan {
                 ImGui::InputTextEx("##addParameterNameInput", "parameter name", paraName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
             }
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("Any##specialNodeAny")) {
-                cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_ANY->displayName.data());
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_ANY->displayName.data(), false, lineEditValueSelectedIndex + 1);
-                lineEditValueSelectedIndex++;
-            }
+            addSpecialKeyButton("Any##specialNodeAny", SimpleView::Node::NODE_ANY);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("Reference##specialNodeReference")) {
-                cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_REFERENCE->displayName.data());
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_REFERENCE->displayName.data(), false, lineEditValueSelectedIndex + 1);
-                lineEditValueSelectedIndex++;
-            }
+            addSpecialKeyButton("Reference##specialNodeReference", SimpleView::Node::NODE_REFERENCE);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("Condition##specialNodeConndition")) {
-                cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_CONDITION->displayName.data());
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_CONDITION->displayName.data(), false, lineEditValueSelectedIndex + 1);
-                lineEditValueSelectedIndex++;
-            }
+            addSpecialKeyButton("Condition##specialNodeConndition", SimpleView::Node::NODE_CONDITION);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("Else##specialNodeElse")) {
-                cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_ELSE->displayName.data());
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_ELSE->displayName.data(), false, lineEditValueSelectedIndex + 1);
-                lineEditValueSelectedIndex++;
-            }
+            addSpecialKeyButton("Else##specialNodeElse", SimpleView::Node::NODE_ELSE);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("DataStep##specialNodeDataStep")) {
-                cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_DATA_STEP->displayName.data());
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_DATA_STEP->displayName.data(), false, lineEditValueSelectedIndex + 1);
-                lineEditValueSelectedIndex++;
-            };
+            addSpecialKeyButton("DataStep##specialNodeDataStep", SimpleView::Node::NODE_DATA_STEP);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            if (ImGui::Button("TimingStep##specialNodeTimingStep")) {
-                cleanLineEditIfItIsHint();
-                lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, SimpleView::Node::NODE_TIMING_STEP->displayName.data());
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                insertIntersectionPointInLineTemplate(SimpleView::Node::NODE_TIMING_STEP->displayName.data(), false, lineEditValueSelectedIndex + 1);
-                lineEditValueSelectedIndex++;
-            };
+            addSpecialKeyButton("TimingStep##specialNodeTimingStep", SimpleView::Node::NODE_TIMING_STEP);
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Field##specialNodeField", SimpleView::Node::NODE_FIELD);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Method##specialNodeMethod", SimpleView::Node::NODE_METHOD);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Constructor##specialNodeConstructor", SimpleView::Node::NODE_CONSTRUCTOR);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("CalledMethod##specialNodeCalled", SimpleView::Node::NODE_CALLED_METHOD);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Parameter##specialNodeParameter", SimpleView::Node::NODE_PARAMETER);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("CalledParameter##specialNodeCalledParameter", SimpleView::Node::NODE_CALLED_PARAMETER);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Return##specialNodeReturn", SimpleView::Node::NODE_RETURN);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("CalledReturn##specialNodeCalledReturn", SimpleView::Node::NODE_CALLED_RETURN);
             for (int i = 0;i < lineEditValues.size();i++) {
                 if (not nodeInLineIdMap.count(i)) {
                     nodeInLineIdMap[i] = i;
@@ -1870,7 +1868,18 @@ namespace shishan {
             auto& pI = pointsInLine->seg[pointCount];
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointCount];
             bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE
-                or (nodeAndRepeatTypeI->node and (nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_REFERENCE or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_DATA_STEP or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_TIMING_STEP)));
+                or (nodeAndRepeatTypeI->node and (nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_REFERENCE
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_DATA_STEP
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_TIMING_STEP
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_FIELD
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_METHOD
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CONSTRUCTOR
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_METHOD
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_PARAMETER
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_PARAMETER
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_RETURN
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_RETURN
+                    )));
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {
             case SimpleView::LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:

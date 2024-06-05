@@ -94,20 +94,20 @@ git submodule update --init --remote --recursive
 ### 正则的字符
 用户可以通过下面的规则自定义正则搜索中使用的**普通字符**：   
 1. 属性/函数的全名，代码这个一个属性/函数（全名不需要用户打字输入，用户此时不必在意全名是如何定义的）
-2. 属性/函数全名的数组，代表一组属性/函数
-3. fieldOf(C)，代表C类中的所有属性
-4. methodOf(C)，代表C类中的所有函数
-5. parameterOf(M)，代表M函数中的所有形参
-6. returnOf(M)，代表M函数的返回
-7. instanceOf(C1,C2)，代表声明在C1类中，类型为C2的属性
-8. creatorOf(C)，代表C类的构造函数
+2. 属性/函数全名的数组，匹配一组属性/函数
+3. fieldOf(C)，匹配C类中的所有属性
+4. instanceOf(C1,C2)，匹配声明在C1类中，类型为C2的属性
+5. methodOf(C)，匹配C类中的所有函数
+6. constructorOf(C)，匹配C类的构造函数
+7. parameterOf(M)，匹配M函数中的所有形参
+8. returnOf(M)，匹配M函数的返回
 9. calledMethod(M)，具体请看[时机传递方向](#时机传递方向)
 10. calledParam(P)，具体请看[数据流动方向](#数据流动方向)
 11. calledReturn(R)，具体请看[数据流动方向](#数据流动方向)
-12. intersection(A1,A2)，代表A1和A2的交集
-13. union(A1,A2)，代表A1和A2的并集
-14. difference(A1,A2)，代表A1和A2的差集，A1-A2
-15. var(A)，代表一个变量，值为A，A是一个定义好的字符
+12. intersection(A1,A2)，匹配A1和A2的交集
+13. union(A1,A2)，匹配A1和A2的并集
+14. difference(A1,A2)，匹配A1和A2的差集，A1-A2
+15. var(A)，匹配一个变量，值为A，A是一个定义好的字符
 
 正则搜索使用的**特殊字符**有：
 1. Any，匹配除 “**普通字符**和其他**特殊字符**“ 外的所有字符，即局部变量和操作符（+-*/等）（局部变量和操作符只能用Any表示），Any不匹配**普通字符**是为了提升搜索速度       
@@ -116,21 +116,29 @@ git submodule update --init --remote --recursive
 4. Else，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
 5. DataStep，可搜索跨函数的数据流动方向，具体请看[数据流动方向](#数据流动方向)
 6. TimingStep，可搜索时机传递方向，具体请看[时机传递方向](#时机传递方向)
+7. Field，匹配任意属性      
+8. Method，匹配任意函数      
+9. Constructor，匹配任意构造函数      
+10. CalledMethod，匹配任意函数对应的CalledMethod      
+11. Parameter，匹配任意函数的参数      
+12. CalledParameter，匹配任意CalledParameter      
+13. Return，匹配任意函数的返回      
+14. CalledReturn，匹配任意CalledReturn      
 
 ### 类范围
 一个项目会有成千上万个类，而矢山在搜索时，需要把所搜索的类加载到内存中。如果为了搜一个类要把上万个类都加载到内存中，是非常不划算的。因此用户需要指定搜索范围，也就是要指定：你搜索的时机传递/数据流动等，发生在哪些类的函数中。
 指定类范围的方式有：
-1. 类的全名，代表这个类
-2. 类全名的数组，代表一组类
-3. inPackage(P)，代表包P中的所有类
-4. usedBy(C)，代表被C类使用的所有类
-5. use(C)，代表使用了C类的所有类
-6. super(C)，代表C的父类，不包括父类的父类
-7. sub(C)，代表C的子类，不包括子类的子类
-8. intersection(A1,A2)，代表A1和A2的交集
-9. union(A1,A2)，代表A1和A2的并集
-10. difference(A1,A2)，代表A1和A2的差集，A1-A2
-11. var(A)，代表一个变量，值为A，A是一个定义好的类范围
+1. 类的全名，匹配这个类
+2. 类全名的数组，匹配一组类
+3. inPackage(P)，匹配包P中的所有类
+4. usedBy(C)，匹配被C类使用的所有类
+5. use(C)，匹配使用了C类的所有类
+6. super(C)，匹配C的父类，不包括父类的父类
+7. sub(C)，匹配C的子类，不包括子类的子类
+8. intersection(A1,A2)，匹配A1和A2的交集
+9. union(A1,A2)，匹配A1和A2的并集
+10. difference(A1,A2)，匹配A1和A2的差集，A1-A2
+11. var(A)，匹配一个变量，值为A，A是一个定义好的类范围
 
 被定义好的**类范围**，可以用来定义**普通字符**。比如在使用规则fieldOf(C)定义**普通字符**时，定义好的**类范围**可以替换C。
 

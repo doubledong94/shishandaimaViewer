@@ -70,7 +70,6 @@ void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, Class
     unaddressableMultiFileFunctorName2ArgCount[HEAD_CODE_ORDER] = 3;
     unaddressableMultiFileFunctorName2ArgCount[HEAD_RUNTIME_READ] = 3;
     unaddressableMultiFileFunctorName2ArgCount[HEAD_RUNTIME_WRITE] = 3;
-    unaddressableMultiFileFunctorName2ArgCount[HEAD_STEP] = 6;
 
     //runGraphAndSave
     list<string> prologLines;

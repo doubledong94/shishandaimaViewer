@@ -223,6 +223,22 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_CONDITION;
         } else if (ctx->ELSE()) {
             ret = Node::NODE_ELSE;
+        } else if (ctx->FIELD()) {
+            ret = Node::NODE_FIELD;
+        } else if (ctx->METHOD()) {
+            ret = Node::NODE_METHOD;
+        } else if (ctx->CONSTRUCTOR()) {
+            ret = Node::NODE_CONSTRUCTOR;
+        } else if (ctx->CALLED_METHOD()) {
+            ret = Node::NODE_CALLED_METHOD;
+        } else if (ctx->PARAMETER()) {
+            ret = Node::NODE_PARAMETER;
+        } else if (ctx->CALLED_PARAMETER()) {
+            ret = Node::NODE_CALLED_PARAMETER;
+        } else if (ctx->RETURN()) {
+            ret = Node::NODE_RETURN;
+        } else if (ctx->CALLED_RETURN()) {
+            ret = Node::NODE_CALLED_RETURN;
         } else if (ctx->varNode) {
             ret->nodeType = Node::NODE_TYPE_VAR;
             ret->referenceNode = valNameToNode[ctx->IDENTIFIER()->getText()];

@@ -44,6 +44,14 @@ CONDITION : 'Condition';
 ELSE : 'Else';
 DATA_STEP : 'DataStep';
 TIMING_STEP : 'TimingStep';
+FIELD: 'Field';
+METHOD: 'Method';
+CONSTRUCTOR: 'Constructor';
+CALLED_METHOD: 'CalledMethod';
+PARAMETER: 'Parameter';
+CALLED_PARAMETER: 'CalledParameter';
+RETURN: 'Return';
+CALLED_RETURN: 'CalledReturn';
 SEGMENT : 'Seg';
 LINE : 'Line';
 LINE_INSTANCE: 'LineInstance';
@@ -112,6 +120,14 @@ nodeExp
     | ELSE
     | DATA_STEP
     | TIMING_STEP
+    | FIELD
+    | METHOD
+    | CONSTRUCTOR
+    | CALLED_METHOD
+    | PARAMETER
+    | CALLED_PARAMETER
+    | RETURN
+    | CALLED_RETURN
     | '(' bracket=nodeExp ')'
     | refOtherNode=IDENTIFIER
     | varNode='{' IDENTIFIER '}'
