@@ -1,3 +1,4 @@
+#include "../../ikdTree/ikd_Tree.h"
 #include "imgui.h"
 #include "igraph.h"
 #include "threepp/canvas/Canvas.hpp"
@@ -700,6 +701,7 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
             onNodeColorChanged();
         }
         linesObj->setEdges(points, edgePairs);
+        scaleByDistance();
         graphGenerateAndConsumeLock.unlock();
     }
     threepp::Vector3 worldDir;
@@ -855,15 +857,18 @@ BoundedIncrementalGraph::BoundedIncrementalGraph(threepp::Canvas* canvas, threep
     linesObj->updateAlphaUnselected(alphaForUnselected);
     linesObj->updateAlphaSelected(alphaForSelected);
     add(linesObj);
-    nodesObj = Nodes::create(10000, 0.5f);
+    int nodeCapacity = 10000;
+    nodesObj = Nodes::create(nodeCapacity, 0.3f);
     nodesObj->updateAlphaUnselected(alphaForUnselected);
     nodesObj->updateAlphaSelected(alphaForSelected);
     add(nodesObj);
+    textSizes = vector<float>(nodeCapacity);
+    fill(textSizes.begin(), textSizes.end(), 1);
     theOriginalGraph = new igraph_t;
     igraph_empty(theOriginalGraph, 0, IGRAPH_DIRECTED);
     layoutMatrix = new igraph_matrix_t;
     igraph_matrix_init(layoutMatrix, 0, 2);
-    for (int i = 0; i < 4;i++) {
+    for (int i = 0; i < 6;i++) {
         layoutBounds[i] = new igraph_vector_t();
         igraph_vector_init(layoutBounds[i], 0);
     }
@@ -877,14 +882,6 @@ int BoundedIncrementalGraph::getNodeCount() {
 
 int BoundedIncrementalGraph::getEdgeCount() {
     return igraph_ecount(theOriginalGraph);
-}
-
-float BoundedIncrementalGraph::getNodeSize() {
-    return nodesObj->getNodeSize();
-}
-
-float BoundedIncrementalGraph::getEdgeWidth() {
-    return linesObj->getLineWidth();
 }
 
 float BoundedIncrementalGraph::getAlphaForUnselected() {
@@ -1671,7 +1668,7 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     reCreateLayout(nodesOrderedByNodeId.size(), is2D, false, &mapFromNewToOldNodeId);
     invalidateAllGraphInfo();
-    nodesObj->mapNodeColorForDeletion(&mapFromNewToOldNodeId);
+    nodesObj->mapNodeForDeletion(&mapFromNewToOldNodeId);
     // selected and textAdded must be clear at the same time
     mapNodeIdFromOldToNew(textAdded, &mapFromOldToNewNodeId);
     mapNodeIdFromOldToNew(nodesObj->selected, &mapFromOldToNewNodeId);
@@ -1690,15 +1687,18 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
 void BoundedIncrementalGraph::mapNodeInfoForDeletion(igraph_vector_int_t* mapFromNewToOldNodeId) {
     vector<NodeInfo*> nodesOrderedByNodeId_left;
     vector<std::shared_ptr<threepp::Mesh>> textMesh_left;
+    vector<float> newTextSizes;
     for (int newIndex = 0; newIndex < igraph_vector_int_size(mapFromNewToOldNodeId); newIndex++) {
         int oldIndex = VECTOR(*mapFromNewToOldNodeId)[newIndex];
         auto& nodeInfo = nodesOrderedByNodeId[oldIndex];
         nodeInfo->nodeId = newIndex;
         nodesOrderedByNodeId_left.push_back(nodeInfo);
         textMesh_left.push_back(textMesh[oldIndex]);
+        newTextSizes.push_back(textSizes[oldIndex]);
     }
     nodesOrderedByNodeId = nodesOrderedByNodeId_left;
     textMesh = textMesh_left;
+    textSizes = newTextSizes;
 }
 
 void BoundedIncrementalGraph::mapGroupForDeletion(vector<set<int>>& groups, igraph_vector_int_t* mapFromNewToOldNodeId) {
@@ -1839,6 +1839,7 @@ void BoundedIncrementalGraph::refreshSimpleText() {
                                 textMaterial->color = { 1,1,1 };
                                 textMesh[item.nodeId] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), item.text, textMaterial);
                                 textMesh[item.nodeId]->geometry()->center();
+                                float textSize = baseTextSize * textSizes[item.nodeId] / sqrt(item.text.size() + 0.2);
                                 textMesh[item.nodeId]->geometry()->scale(textSize, textSize, textSize);
                                 this->textLoaded.insert(item.nodeId);
                                 this->textLoading.erase(item.nodeId);
@@ -2061,7 +2062,7 @@ void BoundedIncrementalGraph::changeTextSize(bool increase) {
     } else {
         s = 1 / 1.1f;
     }
-    textSize *= s;
+    baseTextSize *= s;
     for (int i : textLoaded) {
         textMesh[i]->geometry()->scale(s, s, s);
     }
@@ -2209,6 +2210,50 @@ list<tuple<string, string, string, int>> BoundedIncrementalGraph::getSelectedRun
         ret.push_back({ nodeInfo->methodOfRuntime,nodeInfo->runtimeKey,nodeInfo->key,nodeInfo->keyType });
     }
     return ret;
+}
+
+bool BoundedIncrementalGraph::is2DLayout() {
+    return layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
+}
+
+using PointType = ikdTree_PointType;
+using PointVector = KD_TREE<PointType>::PointVector;
+KD_TREE<ikdTree_PointType> ikd_Tree(0.3, 0.6, 0.2);
+
+static int scaleByDistanceCount = 0;
+
+void BoundedIncrementalGraph::scaleByDistance() {
+    scaleByDistanceCount = (scaleByDistanceCount + 1) % 5;
+    if (scaleByDistanceCount) {
+        return;
+    }
+    PointVector point_cloud;
+    PointType new_point;
+    for (auto& p : points) {
+        new_point.x = p.x;
+        new_point.y = p.y;
+        new_point.z = p.z;
+        point_cloud.push_back(new_point);
+    }
+    ikd_Tree.Build(point_cloud);
+    PointType target;
+    vector<float> PointDist;
+    PointVector search_result;
+    for (int i = 0;i < points.size();i++) {
+        auto& p = points[i];
+        PointVector().swap(search_result);
+        target.x = p.x;
+        target.y = p.y;
+        target.z = p.z;
+        ikd_Tree.Nearest_Search(target, 2, search_result, PointDist);
+        nodesObj->setNodeSizeAt(i, sqrt(PointDist[1]));
+    }
+    nodesObj->matrixNeedUpdate();
+    for (int i : textAdded) {
+        float scale = nodesObj->nodeSizes[i] / textSizes[i];
+        textMesh[i]->geometry()->scale(scale, scale, scale);
+    }
+    textSizes.insert(textSizes.begin(), nodesObj->nodeSizes.begin(), nodesObj->nodeSizes.end());
 }
 
 void BoundedIncrementalGraph::changeWeightForSelectedNode(bool increase) {

@@ -30,7 +30,7 @@
 矢山目前只能在linux上编译运行
 ### 1. 安装依赖
 ```
-sudo apt install git cmake g++ bison flex curl libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config
+sudo apt install git cmake g++ bison flex curl libxinerama-dev libxcursor-dev xorg-dev libglu1-mesa-dev pkg-config libpcl-dev
 ```
 
 ### 2. 下载 vcpkg(如果已经下载过vcpkg可跳过这个步骤)

@@ -128,10 +128,6 @@ public:
 
     int getEdgeCount();
 
-    float getNodeSize();
-
-    float getEdgeWidth();
-
     float getAlphaForUnselected();
 
     float getAlphaForSelected();
@@ -288,6 +284,10 @@ public:
 
     list<tuple<string, string, string, int>> getSelectedRuntime();
 
+    bool is2DLayout();
+
+    void scaleByDistance();
+
     // tested property start
     bool isDag();
 
@@ -337,7 +337,8 @@ private:
 
     float alphaForUnselected = 0.3f;
     float alphaForSelected = 1.0f;
-    float textSize = 1;
+    float baseTextSize = 1;
+    vector<float> textSizes;
 
     ReactiveMouseListener* showTextMouseListener = nullptr;
     GraphDragNodeMouseListener* dragMouseListener = nullptr;

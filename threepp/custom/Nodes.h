@@ -5,7 +5,7 @@ public:
 
     bool setPointPositions(const vector<threepp::Vector3>& points);
 
-    void setNodeSize(float size);
+    void setNodeSize();
 
     void setNodeSizeAt(int i, float size);
 
@@ -25,8 +25,6 @@ public:
 
     float encodeIntoRgb(float rgb, float info);
 
-    float getNodeSize();
-
     void updateAlphaUnselected(float alpha);
 
     void updateAlphaSelected(float alpha);
@@ -37,7 +35,7 @@ public:
 
     void setSpecifiedColorAt(int index, const threepp::Color& color, bool overwrite);
 
-    void mapNodeColorForDeletion(igraph_vector_int_t* mapForDeleteNodes);
+    void mapNodeForDeletion(igraph_vector_int_t* mapForDeleteNodes);
 
     set<int> colorSpecified;
 
@@ -48,10 +46,11 @@ public:
 
     void toFile(ofstream& f);
     void fromFile(ifstream& f);
+    vector<float> nodeSizes;
 private:
     threepp::Matrix4 tmpMatrix;
     threepp::Matrix4 tmpMatrix2;
-    float nodeSize = 0.0f;
+    float baseNodeSize = 0.0f;
     threepp::Color defaultColorForUnselected = { 0.5,0.5,0.5 };
     threepp::Color defaultColorForSelected = { 0.9,0.9,0.9 };
     vector<threepp::Color> specifiedColors;

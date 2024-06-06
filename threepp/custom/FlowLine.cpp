@@ -269,10 +269,6 @@ void FlowLine::decreaseLineWidth() {
     updateLineWidth(lineWidth);
 }
 
-float FlowLine::getLineWidth() {
-    return lineWidth;
-}
-
 std::string FlowLine::vertexSource() {
     return R"(
                #version 330 core

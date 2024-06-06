@@ -11,7 +11,9 @@
 Nodes::Nodes(int capacity, float initNodeSize) :threepp::InstancedMesh(NULL, NULL, capacity) {
     nodeCapacity = capacity;
     setCount(nodeCount);
-    nodeSize = initNodeSize;
+    baseNodeSize = initNodeSize;
+    nodeSizes = vector<float>(capacity);
+    fill(nodeSizes.begin(), nodeSizes.end(), 1);
     specifiedColors = vector<threepp::Color>(capacity);
     geometry_ = threepp::BufferGeometry::create();
     geometry_->setAttribute("position", threepp::FloatBufferAttribute::create(
@@ -43,7 +45,7 @@ bool Nodes::setPointPositions(const vector<threepp::Vector3>& points) {
     int oldCount = nodeCount;
     nodeCount = std::min(nodeCapacity, (int)points.size());
     for (int i = 0;i < nodeCount;i++) {
-        tmpMatrix.makeScale(nodeSize, nodeSize, nodeSize);
+        tmpMatrix.makeScale(baseNodeSize * nodeSizes[i], baseNodeSize * nodeSizes[i], baseNodeSize * nodeSizes[i]);
         tmpMatrix.setPosition(points[i].x, points[i].y, points[i].z);
         setMatrixAt(i, tmpMatrix);
     }
@@ -51,14 +53,15 @@ bool Nodes::setPointPositions(const vector<threepp::Vector3>& points) {
     return nodeCount != oldCount;
 }
 
-void Nodes::setNodeSize(float size) {
+void Nodes::setNodeSize() {
     for (int i = 0;i < nodeCount;i++) {
-        setNodeSizeAt(i, size);
+        setNodeSizeAt(i, nodeSizes[i]);
     }
 }
 
 void Nodes::setNodeSizeAt(int i, float size) {
-    tmpMatrix.makeScale(size, size, size);
+    nodeSizes[i] = size;
+    tmpMatrix.makeScale(baseNodeSize * size, baseNodeSize * size, baseNodeSize * size);
     getMatrixAt(i, tmpMatrix2);
     tmpMatrix.copyPosition(tmpMatrix2);
     setMatrixAt(i, tmpMatrix);
@@ -77,19 +80,19 @@ void Nodes::setCameraDir(const threepp::Vector3& cameraDir) {
 void Nodes::setCameraDirAti(int i, const threepp::Vector3& cameraDir) {
     getMatrixAt(i, tmpMatrix);
     tmpMatrix.lookAt({ 0,0,0 }, cameraDir, { 1,1,1 });
-    tmpMatrix.scale({ nodeSize,nodeSize,nodeSize });
+    tmpMatrix.scale({ baseNodeSize * nodeSizes[i],baseNodeSize * nodeSizes[i],baseNodeSize * nodeSizes[i] });
     setMatrixAt(i, tmpMatrix);
 }
 
 void Nodes::increaseNodeSize() {
-    nodeSize *= 1.1f;
-    setNodeSize(nodeSize);
+    baseNodeSize *= 1.1f;
+    setNodeSize();
     matrixNeedUpdate();
 }
 
 void Nodes::decreaseNodeSize() {
-    nodeSize /= 1.1f;
-    setNodeSize(nodeSize);
+    baseNodeSize /= 1.1f;
+    setNodeSize();
     matrixNeedUpdate();
 }
 
@@ -139,10 +142,6 @@ float Nodes::encodeIntoRgb(float rgb, float info) {
     return rgb + info / 100;
 }
 
-float Nodes::getNodeSize() {
-    return nodeSize;
-}
-
 void Nodes::updateAlphaUnselected(float alpha) {
     shaderMaterial->uniforms.at("alphaUnselected").setValue(alpha);
 }
@@ -169,11 +168,12 @@ void Nodes::setSpecifiedColorAt(int index, const threepp::Color& color, bool ove
     specifiedColors[index].copy(color2);
 }
 
-void Nodes::mapNodeColorForDeletion(igraph_vector_int_t* mapForDeleteNodes) {
+void Nodes::mapNodeForDeletion(igraph_vector_int_t* mapForDeleteNodes) {
     set<int> oldColorSpecified;
     oldColorSpecified.insert(colorSpecified.begin(), colorSpecified.end());
     vector<threepp::Color> oldSpecifiedColors = specifiedColors;
     set<int> oldPositionFixed = positionFixed;
+    vector<float> oldNodeSizes = nodeSizes;
     colorSpecified.clear();
     positionFixed.clear();
     for (int i = 0; i < igraph_vector_int_size(mapForDeleteNodes); ++i) {
@@ -185,6 +185,7 @@ void Nodes::mapNodeColorForDeletion(igraph_vector_int_t* mapForDeleteNodes) {
         if (oldPositionFixed.count(oldIndex)) {
             positionFixed.insert(i);
         }
+        nodeSizes[i] = oldNodeSizes[oldIndex];
     }
 }
 

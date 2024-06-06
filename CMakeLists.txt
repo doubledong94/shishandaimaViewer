@@ -4,6 +4,9 @@ project(shishandaimaViewer VERSION 1.0)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+find_package(PCL 1.8 REQUIRED)
+
+include_directories(${PCL_INCLUDE_DIRS})
 include_directories(external/imgui)
 include_directories(external/imgui/backends)
 
@@ -20,6 +23,7 @@ file(GLOB otherFile "*.cpp" "*.h")
 file(GLOB hotkey "hotkey/*.cpp" "hotkey/*.h")
 file(GLOB resource "res/*.h" "res/*.cpp")
 file(GLOB animation "animation/*.h" "animation/*.cpp")
+file(GLOB ikdtree "ikdTree/*.h" "ikdTree/*.cpp")
 file(GLOB imgui 
         "external/imgui/*.h" 
         "external/imgui/*.cpp"
@@ -43,6 +47,7 @@ add_executable(${PROJECT_NAME}
     ${hotkey}
     ${resource}
     ${animation}
+    ${ikdtree}
 )
 
 add_subdirectory(external/antlr4/runtime/Cpp)
@@ -77,6 +82,7 @@ target_link_libraries(${PROJECT_NAME}
     re2
     igraph
     spdlog
+    ${PCL_LIBRARIES}
 )
 
 add_dependencies(${PROJECT_NAME}      

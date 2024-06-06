@@ -41,8 +41,6 @@ public:
 
     void decreaseLineWidth();
 
-    float getLineWidth();
-
     static std::shared_ptr<FlowLine> create(float initLineWidth);
 
     void toFile(ofstream& f);

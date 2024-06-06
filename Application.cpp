@@ -1010,8 +1010,6 @@ int app::Application::ApplicationMain() {
             if (ImGui::Begin("status bar", &showStatusBar, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove)) {
                 ImGui::Text("node count %d", boundedGraph->getNodeCount());
                 ImGui::Text("edge count  %d", boundedGraph->getEdgeCount());
-                ImGui::Text("node size  %.3f", boundedGraph->getNodeSize());
-                ImGui::Text("edge width   %.3f", boundedGraph->getEdgeWidth());
                 ImGui::Text("selected alpha %.2f", boundedGraph->getAlphaForSelected());
                 ImGui::Text("unselected alpha %.2f", boundedGraph->getAlphaForUnselected());
                 ImGui::Text("layout temperature %.3f", boundedGraph->getLayoutTemperature());
