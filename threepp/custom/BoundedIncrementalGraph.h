@@ -288,6 +288,8 @@ public:
 
     void scaleByDistance();
 
+    void applyLayoutPosition();
+
     // tested property start
     bool isDag();
 

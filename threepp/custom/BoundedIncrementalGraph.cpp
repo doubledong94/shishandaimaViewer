@@ -598,6 +598,9 @@ void BoundedIncrementalGraph::reCreateLayout(int nodeCount, bool is2D, bool dime
     for (int i = 0; i < countToCreate; i++) {
         igraph_vector_init(layoutBounds[i], nodeCount);
     }
+    if (mapFromNewToOldNodeId) {
+        applyLayoutPosition();
+    }
     resetLayoutBound(is2D);
 }
 
@@ -671,24 +674,7 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     }
     if (layoutAnimating) {
         graphGenerateAndConsumeLock.lock();
-        if (layoutState == LAYOUT_STATE_2D) {
-            for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
-                if (not (dragMouseListener->draggingGroup.count(node_id_iter) or
-                    dragMouseListener->draggingGroupX.count(node_id_iter) or
-                    dragMouseListener->draggingGroupY.count(node_id_iter))) {
-                    points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), 0);
-                }
-            }
-        }
-        if (layoutState == LAYOUT_STATE_3D) {
-            for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
-                if (not (dragMouseListener->draggingGroup.count(node_id_iter) or
-                    dragMouseListener->draggingGroupX.count(node_id_iter) or
-                    dragMouseListener->draggingGroupY.count(node_id_iter))) {
-                    points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), MATRIX(*layoutMatrix, node_id_iter, 2));
-                }
-            }
-        }
+        applyLayoutPosition();
         bool groupAnimating = false;
         groupAnimating |= updatePosByGroup(groups, 0);
         groupAnimating |= updatePosByGroup(xCoordFixed, 1);
@@ -1673,7 +1659,6 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     mapNodeIdFromOldToNew(textAdded, &mapFromOldToNewNodeId);
     mapNodeIdFromOldToNew(nodesObj->selected, &mapFromOldToNewNodeId);
     onNodeColorChanged();
-    resetLayoutBound(is2D);
 
     linesObj->stopFlowing();
 
@@ -2254,6 +2239,27 @@ void BoundedIncrementalGraph::scaleByDistance() {
             float scale = nodesObj->nodeSizes[i] / textSizes[i];
             textMesh[i]->geometry()->scale(scale, scale, scale);
             textSizes[i] = nodesObj->nodeSizes[i];
+        }
+    }
+}
+
+void BoundedIncrementalGraph::applyLayoutPosition() {
+    if (layoutState == LAYOUT_STATE_2D) {
+        for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
+            if (not (dragMouseListener->draggingGroup.count(node_id_iter) or
+                dragMouseListener->draggingGroupX.count(node_id_iter) or
+                dragMouseListener->draggingGroupY.count(node_id_iter))) {
+                points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), 0);
+            }
+        }
+    }
+    if (layoutState == LAYOUT_STATE_3D) {
+        for (igraph_integer_t node_id_iter = 0; node_id_iter < nodesOrderedByNodeId.size(); node_id_iter++) {
+            if (not (dragMouseListener->draggingGroup.count(node_id_iter) or
+                dragMouseListener->draggingGroupX.count(node_id_iter) or
+                dragMouseListener->draggingGroupY.count(node_id_iter))) {
+                points[node_id_iter].set(MATRIX(*layoutMatrix, node_id_iter, 0), MATRIX(*layoutMatrix, node_id_iter, 1), MATRIX(*layoutMatrix, node_id_iter, 2));
+            }
         }
     }
 }
