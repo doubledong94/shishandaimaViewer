@@ -2250,10 +2250,12 @@ void BoundedIncrementalGraph::scaleByDistance() {
     }
     nodesObj->matrixNeedUpdate();
     for (int i : textAdded) {
-        float scale = nodesObj->nodeSizes[i] / textSizes[i];
-        textMesh[i]->geometry()->scale(scale, scale, scale);
+        if (nodesObj->nodeSizes[i] > 0.000001) {
+            float scale = nodesObj->nodeSizes[i] / textSizes[i];
+            textMesh[i]->geometry()->scale(scale, scale, scale);
+            textSizes[i] = nodesObj->nodeSizes[i];
+        }
     }
-    textSizes.insert(textSizes.begin(), nodesObj->nodeSizes.begin(), nodesObj->nodeSizes.end());
 }
 
 void BoundedIncrementalGraph::changeWeightForSelectedNode(bool increase) {
