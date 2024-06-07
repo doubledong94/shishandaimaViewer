@@ -155,7 +155,7 @@ namespace SimpleView {
         string extraStr;
         pair<string, string> nodeKey;
         list<pair<string, string>> nodeList;
-        list<tuple<string, string, string, int>> runtimeNodeList;
+        list<tuple<string, string, string, int, string>> runtimeNodeList;
         ClassScope* classScope = nullptr;
         ClassScope* classScope2 = NULL;
         Node* referenceNode = nullptr;
@@ -226,7 +226,7 @@ namespace SimpleView {
 
         void unResolve(bool retract = false) override;
 
-        int countForMin(map<Node*, int> &nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName);
+        int countForMin(map<Node*, int>& nodeToRuntimeCount, map<string, string>& paramNameToArgName);
 
         bool isParamNode();
 
@@ -234,7 +234,7 @@ namespace SimpleView {
 
         string getRepeatTypeString();
 
-        void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, ClassScope* classScope, map<string, string>& paramNameToArgName);
+        void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName);
     };
 
     class LineInstance;
@@ -306,7 +306,7 @@ namespace SimpleView {
         map<ClassScope*, PlQuery*> plQueries;
         PlTermv* result = NULL;
         int outputIndex = -1;
-        virtual void prepareQuery(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable) {};
+        virtual void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) {};
         virtual void onQueryFinished() {};
         virtual CompoundTerm* getQueryTerm(ClassScope* classScope) { return NULL; };
         virtual vector<Tail*> flatenResult(Term* result) { return {}; };
@@ -343,7 +343,7 @@ namespace SimpleView {
 
         LineInstance(LineTemplate* templateLine, const vector<string>& argumentNameForEachParam);
 
-        void findSplitPoint(ClassScope* classScope);
+        void findSplitPoint();
 
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
 
@@ -353,7 +353,7 @@ namespace SimpleView {
 
         LineInstance* copy();
 
-        void prepareQuery(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable) override;
+        void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) override;
 
         void onQueryFinished() override;
 
@@ -370,7 +370,7 @@ namespace SimpleView {
 
         bool findIntersectionIndexByChar(IntersectionPointInLine* intersection, RegexTree* regexTree, char c);
 
-        void addRuntimeNode(list<tuple<string, string, string, int>>& runtimeNodes, bool downward);
+        void addRuntimeNode(list<tuple<string, string, string, int, string>>& runtimeNodes, bool downward);
 
         void removeRuntimeNode(bool downward);
     };
@@ -489,7 +489,7 @@ namespace SimpleView {
         void updateDisplayName();
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
         void unResolve(bool retract = false) override;
-        void prepareQuery(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable) override;
+        void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) override;
         void onQueryFinished() override;
         CompoundTerm* getQueryTerm(ClassScope* classScope);
         vector<Tail*> flatenResult(Term* result) override;

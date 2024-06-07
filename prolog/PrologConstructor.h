@@ -193,8 +193,9 @@ static Term* HEAD_LENGTH = new Term("length", Term::TERM_TYPE_ATOM);
 static Term* HEAD_COUNT = new Term("count", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_STEP_KEY_TO_CLASS_KEY = new Term("stepKeyToClassKey", Term::TERM_TYPE_ATOM);
-static Term* HEAD_LOAD_RUNTIME_BY_STEP_KEY = new Term("loadRuntimeByStepKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_LOAD_CLASS_BY_STEP_KEY = new Term("loadAddressableAndRuntimeByStepKey", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LOAD_RUNTIME = new Term("load_unaddressable", Term::TERM_TYPE_ATOM);
+static Term* HEAD_LOAD_ADDRESSABLE = new Term("load_addressable", Term::TERM_TYPE_ATOM);
 
 static map<Term*, int> addressableMultiFileFunctorName2ArgCount;
 
@@ -224,9 +225,11 @@ public:
 
     static CompoundTerm* getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey);
 
-    static CompoundTerm* getLoadRuntimeByStepKeyTerm(Term* stepKey);
+    static CompoundTerm* getLoadClassByStepKeyTerm(Term* stepKey);
 
     static CompoundTerm* getLoadRuntimeTerm(Term* classKey);
+
+    static CompoundTerm* getLoadAddressableTerm(Term* classKey);
 
     static CompoundTerm* getMemberTerm(Term* m, Term* l);
 

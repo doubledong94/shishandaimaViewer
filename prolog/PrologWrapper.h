@@ -36,6 +36,8 @@ public:
 
     static void unLoadFile(const string &filePath);
 
+    static void plCall(const string& clause);
+
     static void loadTypeKeyAddressable(const string &typeKey);
     static void loadTypeKeyUnaddressable(const string &typeKey);
 };

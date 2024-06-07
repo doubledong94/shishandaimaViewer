@@ -551,30 +551,26 @@ int app::Application::ApplicationMain() {
         showTooltipSwitchOn = !showTooltipSwitchOn;
         };
     HotkeyConfig::functionEnumToFunction[SEARCH_DOWNWARD] = [&]() {
-        if (selected_class_scope > -1) {
-            showTooltip = false;
-            chooseLineDownPopupOpen = true;
-            lineDownAndUpCount = 0;
-            for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
-                auto& line = SimpleView::SimpleViewToGraphConverter::valNameToLine[lineTempalteName];
-                if (line->orderedParamName.empty()) {
-                    lineDownAndUp[lineDownAndUpCount] = lineTempalteName.data();
-                    lineDownAndUpCount++;
-                }
+        showTooltip = false;
+        chooseLineDownPopupOpen = true;
+        lineDownAndUpCount = 0;
+        for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
+            auto& line = SimpleView::SimpleViewToGraphConverter::valNameToLine[lineTempalteName];
+            if (line->orderedParamName.empty()) {
+                lineDownAndUp[lineDownAndUpCount] = lineTempalteName.data();
+                lineDownAndUpCount++;
             }
         }
         };
     HotkeyConfig::functionEnumToFunction[SEARCH_UPWARD] = [&]() {
-        if (selected_class_scope > -1) {
-            showTooltip = false;
-            chooseLineUpPopupOpen = true;
-            lineDownAndUpCount = 0;
-            for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
-                auto& line = SimpleView::SimpleViewToGraphConverter::valNameToLine[lineTempalteName];
-                if (line->orderedParamName.empty()) {
-                    lineDownAndUp[lineDownAndUpCount] = lineTempalteName.data();
-                    lineDownAndUpCount++;
-                }
+        showTooltip = false;
+        chooseLineUpPopupOpen = true;
+        lineDownAndUpCount = 0;
+        for (auto& lineTempalteName : SimpleView::SimpleViewToGraphConverter::lineNameOrder) {
+            auto& line = SimpleView::SimpleViewToGraphConverter::valNameToLine[lineTempalteName];
+            if (line->orderedParamName.empty()) {
+                lineDownAndUp[lineDownAndUpCount] = lineTempalteName.data();
+                lineDownAndUpCount++;
             }
         }
         };
@@ -745,7 +741,7 @@ int app::Application::ApplicationMain() {
         if (aboutToDeleteGraph) {
             showDoubleCheckDialog("are you sure to delete graph", &aboutToDeleteGraph, [&]() {
                 FileManager::deleteFile(FileManager::graphSaveAndRestorePath + graphToBeDeleted);
-            });
+                });
         }
 
         shishan::editLineAndGraph(editLineAndGraphOpen);
@@ -897,7 +893,7 @@ int app::Application::ApplicationMain() {
             for (int i = 0;i < lineDownAndUpCount;i++) {
                 shishan::putIcon(SimpleView::SimpleViewToGraphConverter::valNameToLine[lineDownAndUp[i]]->iconId, ImGui::GetFontSize());
                 if (ImGui::Selectable(lineDownAndUp[i])) {
-                    list<tuple<string, string, string, int>> runtimeNodes = boundedGraph->getSelectedRuntime();
+                    list<tuple<string, string, string, int, string>> runtimeNodes = boundedGraph->getSelectedRuntime();
                     if (runtimeNodes.empty()) {
                         continue;
                     }
@@ -906,34 +902,33 @@ int app::Application::ApplicationMain() {
                     lineInstance->addRuntimeNode(runtimeNodes, lineDown);
                     spdlog::get(ErrorManager::DebugTag)->info("search line: {}; {}", lineInstance->valName.data(), lineInstance->innerValName.data());
                     boundedGraph->searchingGraphName = "single lines";
-                    SimpleView::ClassScope* classScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeNames[selected_class_scope]];
-                    std::thread worker([&](SimpleView::LineInstance* lineInstance, SimpleView::ClassScope* classScope, bool lineDown) {
+                    std::thread worker([&](SimpleView::LineInstance* lineInstance, bool lineDown) {
                         if (searchingInProgress) {
                             return;
                         }
                         startSearchTime = absl::GetCurrentTimeNanos();
                         searchingInProgress = true;
                         printf("PL_set_engine: %d\n", PL_set_engine(pl_engine_for_earching, NULL));
-                        lineInstance->startSearching(classScope, &loadingAddressableProgress, &loadingUnaddressableProgress);
-                        vector<Tail*> result = lineInstance->queryNext(classScope);
+                        lineInstance->startSearching(NULL, &loadingAddressableProgress, &loadingUnaddressableProgress);
+                        vector<Tail*> result = lineInstance->queryNext(NULL);
                         int count = 0;
                         boundedGraph->layoutAnimating = true;
                         while (not result.empty()) {
                             boundedGraph->addBuffers(result);
                             count++;
                             result.clear();
-                            result = lineInstance->queryNext(classScope);
+                            result = lineInstance->queryNext(NULL);
                             boundedGraph->returnDoneBufferToPool();
                         }
                         while (boundedGraph->bufferSize()) {
                             boundedGraph->returnDoneBufferToPool();
                         }
-                        lineInstance->endSearching(classScope);
+                        lineInstance->endSearching(NULL);
                         spdlog::get(ErrorManager::DebugTag)->info("prolog result count: {}", count);
                         printf("PL_set_engine: %d\n", PL_set_engine(NULL, NULL));
                         searchingInProgress = false;
                         lineInstance->removeRuntimeNode(lineDown);
-                        }, lineInstance, classScope, lineDown);
+                        }, lineInstance, lineDown);
                     worker.detach();
                 }
             }

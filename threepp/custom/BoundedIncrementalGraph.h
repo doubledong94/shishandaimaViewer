@@ -12,6 +12,7 @@ public:
 class NodeInfo {
 public:
     list<PositionInRegex*> positionInRegex;
+    string runtimeClass;
     string methodOfRuntime;
     string runtimeKey;
     string key;
@@ -23,9 +24,11 @@ public:
     PositionInRegex* getExistingPositionInRegex(const string& graphName, const string& lineName, const string& regex);
     static string makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey);
     void makeSimpleName();
+    void makeTypeKey();
+    void makeRuntimeClass();
     string& getSimpleName();
     string& getTypeKey();
-    void makeTypeKey();
+    string& getRuntimeClass();
     void toFile(ofstream& f);
     void fromFile(ifstream& f);
 };
@@ -282,7 +285,7 @@ public:
 
     list<pair<string, string>> getSelectedKey();
 
-    list<tuple<string, string, string, int>> getSelectedRuntime();
+    list<tuple<string, string, string, int, string>> getSelectedRuntime();
 
     bool is2DLayout();
 

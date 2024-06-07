@@ -328,12 +328,16 @@ CompoundTerm* CompoundTerm::getStepKeyToClassKeyTerm(Term* stepKey, Term* classK
     return makeTerm(HEAD_STEP_KEY_TO_CLASS_KEY, stepKey, classKey);
 }
 
-CompoundTerm* CompoundTerm::getLoadRuntimeByStepKeyTerm(Term* stepKey) {
-    return makeTerm(HEAD_LOAD_RUNTIME_BY_STEP_KEY, stepKey);
+CompoundTerm* CompoundTerm::getLoadClassByStepKeyTerm(Term* stepKey) {
+    return makeTerm(HEAD_LOAD_CLASS_BY_STEP_KEY, stepKey);
 }
 
 CompoundTerm* CompoundTerm::getLoadRuntimeTerm(Term* classKey) {
     return makeTerm(HEAD_LOAD_RUNTIME, classKey);
+}
+
+CompoundTerm* CompoundTerm::getLoadAddressableTerm(Term* classKey) {
+    return makeTerm(HEAD_LOAD_ADDRESSABLE, classKey);
 }
 
 CompoundTerm* CompoundTerm::getDataFlowTerm(Term* mk, Term* src, Term* dst) {

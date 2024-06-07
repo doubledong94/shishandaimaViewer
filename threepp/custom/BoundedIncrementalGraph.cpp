@@ -321,6 +321,13 @@ string& NodeInfo::getTypeKey() {
     return typeKey;
 }
 
+string& NodeInfo::getRuntimeClass() {
+    if (runtimeClass.empty()) {
+        makeRuntimeClass();
+    }
+    return runtimeClass;
+}
+
 void NodeInfo::makeTypeKey() {
     if (keyType == GlobalInfo::KEY_TYPE_FIELD or
         keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
@@ -345,6 +352,16 @@ void NodeInfo::makeTypeKey() {
     }
 }
 
+void NodeInfo::makeRuntimeClass() {
+    auto* result = PrologWrapper::query(CompoundTerm::getMethodTerm(Term::getVar("Class"), Term::getStr(methodOfRuntime)));
+    if (result) {
+        runtimeClass = result->atomOrVar;
+    } else {
+        result = PrologWrapper::query(CompoundTerm::getConstructorTerm(Term::getVar("Class"), Term::getStr(methodOfRuntime)));
+        runtimeClass = result->atomOrVar;
+    }
+}
+
 void NodeInfo::toFile(ofstream& f) {
     f << positionInRegex.size() << "\n";
     FOR_EACH_ITEM(positionInRegex, item->toFile(f););
@@ -356,6 +373,7 @@ void NodeInfo::toFile(ofstream& f) {
     f << nodeId << "\n";
     f << typeKey << "\n";
     f << simpleName << "\n";
+    f << runtimeClass << "\n";
 }
 
 void NodeInfo::fromFile(ifstream& f) {
@@ -373,6 +391,7 @@ void NodeInfo::fromFile(ifstream& f) {
     nodeId = getInt(f);
     getline(f, typeKey);
     getline(f, simpleName);
+    getline(f, runtimeClass);
 }
 
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
@@ -1887,6 +1906,11 @@ void BoundedIncrementalGraph::groupFromFile(ifstream& f, set<int>& group) {
 }
 
 void BoundedIncrementalGraph::toFile(ofstream& f) {
+    for (auto& nodeInfo : nodesOrderedByNodeId) {
+        nodeInfo->getSimpleName();
+        nodeInfo->getTypeKey();
+        nodeInfo->getRuntimeClass();
+    }
     f << searchingGraphName << "\n";
     // dimension
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
@@ -2188,11 +2212,11 @@ list<pair<string, string>> BoundedIncrementalGraph::getSelectedKey() {
     return ret;
 }
 
-list<tuple<string, string, string, int>> BoundedIncrementalGraph::getSelectedRuntime() {
-    auto ret = list<tuple<string, string, string, int>>();
+list<tuple<string, string, string, int, string>> BoundedIncrementalGraph::getSelectedRuntime() {
+    auto ret = list<tuple<string, string, string, int, string>>();
     for (int i : nodesObj->selected) {
         auto& nodeInfo = nodesOrderedByNodeId[i];
-        ret.push_back({ nodeInfo->methodOfRuntime,nodeInfo->runtimeKey,nodeInfo->key,nodeInfo->keyType });
+        ret.push_back({ nodeInfo->methodOfRuntime,nodeInfo->runtimeKey,nodeInfo->key,nodeInfo->keyType, nodeInfo->getRuntimeClass() });
     }
     return ret;
 }

@@ -391,8 +391,8 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
             CompoundTerm::getStepTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToClassTerm
         }));
 
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadRuntimeByStepKeyTerm(stepKey), {
-        CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey))
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepKeyTerm(stepKey), {
+        CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey))
         }));
 
     for (auto& rule : rules) {
@@ -1303,6 +1303,8 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
                 Term::getStr(std::get<0>(runtimeNode)), Term::getStr(std::get<1>(runtimeNode)),
                 Term::getStr(std::get<2>(runtimeNode)), Term::getInt(std::get<3>(runtimeNode))
             );
+            PrologWrapper::plCall(CompoundTerm::getLoadAddressableTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
+            PrologWrapper::plCall(CompoundTerm::getLoadRuntimeTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::addFact(resolveRuntime->toString(true));
         }
     } else {
@@ -1628,13 +1630,13 @@ string SimpleView::NodeAndRepeatType::getRepeatTypeString() {
     return repeatString;
 }
 
-int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCount, ClassScope* classScope, map<string, string>& paramNameToArgName) {
+int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCount, map<string, string>& paramNameToArgName) {
     if (repeatType != LineTemplate::REPEAT_TYPE_ONE) {
         return INT_MAX;
     }
     if (seg) {
         vector<int> nodeCounts;
-        FOR_EACH_ITEM(seg->nodeAndRepeatType, nodeCounts.push_back(item->countForMin(nodeToRuntimeCount, classScope, paramNameToArgName)););
+        FOR_EACH_ITEM(seg->nodeAndRepeatType, nodeCounts.push_back(item->countForMin(nodeToRuntimeCount, paramNameToArgName)););
         return *(std::min_element(std::begin(nodeCounts), std::end(nodeCounts)));
     } else {
         if (node->nodeType == Node::NODE_TYPE_RUNTIME) {
@@ -1659,7 +1661,7 @@ int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCou
 }
 
 // backwardFlg: 0 for undecided(split position is undecided), 1 for forward, 2 for backward
-void SimpleView::NodeAndRepeatType::markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, ClassScope* classScope, map<string, string>& paramNameToArgName) {
+void SimpleView::NodeAndRepeatType::markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName) {
     splitPoint->isSplitPosition = not backwardFlg;
     splitPoint->isBackward = backwardFlg == 2;
     if (seg) {
@@ -1667,7 +1669,7 @@ void SimpleView::NodeAndRepeatType::markSplitByRuntimeCount(RegexTree* splitPoin
             vector<int> nodeCounts;
             map<Node*, int> nodeToRuntimeCount;
             spdlog::get(ErrorManager::TimerTag)->info("start count for min");
-            FOR_EACH_ITEM(seg->nodeAndRepeatType, nodeCounts.push_back(item->countForMin(nodeToRuntimeCount, classScope, paramNameToArgName)););
+            FOR_EACH_ITEM(seg->nodeAndRepeatType, nodeCounts.push_back(item->countForMin(nodeToRuntimeCount, paramNameToArgName)););
             spdlog::get(ErrorManager::TimerTag)->info("end count for min");
             auto minIndex = std::distance(std::begin(nodeCounts), std::min_element(std::begin(nodeCounts), std::end(nodeCounts)));
             for (int i = 0;i < seg->nodeAndRepeatType.size();i++) {
@@ -1681,11 +1683,11 @@ void SimpleView::NodeAndRepeatType::markSplitByRuntimeCount(RegexTree* splitPoin
                         backwardFlgI = 1;
                     }
                 }
-                seg->nodeAndRepeatType[i]->markSplitByRuntimeCount(splitPoint->subStructure[i], backwardFlgI, classScope, paramNameToArgName);
+                seg->nodeAndRepeatType[i]->markSplitByRuntimeCount(splitPoint->subStructure[i], backwardFlgI, paramNameToArgName);
             }
         } else {
             for (int i = 0;i < seg->nodeAndRepeatType.size();i++) {
-                seg->nodeAndRepeatType[i]->markSplitByRuntimeCount(splitPoint->subStructure[i], backwardFlg, classScope, paramNameToArgName);
+                seg->nodeAndRepeatType[i]->markSplitByRuntimeCount(splitPoint->subStructure[i], backwardFlg, paramNameToArgName);
             }
         }
     }
@@ -2036,7 +2038,7 @@ SimpleView::LineInstance::LineInstance(LineTemplate* templateLine, const vector<
     updateDisplayName();
 }
 
-void SimpleView::LineInstance::findSplitPoint(ClassScope* classScope) {
+void SimpleView::LineInstance::findSplitPoint() {
     splitPoint = lineTemplate->regexTree->copy();
     splitPoint->isSplitPosition = true;
     splitPoint->isBackward = false;
@@ -2051,7 +2053,7 @@ void SimpleView::LineInstance::findSplitPoint(ClassScope* classScope) {
     vector<int> nodeCounts;
     map<Node*, int> nodeToRuntimeCount;
     spdlog::get(ErrorManager::TimerTag)->info("start count for min");
-    FOR_EACH_ITEM(lineTemplate->nodeAndRepeatType, nodeCounts.push_back(item->countForMin(nodeToRuntimeCount, classScope, paramNameToArgName)););
+    FOR_EACH_ITEM(lineTemplate->nodeAndRepeatType, nodeCounts.push_back(item->countForMin(nodeToRuntimeCount, paramNameToArgName)););
     spdlog::get(ErrorManager::TimerTag)->info("end count for min");
     auto minIndex = std::distance(std::begin(nodeCounts), std::min_element(std::begin(nodeCounts), std::end(nodeCounts)));
     for (int i = 0;i < lineTemplate->nodeAndRepeatType.size();i++) {
@@ -2065,7 +2067,7 @@ void SimpleView::LineInstance::findSplitPoint(ClassScope* classScope) {
                 backwardFlgI = 1;
             }
         }
-        lineTemplate->nodeAndRepeatType[i]->markSplitByRuntimeCount(splitPoint->subStructure[i], backwardFlgI, classScope, paramNameToArgName);
+        lineTemplate->nodeAndRepeatType[i]->markSplitByRuntimeCount(splitPoint->subStructure[i], backwardFlgI, paramNameToArgName);
     }
 }
 
@@ -2134,7 +2136,7 @@ bool SimpleView::LineInstance::findIntersectionIndexByChar(IntersectionPointInLi
     return false;
 }
 
-void SimpleView::LineInstance::addRuntimeNode(list<tuple<string, string, string, int>>& runtimeNodes, bool downward) {
+void SimpleView::LineInstance::addRuntimeNode(list<tuple<string, string, string, int, string>>& runtimeNodes, bool downward) {
     Node* node = new Node();
     node->nodeType = Node::NODE_TYPE_RUNTIME;
     node->displayName = node->innerValName;
@@ -2160,10 +2162,10 @@ void SimpleView::LineInstance::removeRuntimeNode(bool downward) {
 }
 
 // only execute once for each LineInstance obj
-void SimpleView::LineInstance::prepareQuery(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable) {
+void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) {
     resolve(updateAddressable);
     // declare fa rule for forward and backward line
-    findSplitPoint(classScope);
+    findSplitPoint();
     forwardLine = new HalfLineTheFA(this, HalfLineTheFA::HALF_LINE_TYPE_FORWARD);
     backwardLine = new HalfLineTheFA(this, HalfLineTheFA::HALF_LINE_TYPE_BACKWARD);
     forwardLine->declareHalfLineAndFaRules();
@@ -2213,7 +2215,11 @@ void SimpleView::LineInstance::retractAllLineInstanceRule(int intersectionCount)
 }
 
 CompoundTerm* SimpleView::LineInstance::getQueryTerm(ClassScope* classScope) {
-    return getTerm(Term::getStr(classScope->innerValName), {}, Term::getVar("A"));
+    if (classScope) {
+        return getTerm(Term::getStr(classScope->innerValName), {}, Term::getVar("A"));
+    } else {
+        return getTerm(Term::getVar("Class"), {}, Term::getVar("A"));
+    }
 }
 
 vector<Tail*> SimpleView::LineInstance::flatenResult(Term* result) {
@@ -2783,7 +2789,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         Term* stepAddressable = Term::getVar("StepAddressable");
         // check type
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, stepAddressable, midStepTermRuntime, Term::getInt(specialKeyType)));
-        ruleBody.push_back(CompoundTerm::getLoadRuntimeByStepKeyTerm(stepAddressable));
+        ruleBody.push_back(CompoundTerm::getLoadClassByStepKeyTerm(stepAddressable));
         // generate the next method key and next steps
         if (nodeType == Node::NODE_TYPE_DATA_STEP) {
             if (isBackward) {
@@ -3307,7 +3313,7 @@ void SimpleView::GraphInstance::updateDisplayName() {
     displayName = graphTemplate->valName + (orderedArgNames.empty() ? "" : "(" + joinVector(orderedArgNames, ",") + ")");
 }
 
-void SimpleView::GraphInstance::prepareQuery(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable) {
+void SimpleView::GraphInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) {
     resolve(updateAddressable);
     // copy line instance from graph template and replace arg of line instance with arg of graph instance
     FOR_EACH_ITEM(graphTemplate->lineInstances, lineInstances.push_back(item->copy()););
@@ -3345,7 +3351,7 @@ void SimpleView::GraphInstance::prepareQuery(ClassScope* classScope, std::functi
         intersectionTerms.push_back(Term::getVar("Intersectin" + to_string(i)));
     }
     FOR_EACH_ITEM(lineInstances, item->intersectionTerms = intersectionTerms;);
-    FOR_EACH_ITEM(lineInstances, item->prepareQuery(classScope, updateAddressable););
+    FOR_EACH_ITEM(lineInstances, item->prepareQuery(updateAddressable););
 
     // declare graph rule in prolog
     auto classScopeTerm = Term::getVar("ClassScope");
@@ -3390,7 +3396,11 @@ void SimpleView::GraphInstance::unResolve(bool retract) {
 }
 
 CompoundTerm* SimpleView::GraphInstance::getQueryTerm(ClassScope* classScope) {
-    return getTerm(Term::getStr(classScope->innerValName), Term::getVar("A"));
+    if (classScope) {
+        return getTerm(Term::getStr(classScope->innerValName), Term::getVar("A"));
+    } else {
+        return getTerm(Term::getVar("Class"), Term::getVar("A"));
+    }
 }
 
 vector<Tail*> SimpleView::GraphInstance::flatenResult(Term* result) {
@@ -3408,11 +3418,15 @@ CompoundTerm* SimpleView::GraphInstance::getTerm(Term* classScopeValName, Term* 
 }
 
 void SimpleView::Searcher::startSearching(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable) {
-    classScope->unResolve();
+    if (classScope) {
+        classScope->unResolve();
+    }
     onQueryFinished();
-    classScope->resolveForRuntime(updateAddressable);
-    classScope->loadRuntime(updateUnaddressable);
-    prepareQuery(classScope, updateAddressable);
+    if (classScope) {
+        classScope->resolveForRuntime(updateAddressable);
+        classScope->loadRuntime(updateUnaddressable);
+    }
+    prepareQuery(updateAddressable);
     plQueries[classScope] = PrologWrapper::makeQuery(getQueryTerm(classScope), result, outputIndex);
 }
 
@@ -3427,7 +3441,9 @@ vector<Tail*> SimpleView::Searcher::queryNext(ClassScope* classScope) {
 }
 
 void SimpleView::Searcher::endSearching(ClassScope* classScope) {
-    classScope->unResolve();
+    if (classScope) {
+        classScope->unResolve();
+    }
     if (plQueries.count(classScope)) {
         delete plQueries[classScope];
         plQueries.erase(classScope);

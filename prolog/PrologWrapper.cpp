@@ -205,6 +205,12 @@ void PrologWrapper::unLoadFile(const string& filePath) {
     PlCall("unload_file(\"" + filePath + "\").");
 }
 
+void PrologWrapper::plCall(const string& clause) {
+    debug_prolog_file << (":-" + clause + ".") << "\n";
+    debug_prolog_file.flush();
+    PlCall(clause + ".");
+}
+
 
 void PrologWrapper::loadTypeKeyAddressable(const string& typeKey) {
     debug_prolog_file << (":-load_addressable(\"" + typeKey + "\").") << "\n";
