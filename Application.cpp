@@ -165,7 +165,8 @@ int app::Application::ApplicationMain() {
     static int graph_instance_starting_count = -1;
     static char* graphAndGraphInstanceNames[500];
     static char saveNodeOrGraphName[100];
-    static char* nodeType[] = { "Field",
+    static char* nodeType[] = { "Class",
+    "Field",
     "Constructor",
     "Method",
     "Parameter",
@@ -870,9 +871,9 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByKeyTypePopupOpen")) {
             ImGui::SeparatorText("select by key type");
-            for (int i = 0;i < 17;i++) {
+            for (int i = 0;i < 18;i++) {
                 if (ImGui::Selectable(nodeType[i])) {
-                    boundedGraph->selectByKeyType(i + 1);
+                    boundedGraph->selectByKeyType(i);
                 }
             }
             ImGui::EndPopup();
