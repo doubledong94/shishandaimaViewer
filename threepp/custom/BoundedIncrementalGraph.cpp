@@ -2256,8 +2256,13 @@ void BoundedIncrementalGraph::scaleByDistance() {
         target.z = p.z;
         set<int> group;
         getGroupIfGrouped(i, group, groups);
-        ikd_Tree.Nearest_Search(target, group.size() + 1, search_result, PointDist);
-        nodesObj->setNodeSizeAt(i, sqrt(PointDist[group.size()]));
+        int queryCount = group.size() + 1;
+        ikd_Tree.Nearest_Search(target, queryCount, search_result, PointDist);
+        if (PointDist.size() < queryCount) {
+            nodesObj->setNodeSizeAt(i, 10);
+        } else {
+            nodesObj->setNodeSizeAt(i, sqrt(PointDist[group.size()]));
+        }
     }
     nodesObj->matrixNeedUpdate();
     for (int i : textAdded) {
