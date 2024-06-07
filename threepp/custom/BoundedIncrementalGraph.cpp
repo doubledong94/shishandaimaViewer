@@ -2248,7 +2248,11 @@ void BoundedIncrementalGraph::scaleByDistance() {
     PointType target;
     vector<float> PointDist;
     PointVector search_result;
+    set<int> doneNode;
     for (int i = 0;i < points.size();i++) {
+        if (doneNode.count(i)) {
+            continue;
+        }
         auto& p = points[i];
         PointVector().swap(search_result);
         target.x = p.x;
@@ -2259,10 +2263,16 @@ void BoundedIncrementalGraph::scaleByDistance() {
         int queryCount = group.size() + 1;
         ikd_Tree.Nearest_Search(target, queryCount, search_result, PointDist);
         if (PointDist.size() < queryCount) {
-            nodesObj->setNodeSizeAt(i, 10);
+            for (int j : group) {
+                nodesObj->setNodeSizeAt(j, 10);
+            }
         } else {
-            nodesObj->setNodeSizeAt(i, sqrt(PointDist[group.size()]));
+            float nodeSize = sqrt(PointDist[group.size()]);
+            for (int j : group) {
+                nodesObj->setNodeSizeAt(j, nodeSize);
+            }
         }
+        doneNode.insert(group.begin(), group.end());
     }
     nodesObj->matrixNeedUpdate();
     for (int i : textAdded) {
