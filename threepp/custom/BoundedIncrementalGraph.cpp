@@ -1425,7 +1425,7 @@ void BoundedIncrementalGraph::clearEmptyGroup(vector<set<int>>& groups) {
 void BoundedIncrementalGraph::flowColor() {
     prepareInDegreeMap();
     prepareOutDegreeMap();
-    threepp::Color startColor = threepp::Color(1, 1, 0);
+    threepp::Color startColor = threepp::Color(0.85, 0.85, 0);
     threepp::Color endColor = threepp::Color(1, 0, 1);
     threepp::Color color;
     for (int i = 0;i < points.size();i++) {
