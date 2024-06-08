@@ -123,6 +123,8 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     set<int> draggingGroup;
     set<int> draggingGroupX;
     set<int> draggingGroupY;
+    bool hasMoved;
+    bool leftClicked = false;
 
     GraphDragNodeMouseListener(BoundedIncrementalGraph* scope, threepp::Camera* camera) {
         this->scope = scope;
@@ -130,6 +132,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseDown(int button, const threepp::Vector2& pos) override {
+        hasMoved = false;
         if (not scope->layoutAnimating or button != mouse_left_button) {
             return;
         }
@@ -174,6 +177,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseUp(int button, const threepp::Vector2& pos) override {
+        leftClicked = button == mouse_left_button and not hasMoved;
         draggingGroup.clear();
         draggingGroupX.clear();
         draggingGroupY.clear();
@@ -187,6 +191,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseMove(const threepp::Vector2& pos) override {
+        hasMoved = true;
         if (not (draggingGroup.empty() and draggingGroupX.empty() and draggingGroupY.empty()) and dragConsumed) {
             auto size = scope->canvas->size();
             threepp::Vector2 moveMouse{ -std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity() };
@@ -202,6 +207,9 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void reactOnMouseEvent() override {
+        if (leftClicked and scope->raycastOnFrame) {
+            scope->onBoundDragIconClicked(*(draggingGroup.begin()));
+        }
         if (draggingGroupX.size() > 1 and not dragConsumed) {
             scope->onDragX(draggingGroupX, dragDelta.x);
             dragConsumed = true;
@@ -967,6 +975,20 @@ void BoundedIncrementalGraph::startFlowFrom(int nodeInstanceId, bool backward) {
 void BoundedIncrementalGraph::onNodeRightClicked(int nodeInstanceId) {
     bool shiftPressed = ImGui::IsKeyDown(ImGuiKey_LeftShift) or ImGui::IsKeyDown(ImGuiKey_RightShift);
     startFlowFrom(nodeInstanceId, shiftPressed);
+}
+
+void BoundedIncrementalGraph::onBoundDragIconClicked(int id) {
+    if (lastClickedNodeId == id) {
+        nodeClickedForTheFirstTime = false;
+    } else {
+        nodeClickedForTheFirstTime = true;
+    }
+    lastClickedNodeId = id;
+    doubleClickStateMachine->onClick([&, id]() {
+        if (not nodeClickedForTheFirstTime) {
+            select(bounds[id]);
+        }
+        });
 }
 
 void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {

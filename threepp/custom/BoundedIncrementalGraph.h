@@ -153,6 +153,8 @@ public:
 
     void onNodeLeftClicked(int nodeInstanceId);
 
+    void onBoundDragIconClicked(int id);
+
     void onNodeHover(int nodeInstanceId);
 
     void onExitHover();
