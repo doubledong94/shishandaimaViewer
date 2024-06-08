@@ -40,6 +40,7 @@
 #include <limits>
 #include "../../util/timer.h"
 #include "../../hotkey/DoubleClickStateMachine.h"
+#include "BoundFrame.h"
 #include "BoundedIncrementalGraph.h"
 #include <regex>
 #include "../../file/FileManager.h"
@@ -137,7 +138,9 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
         downMouse.x = (pos.x / static_cast<float>(size.width)) * 2 - 1;
         downMouse.y = -(pos.y / static_cast<float>(size.height)) * 2 + 1;
         scope->raycaster->setFromCamera(downMouse, *camera);
+        scope->raycastByDrag = true;
         auto clickedItem = scope->raycaster->intersectObjects({ scope });
+        scope->raycastByDrag = false;
         bool is2D = scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D or scope->layoutState == BoundedIncrementalGraph::LAYOUT_STATE_2D_UNFINISHED;
         if (not clickedItem.empty()) {
             int draggingItemId = clickedItem.front().instanceId.value();
@@ -152,7 +155,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
             threepp::Vector3 dir;
             camera->getWorldDirection(dir);
             plane.set(dir, 0);
-            threepp::Vector3 point = scope->points[draggingItemId];
+            threepp::Vector3 point = scope->raycastOnFrame ? scope->boundFrames[draggingItemId]->start : scope->points[draggingItemId];
             point.add(scope->position);
             float distance = -plane.distanceToPoint(point);
             plane.set(dir, distance);
@@ -811,10 +814,16 @@ void BoundedIncrementalGraph::set2DLayout(bool use2DLayout) {
     if (use2DLayout) {
         if (layoutState == LAYOUT_STATE_3D) {
             layoutState = LAYOUT_STATE_2D_UNFINISHED;
+            for (int i = 0;i < bounds.size();i++) {
+                boundFrames[i]->setDim(true);
+            }
         }
     } else {
         if (layoutState == LAYOUT_STATE_2D) {
             layoutState = LAYOUT_STATE_3D_UNFINISHED;
+            for (int i = 0;i < bounds.size();i++) {
+                boundFrames[i]->setDim(false);
+            }
         }
     }
 }
@@ -879,6 +888,9 @@ BoundedIncrementalGraph::BoundedIncrementalGraph(threepp::Canvas* canvas, threep
     }
     weights = new igraph_vector_t();
     igraph_vector_init(weights, 0);
+    for (int i = 0; i < 500; i++) {
+        boundFrames.push_back(BoundFrame::create());
+    }
 }
 
 int BoundedIncrementalGraph::getNodeCount() {
@@ -1048,21 +1060,29 @@ void BoundedIncrementalGraph::resetLayoutBound(bool is2D) {
             VECTOR(*layoutBounds[5])[i] = pos.z;
         }
     }
+    applyBounds();
 }
 
 void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, float deltaZ) {
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
-    for (int id : ids) {
-        points[id].x += deltaX;
-        points[id].y += deltaY;
-        VECTOR(*layoutBounds[0])[id] = points[id].x;
-        VECTOR(*layoutBounds[1])[id] = points[id].x;
-        VECTOR(*layoutBounds[2])[id] = points[id].y;
-        VECTOR(*layoutBounds[3])[id] = points[id].y;
-        if (not is2D) {
-            points[id].z += deltaZ;
-            VECTOR(*layoutBounds[4])[id] = points[id].z;
-            VECTOR(*layoutBounds[5])[id] = points[id].z;
+    if (raycastOnFrame) {
+        for (int id : ids) {
+            boundFrames[id]->onDrag(deltaX, deltaY, deltaZ);
+            applyBounds();
+        }
+    } else {
+        for (int id : ids) {
+            points[id].x += deltaX;
+            points[id].y += deltaY;
+            VECTOR(*layoutBounds[0])[id] = points[id].x;
+            VECTOR(*layoutBounds[1])[id] = points[id].x;
+            VECTOR(*layoutBounds[2])[id] = points[id].y;
+            VECTOR(*layoutBounds[3])[id] = points[id].y;
+            if (not is2D) {
+                points[id].z += deltaZ;
+                VECTOR(*layoutBounds[4])[id] = points[id].z;
+                VECTOR(*layoutBounds[5])[id] = points[id].z;
+            }
         }
     }
 }
@@ -1878,7 +1898,22 @@ void BoundedIncrementalGraph::dispose() {
 }
 
 void BoundedIncrementalGraph::raycast(const threepp::Raycaster& raycaster, std::vector<threepp::Intersection>& intersects) {
-    nodesObj->raycast(raycaster, intersects);
+    if (raycastByDrag) {
+        for (int i = 0;i < bounds.size();i++) {
+            boundFrames[i]->raycast(raycaster, intersects);
+            if (not intersects.empty()) {
+                raycastOnFrame = true;
+                intersects.front().instanceId = i;
+                break;
+            }
+        }
+    }
+    if (intersects.empty()) {
+        nodesObj->raycast(raycaster, intersects);
+        if (raycastByDrag) {
+            raycastOnFrame = false;
+        }
+    }
 }
 
 void BoundedIncrementalGraph::invalidateAllGraphInfo() {
@@ -2510,5 +2545,105 @@ void BoundedIncrementalGraph::grid(vector<set<int>>& toBeGruped) {
     }
     for (auto& group : uniqueGroups) {
         delete group;
+    }
+}
+
+void BoundedIncrementalGraph::groupByMethod() {
+    map<string, set<int>> methodToGroup;
+    for (int nodeId = 0;nodeId < points.size();nodeId++) {
+        auto& nodeInfo = nodesOrderedByNodeId[nodeId];
+        if (not methodToGroup.count(nodeInfo->methodOfRuntime)) {
+            methodToGroup[nodeInfo->methodOfRuntime] = set<int>();
+        }
+        methodToGroup[nodeInfo->methodOfRuntime].insert(nodeId);
+    }
+    yCoordFixed.clear();
+    for (auto& methodAndGroup : methodToGroup) {
+        yCoordFixed.push_back(methodAndGroup.second);
+    }
+}
+
+void BoundedIncrementalGraph::removeAllBounds() {
+    for (int i = 0;i < bounds.size();i++) {
+        remove(*boundFrames[i]);
+    }
+}
+
+void BoundedIncrementalGraph::resetBounds() {
+    bool is2D = is2DLayout();
+    for (int boundIndex = 0; boundIndex < bounds.size(); boundIndex++) {
+        auto& b = bounds[boundIndex];
+        float minX = std::numeric_limits<float>::infinity();
+        float minY = std::numeric_limits<float>::infinity();
+        float minZ = std::numeric_limits<float>::infinity();
+        float maxX = -std::numeric_limits<float>::infinity();
+        float maxY = -std::numeric_limits<float>::infinity();
+        float maxZ = -std::numeric_limits<float>::infinity();
+        for (int i : b) {
+            auto& pos = points[i];
+            if (pos.x < minX) {
+                minX = pos.x;
+            }
+            if (pos.x > maxX) {
+                maxX = pos.x;
+            }
+            if (pos.y < minY) {
+                minY = pos.y;
+            }
+            if (pos.y > maxY) {
+                maxY = pos.y;
+            }
+            if (is2D) {
+                if (pos.z < minZ) {
+                    minZ = pos.z;
+                }
+                if (pos.z > maxZ) {
+                    maxZ = pos.z;
+                }
+            }
+        }
+        for (int i : b) {
+            VECTOR(*layoutBounds[0])[i] = minX;
+            VECTOR(*layoutBounds[1])[i] = maxX;
+            VECTOR(*layoutBounds[2])[i] = minY;
+            VECTOR(*layoutBounds[3])[i] = maxY;
+            if (not is2D) {
+                VECTOR(*layoutBounds[4])[i] = minZ;
+                VECTOR(*layoutBounds[5])[i] = maxY;
+            }
+        }
+        boundFrames[boundIndex]->setDim(is2D);
+        if (is2D) {
+            boundFrames[boundIndex]->start.set(minX, maxY, 0);
+            boundFrames[boundIndex]->end.set(maxX, minY, 0);
+        } else {
+            boundFrames[boundIndex]->start.set(minX, maxY, minZ);
+            boundFrames[boundIndex]->end.set(maxX, minY, maxZ);
+        }
+        boundFrames[boundIndex]->scaleIcon();
+        boundFrames[boundIndex]->applyPosAndSize();
+        add(boundFrames[boundIndex]);
+    }
+}
+
+void BoundedIncrementalGraph::applyBounds() {
+    bool is2D = is2DLayout();
+    for (int id = 0;id < bounds.size();id++) {
+        float minX = min(boundFrames[id]->start.x, boundFrames[id]->end.x);
+        float minY = min(boundFrames[id]->start.y, boundFrames[id]->end.y);
+        float minZ = min(boundFrames[id]->start.z, boundFrames[id]->end.z);
+        float maxX = max(boundFrames[id]->start.x, boundFrames[id]->end.x);
+        float maxY = max(boundFrames[id]->start.y, boundFrames[id]->end.y);
+        float maxZ = max(boundFrames[id]->start.z, boundFrames[id]->end.z);
+        for (int i : bounds[id]) {
+            VECTOR(*layoutBounds[0])[i] = minX;
+            VECTOR(*layoutBounds[1])[i] = maxX;
+            VECTOR(*layoutBounds[2])[i] = minY;
+            VECTOR(*layoutBounds[3])[i] = maxY;
+            if (not is2D) {
+                VECTOR(*layoutBounds[4])[i] = minZ;
+                VECTOR(*layoutBounds[5])[i] = maxZ;
+            }
+        }
     }
 }

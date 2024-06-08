@@ -81,5 +81,7 @@ public:
     static string alphabetIconVPath;
     static string alphabetIconWPath;
     static string graphSaveAndRestorePath;
+    static string boundFrameDragIconPath;
+    static string boundFrameResizeIconPath;
 };
 

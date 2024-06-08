@@ -87,6 +87,7 @@ public:
     vector<set<int>> groups;
     vector<set<int>> xCoordFixed;
     vector<set<int>> yCoordFixed;
+    vector<set<int>> bounds;
     void groupToFile(ofstream& f, set<int>& group);
     void groupFromFile(ifstream& f, set<int>& group);
     vector<std::shared_ptr<threepp::Mesh>> textMesh;
@@ -118,6 +119,9 @@ public:
 
     std::shared_ptr<Nodes> nodesObj;
     std::shared_ptr<FlowLine> linesObj;
+    vector<std::shared_ptr<BoundFrame>> boundFrames;
+    bool raycastByDrag = false;
+    bool raycastOnFrame = false;
 
     static std::shared_ptr<BoundedIncrementalGraph> create(threepp::Canvas* canvas, threepp::Camera* camera, threepp::Raycaster* raycaster, vector<ReactiveMouseListener*>* enabledListeners,
         TwoDControls* twoDControls,
@@ -245,6 +249,12 @@ public:
 
     void resetLayoutBound(bool is2D);
 
+    void removeAllBounds();
+
+    void resetBounds();
+
+    void applyBounds();
+
     void fixPosition();
 
     void releasePosition();
@@ -282,6 +292,8 @@ public:
     void transitiveReductionImpl();
 
     void grid(vector<set<int>>& toBeGruped);
+
+    void groupByMethod();
 
     list<pair<string, string>> getSelectedKey();
 

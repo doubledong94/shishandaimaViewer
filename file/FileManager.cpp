@@ -119,6 +119,8 @@ string FileManager::alphabetIconUPath = "";
 string FileManager::alphabetIconVPath = "";
 string FileManager::alphabetIconWPath = "";
 string FileManager::graphSaveAndRestorePath = "";
+string FileManager::boundFrameDragIconPath = "";
+string FileManager::boundFrameResizeIconPath = "";
 
 
 void FileManager::initCurrentDir() {
@@ -172,6 +174,9 @@ void FileManager::initCurrentDir() {
     alphabetIconUPath = resourceBaseDir + "alphabetIconU.png";
     alphabetIconVPath = resourceBaseDir + "alphabetIconV.png";
     alphabetIconWPath = resourceBaseDir + "alphabetIconW.png";
+    boundFrameDragIconPath = resourceBaseDir + "drag.png";
+    boundFrameResizeIconPath = resourceBaseDir + "resize.png";
+
     ifstream f;
     f.open(srcPathConfig);
     if (f.is_open()) {

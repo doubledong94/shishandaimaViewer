@@ -23,6 +23,7 @@
 #include "threepp/custom/Nodes.h"
 #include "util/timer.h"
 #include "hotkey/DoubleClickStateMachine.h"
+#include "threepp/custom/BoundFrame.h"
 #include "threepp/custom/BoundedIncrementalGraph.h"
 #include "antlr/javaParser/JavaParser.h"
 #include "antlr/javaParser/JavaParserBaseVisitor.h"
@@ -595,6 +596,21 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[RELEASE_ALL_Y_COORD] = [&]() {
         boundedGraph->ungroupAllNodes(boundedGraph->yCoordFixed);
+        };
+    HotkeyConfig::functionEnumToFunction[BOUND_SELECTED_NODE] = [&]() {
+        boundedGraph->removeAllBounds();
+        boundedGraph->groupSelectedNodes(boundedGraph->bounds);
+        boundedGraph->resetBounds();
+        };
+    HotkeyConfig::functionEnumToFunction[UNBOUND_SELECTED_NODE] = [&]() {
+        boundedGraph->removeAllBounds();
+        boundedGraph->ungroupSelectedNodes(boundedGraph->bounds);
+        boundedGraph->resetBounds();
+        };
+    HotkeyConfig::functionEnumToFunction[UNBOUND_UNSELECTED_NODE] = [&]() {
+        boundedGraph->removeAllBounds();
+        boundedGraph->ungroupAllNodes(boundedGraph->bounds);
+        boundedGraph->resetBounds();
         };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
         boundedGraph->grid(boundedGraph->xCoordFixed);
