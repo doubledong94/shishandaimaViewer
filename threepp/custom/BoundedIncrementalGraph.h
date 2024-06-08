@@ -49,6 +49,8 @@ struct TextLoadingItem {
 class BoundedIncrementalGraph : public threepp::Group {
 public:
 
+    vector<pair<int, std::function<void()>>> doOnNextFrame;
+    void clearDoOnNextFrame();
     string searchingGraphName;
     std::mutex bufferLock;
     std::mutex graphGenerateAndConsumeLock;

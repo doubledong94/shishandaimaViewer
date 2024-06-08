@@ -644,6 +644,16 @@ void BoundedIncrementalGraph::reCreateLayoutWithNoOldLayoutInfo(int nodeCount, b
 }
 
 void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
+    for (auto& countAndDo : doOnNextFrame) {
+        if (countAndDo.first > 0) {
+            countAndDo.second();
+            countAndDo.first--;
+        }
+    }
+    clearDoOnNextFrame();
+    graphGenerateAndConsumeLock.lock();
+    refreshSimpleText();
+    graphGenerateAndConsumeLock.unlock();
     if (nodesOrderedByNodeId.empty() and bufferSize() == 0) {
         return;
     }
@@ -720,9 +730,6 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     linesObj->updateFlow([&](int endNode, bool backward) {
         startFlowFrom(endNode, backward);
         });
-    graphGenerateAndConsumeLock.lock();
-    refreshSimpleText();
-    graphGenerateAndConsumeLock.unlock();
 }
 
 // 0 for groups
@@ -1430,6 +1437,18 @@ void BoundedIncrementalGraph::prepareComponent() {
     }
 }
 
+void BoundedIncrementalGraph::clearDoOnNextFrame() {
+    list<int> toBeRemoved;
+    for (int i = 0;i < doOnNextFrame.size();i++) {
+        if (doOnNextFrame[i].first < 1) {
+            toBeRemoved.push_front(i);
+        }
+    }
+    for (int i : toBeRemoved) {
+        doOnNextFrame.erase(doOnNextFrame.begin() + i);
+    }
+}
+
 void BoundedIncrementalGraph::clearEmptyGroup(vector<set<int>>& groups) {
     list<int> toBeRemoved;
     for (int i = 0;i < groups.size();i++) {
@@ -1867,6 +1886,7 @@ void BoundedIncrementalGraph::refreshSimpleText() {
                                 textMaterial->color = { 1,1,1 };
                                 textMesh[item.nodeId] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), item.text, textMaterial);
                                 textMesh[item.nodeId]->geometry()->center();
+                                textSizes[item.nodeId] = nodesObj->nodeSizes[item.nodeId];
                                 float textSize = baseTextSize * textSizes[item.nodeId] / sqrt(item.text.size() + 0.2);
                                 textMesh[item.nodeId]->geometry()->scale(textSize, textSize, textSize);
                                 this->textLoaded.insert(item.nodeId);
@@ -2106,6 +2126,9 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         invalidateAllGraphInfo();
         graphGenerateAndConsumeLock.unlock();
         f.close();
+        doOnNextFrame.push_back({ 10,[&]() {
+            onNodeColorChanged();
+        } });
         });
 }
 
