@@ -2565,6 +2565,7 @@ void BoundedIncrementalGraph::groupByMethod() {
 
 void BoundedIncrementalGraph::removeAllBounds() {
     for (int i = 0;i < bounds.size();i++) {
+        boundFrames[i]->clearFrame();
         remove(*boundFrames[i]);
     }
 }

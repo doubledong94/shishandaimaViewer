@@ -14,6 +14,8 @@ public:
     std::shared_ptr<threepp::LineSegments> frame;
     std::shared_ptr<threepp::BufferGeometry> frameGeo;
 
+    void clearFrame();
+
     void applyPosAndSize();
 
     void onDrag(float deltaX, float deltaY, float deltaZ);

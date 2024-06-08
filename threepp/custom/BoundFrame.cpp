@@ -52,6 +52,10 @@ BoundFrame::BoundFrame() {
     scaleIcon();
 }
 
+void BoundFrame::clearFrame() {
+    frameGeo->setDrawRange(0, 0);
+}
+
 void BoundFrame::applyPosAndSize() {
     dragIcon->position.x = start.x;
     dragIcon->position.y = start.y;
