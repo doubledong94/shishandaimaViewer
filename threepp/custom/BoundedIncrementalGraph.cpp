@@ -2051,19 +2051,25 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         for (int i = 0; i < groupCount;i++) {
             set<int> g;
             groupFromFile(f, g);
-            groups.push_back(g);
+            if (not g.empty()) {
+                groups.push_back(g);
+            }
         }
         groupCount = getInt(f);
         for (int i = 0; i < groupCount;i++) {
             set<int> g;
             groupFromFile(f, g);
-            xCoordFixed.push_back(g);
+            if (not g.empty()) {
+                xCoordFixed.push_back(g);
+            }
         }
         groupCount = getInt(f);
         for (int i = 0; i < groupCount;i++) {
             set<int> g;
             groupFromFile(f, g);
-            yCoordFixed.push_back(g);
+            if (not g.empty()) {
+                yCoordFixed.push_back(g);
+            }
         }
         // node obj
         nodesObj->fromFile(f);
