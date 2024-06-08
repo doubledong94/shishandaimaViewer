@@ -1651,6 +1651,9 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     mapGroupForDeletion(groups, &mapFromNewToOldNodeId);
     mapGroupForDeletion(xCoordFixed, &mapFromNewToOldNodeId);
     mapGroupForDeletion(yCoordFixed, &mapFromNewToOldNodeId);
+    mapGroupForDeletion(bounds, &mapFromNewToOldNodeId);
+    removeAllBounds();
+    resetBounds();
 
     // save old node to edge
     map<int, map<int, int>> oldPointIDToOldEdge;
@@ -1740,6 +1743,7 @@ void BoundedIncrementalGraph::mapGroupForDeletion(vector<set<int>>& groups, igra
         }
     }
     groups = groups_left;
+    clearEmptyGroup(groups);
 }
 
 void BoundedIncrementalGraph::mapNodeIdFromOldToNew(set<int>& oldIds, igraph_vector_int_t* mapFromOldToNewNodeId) {
