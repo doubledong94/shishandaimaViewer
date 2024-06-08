@@ -131,6 +131,8 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {AUTO_GROUP_X, "auto group x", 0xffff3d3b,SINGLE_CLICK},
     {AUTO_GROUP_Y, "auto group y", 0xffff3b2e,SINGLE_CLICK},
     {AUTO_GROUP_XY, "auto group x and y", 0xffff3b39,SINGLE_CLICK},
+    {BOUND_BY_CLASS, "bound by class", 0xffff403e,SINGLE_CLICK},
+    {BOUND_BY_METHOD, "bound by method", 0xffff4240,SINGLE_CLICK},
     // style
     {SHOW_AND_HIDE_TEXT, "show and hide text", 0xffff3a03,SINGLE_CLICK},
     {SHOW_AND_HIDE_TOOLTIP, "show and hide tooltip", 0xffff2d03,SINGLE_CLICK},
@@ -283,6 +285,11 @@ void HotkeyConfig::init() {
     hotkeyMap[SAVE_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_saveGraph();
     hotkeyMap[RESTORE_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_restoreGraph();
     hotkeyMap[DELETE_SAVED_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_deleteSavedGraph();
+    hotkeyMap[BOUND_SELECTED_NODE]->functionName = StringRes::singleton->getHotKeyTitle_boundSelected();
+    hotkeyMap[UNBOUND_SELECTED_NODE]->functionName = StringRes::singleton->getHotKeyTitle_unboundSelected();
+    hotkeyMap[UNBOUND_UNSELECTED_NODE]->functionName = StringRes::singleton->getHotKeyTitle_unboundUnselected();
+    hotkeyMap[BOUND_BY_CLASS]->functionName = StringRes::singleton->getHotKeyTitle_boundByClass();
+    hotkeyMap[BOUND_BY_METHOD]->functionName = StringRes::singleton->getHotKeyTitle_boundByMethod();
 }
 
 void HotkeyConfig::saveHotkeyConfig(const string& filePath) {

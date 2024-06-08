@@ -86,6 +86,11 @@ public:
     virtual char* getHotKeyTitle_SaveSelectedNode() { return NULL; };
     virtual char* getHotKeyTitle_searchUpward() { return NULL; };
     virtual char* getHotKeyTitle_searchDownward() { return NULL; };
+    virtual char* getHotKeyTitle_boundSelected() { return NULL; };
+    virtual char* getHotKeyTitle_unboundSelected() { return NULL; };
+    virtual char* getHotKeyTitle_unboundUnselected() { return NULL; };
+    virtual char* getHotKeyTitle_boundByClass() { return NULL; };
+    virtual char* getHotKeyTitle_boundByMethod() { return NULL; };
 
     virtual char* getHint_press1ToShowHotkey() { return NULL; };
 
@@ -183,6 +188,11 @@ private:
     string hotKeyTitle_SaveSelectedNode = "保存选中的节点";
     string hotKeyTitle_ExploreDownward = "以选中的节点为始端进行搜索";
     string hotKeyTitle_ExploreUpward = "以选中的节点为末端进行搜索";
+    string hotKeyTitle_boundSelected = "限制选中的节点的位置范围";
+    string hotKeyTitle_unboundSelected = "取消限制选中的节点的位置范围";
+    string hotKeyTitle_unboundUnselected = "取消限制未选中的节点的位置范围";
+    string hotKeyTitle_boundByClass = "自动按照类来限制所有节点的位置范围";
+    string hotKeyTitle_boundByMethod = "自动按照函数来限制所有节点的位置范围";
 
     string hotKeyTitle_cat_saveAndRestoreGraph = "保存与恢复图";
     string hotKeyTitle_saveGraph = "保存图";
@@ -278,6 +288,11 @@ public:
     char* getHotKeyTitle_SaveSelectedNode() override;
     char* getHotKeyTitle_searchUpward() override;
     char* getHotKeyTitle_searchDownward() override;
+    char* getHotKeyTitle_boundSelected();
+    char* getHotKeyTitle_unboundSelected();
+    char* getHotKeyTitle_unboundUnselected();
+    char* getHotKeyTitle_boundByClass();
+    char* getHotKeyTitle_boundByMethod();
 
     char* getHotKeyTitle_cat_saveAndRestoreGraph() override;
     char* getHotKeyTitle_saveGraph() override;
@@ -375,6 +390,11 @@ private:
     string hotKeyTitle_SaveSelectedNode = "保存选中的节点";
     string hotKeyTitle_ExploreDownward = "以选中的节点为始端进行搜索";
     string hotKeyTitle_ExploreUpward = "以选中的节点为末端进行搜索";
+    string hotKeyTitle_boundSelected = "限制选中的节点的位置范围";
+    string hotKeyTitle_unboundSelected = "取消限制选中的节点的位置范围";
+    string hotKeyTitle_unboundUnselected = "取消限制未选中的节点的位置范围";
+    string hotKeyTitle_boundByClass = "自动按照类来限制所有节点的位置范围";
+    string hotKeyTitle_boundByMethod = "自动按照函数来限制所有节点的位置范围";
 
     string hotKeyTitle_cat_saveAndRestoreGraph = "保存与恢复图";
     string hotKeyTitle_saveGraph = "保存图";
@@ -470,6 +490,11 @@ public:
     char* getHotKeyTitle_SaveSelectedNode() override;
     char* getHotKeyTitle_searchUpward() override;
     char* getHotKeyTitle_searchDownward() override;
+    char* getHotKeyTitle_boundSelected();
+    char* getHotKeyTitle_unboundSelected();
+    char* getHotKeyTitle_unboundUnselected();
+    char* getHotKeyTitle_boundByClass();
+    char* getHotKeyTitle_boundByMethod();
 
     char* getHotKeyTitle_cat_saveAndRestoreGraph() override;
     char* getHotKeyTitle_saveGraph() override;

@@ -255,6 +255,10 @@ public:
 
     void applyBounds();
 
+    void boundByClass();
+
+    void boundByMethod();
+
     void fixPosition();
 
     void releasePosition();

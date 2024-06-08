@@ -145,6 +145,11 @@ char* ChineseStringRes::getHotKeyTitle_searchDownward() {
     return hotKeyTitle_ExploreDownward.data();
 }
 
+char* ChineseStringRes::getHotKeyTitle_boundSelected() { return hotKeyTitle_boundSelected.data(); }
+char* ChineseStringRes::getHotKeyTitle_unboundSelected() { return hotKeyTitle_unboundSelected.data(); }
+char* ChineseStringRes::getHotKeyTitle_unboundUnselected() { return hotKeyTitle_unboundUnselected.data(); }
+char* ChineseStringRes::getHotKeyTitle_boundByClass() { return hotKeyTitle_boundByClass.data(); }
+char* ChineseStringRes::getHotKeyTitle_boundByMethod() { return hotKeyTitle_boundByMethod.data(); }
 char* ChineseStringRes::getHotKeyTitle_cat_saveAndRestoreGraph() { return hotKeyTitle_cat_saveAndRestoreGraph.data(); }
 char* ChineseStringRes::getHotKeyTitle_saveGraph() { return hotKeyTitle_saveGraph.data(); }
 char* ChineseStringRes::getHotKeyTitle_restoreGraph() { return hotKeyTitle_restoreGraph.data(); }
@@ -283,6 +288,11 @@ char* EnglishStringRes::getHint_press1ToShowHotkey() {
     return hint_press1ToShowHotkey.data();
 }
 
+char* EnglishStringRes::getHotKeyTitle_boundSelected() { return hotKeyTitle_boundSelected.data(); }
+char* EnglishStringRes::getHotKeyTitle_unboundSelected() { return hotKeyTitle_unboundSelected.data(); }
+char* EnglishStringRes::getHotKeyTitle_unboundUnselected() { return hotKeyTitle_unboundUnselected.data(); }
+char* EnglishStringRes::getHotKeyTitle_boundByClass() { return hotKeyTitle_boundByClass.data(); }
+char* EnglishStringRes::getHotKeyTitle_boundByMethod() { return hotKeyTitle_boundByMethod.data(); }
 char* EnglishStringRes::getHotKeyTitle_cat_saveAndRestoreGraph() { return hotKeyTitle_cat_saveAndRestoreGraph.data(); }
 char* EnglishStringRes::getHotKeyTitle_saveGraph() { return hotKeyTitle_saveGraph.data(); }
 char* EnglishStringRes::getHotKeyTitle_restoreGraph() { return hotKeyTitle_restoreGraph.data(); }

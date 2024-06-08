@@ -612,6 +612,16 @@ int app::Application::ApplicationMain() {
         boundedGraph->ungroupAllNodes(boundedGraph->bounds);
         boundedGraph->resetBounds();
         };
+    HotkeyConfig::functionEnumToFunction[BOUND_BY_CLASS] = [&]() {
+        boundedGraph->removeAllBounds();
+        boundedGraph->boundByClass();
+        boundedGraph->resetBounds();
+        };
+    HotkeyConfig::functionEnumToFunction[BOUND_BY_METHOD] = [&]() {
+        boundedGraph->removeAllBounds();
+        boundedGraph->boundByMethod();
+        boundedGraph->resetBounds();
+        };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
         boundedGraph->grid(boundedGraph->xCoordFixed);
         };

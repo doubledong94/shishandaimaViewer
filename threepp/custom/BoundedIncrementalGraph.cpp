@@ -2647,3 +2647,35 @@ void BoundedIncrementalGraph::applyBounds() {
         }
     }
 }
+
+void BoundedIncrementalGraph::boundByClass() {
+    map<string, set<int>> classToNodes;
+    for (int i = 0;i < nodesOrderedByNodeId.size();i++) {
+        string& runtimeClass = nodesOrderedByNodeId[i]->getRuntimeClass();
+        if (not classToNodes.count(runtimeClass)) {
+            classToNodes[runtimeClass] = set<int>();
+        }
+        classToNodes[runtimeClass].insert(i);
+    }
+    for (auto& classAndNodes : classToNodes) {
+        if (classAndNodes.second.size() > 1) {
+            bounds.push_back(classAndNodes.second);
+        }
+    }
+}
+
+void BoundedIncrementalGraph::boundByMethod() {
+    map<string, set<int>> methodToNodes;
+    for (int i = 0;i < nodesOrderedByNodeId.size();i++) {
+        string& runtimeMethod = nodesOrderedByNodeId[i]->methodOfRuntime;
+        if (not methodToNodes.count(runtimeMethod)) {
+            methodToNodes[runtimeMethod] = set<int>();
+        }
+        methodToNodes[runtimeMethod].insert(i);
+    }
+    for (auto& methodAndNodes : methodToNodes) {
+        if (methodAndNodes.second.size() > 1) {
+            bounds.push_back(methodAndNodes.second);
+        }
+    }
+}

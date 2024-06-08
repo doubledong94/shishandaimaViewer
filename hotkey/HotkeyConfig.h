@@ -141,6 +141,8 @@ enum HotkeyFunction {
     SAVE_GRAPH,
     RESTORE_GRAPH,
     DELETE_SAVED_GRAPH,
+    BOUND_BY_CLASS,
+    BOUND_BY_METHOD,
 };
 
 enum ClickStyle {
