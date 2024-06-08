@@ -253,8 +253,6 @@ public:
 
     void resetLayoutBound(bool is2D);
 
-    void removeAllBounds();
-
     void resetBounds();
 
     void applyBounds();

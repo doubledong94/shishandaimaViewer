@@ -633,6 +633,7 @@ void BoundedIncrementalGraph::reCreateLayout(int nodeCount, bool is2D, bool dime
     }
     if (mapFromNewToOldNodeId) {
         applyLayoutPosition();
+        resetBounds();
     }
     resetLayoutBound(is2D);
 }
@@ -1484,6 +1485,12 @@ void BoundedIncrementalGraph::clearEmptyGroup(vector<set<int>>& groups) {
     for (int i : toBeRemoved) {
         groups.erase(groups.begin() + i);
     }
+    if ((&groups) == (&bounds)) {
+        for (int i = 0;i < toBeRemoved.size();i++) {
+            boundFrames[groups.size() + i]->clearFrame();
+            remove(*boundFrames[groups.size() + i]);
+        }
+    }
 }
 
 void BoundedIncrementalGraph::flowColor() {
@@ -1696,8 +1703,6 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     mapGroupForDeletion(xCoordFixed, &mapFromNewToOldNodeId);
     mapGroupForDeletion(yCoordFixed, &mapFromNewToOldNodeId);
     mapGroupForDeletion(bounds, &mapFromNewToOldNodeId);
-    removeAllBounds();
-    resetBounds();
 
     // save old node to edge
     map<int, map<int, int>> oldPointIDToOldEdge;
@@ -1782,9 +1787,7 @@ void BoundedIncrementalGraph::mapGroupForDeletion(vector<set<int>>& groups, igra
                 group_left.insert(newIndex);
             }
         }
-        if (group_left.size() > 1) {
-            groups_left.push_back(group_left);
-        }
+        groups_left.push_back(group_left);
     }
     groups = groups_left;
     clearEmptyGroup(groups);
@@ -2325,7 +2328,7 @@ KD_TREE<ikdTree_PointType> ikd_Tree(0.3, 0.6, 0.2);
 static int scaleByDistanceCount = 0;
 
 void BoundedIncrementalGraph::scaleByDistance() {
-    scaleByDistanceCount = (scaleByDistanceCount + 1) % 5;
+    scaleByDistanceCount = (scaleByDistanceCount + 1) % 2;
     if (scaleByDistanceCount) {
         return;
     }
@@ -2623,14 +2626,8 @@ void BoundedIncrementalGraph::groupByMethod() {
     }
 }
 
-void BoundedIncrementalGraph::removeAllBounds() {
-    for (int i = 0;i < bounds.size();i++) {
-        boundFrames[i]->clearFrame();
-        remove(*boundFrames[i]);
-    }
-}
-
 void BoundedIncrementalGraph::resetBounds() {
+    clearEmptyGroup(bounds);
     bool is2D = is2DLayout();
     for (int boundIndex = 0; boundIndex < bounds.size(); boundIndex++) {
         auto& b = bounds[boundIndex];
