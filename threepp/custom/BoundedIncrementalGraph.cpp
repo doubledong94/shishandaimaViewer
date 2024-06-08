@@ -124,7 +124,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     set<int> draggingGroupX;
     set<int> draggingGroupY;
     bool hasMoved;
-    bool leftClicked = false;
+    int clickedId = -1;
 
     GraphDragNodeMouseListener(BoundedIncrementalGraph* scope, threepp::Camera* camera) {
         this->scope = scope;
@@ -177,7 +177,9 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void onMouseUp(int button, const threepp::Vector2& pos) override {
-        leftClicked = button == mouse_left_button and not hasMoved;
+        if (button == mouse_left_button and not hasMoved and scope->raycastOnFrame) {
+            clickedId = *(draggingGroup.begin());
+        }
         draggingGroup.clear();
         draggingGroupX.clear();
         draggingGroupY.clear();
@@ -207,8 +209,9 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
     }
 
     void reactOnMouseEvent() override {
-        if (leftClicked and scope->raycastOnFrame) {
-            scope->onBoundDragIconClicked(*(draggingGroup.begin()));
+        if (clickedId > -1) {
+            scope->onBoundDragIconClicked(clickedId);
+            clickedId = -1;
         }
         if (draggingGroupX.size() > 1 and not dragConsumed) {
             scope->onDragX(draggingGroupX, dragDelta.x);
