@@ -1432,7 +1432,7 @@ void BoundedIncrementalGraph::prepareComponent() {
 
 void BoundedIncrementalGraph::clearEmptyGroup(vector<set<int>>& groups) {
     list<int> toBeRemoved;
-    for (int i = groups.size() - 1; i > -1; i--) {
+    for (int i = 0;i < groups.size();i++) {
         if (groups[i].size() < 2) {
             toBeRemoved.push_front(i);
         }
