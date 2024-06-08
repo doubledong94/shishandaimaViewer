@@ -474,9 +474,6 @@ int app::Application::ApplicationMain() {
         selectByComponentPopupOpen = true;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_GROUP] = [&]() {
-        boundedGraph->clearEmptyGroup(boundedGraph->groups);
-        boundedGraph->clearEmptyGroup(boundedGraph->xCoordFixed);
-        boundedGraph->clearEmptyGroup(boundedGraph->yCoordFixed);
         showTooltip = false;
         selectByGroupPopupOpen = true;
         };
@@ -614,11 +611,13 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[BOUND_BY_CLASS] = [&]() {
         boundedGraph->removeAllBounds();
+        boundedGraph->ungroupAllNodes(boundedGraph->bounds);
         boundedGraph->boundByClass();
         boundedGraph->resetBounds();
         };
     HotkeyConfig::functionEnumToFunction[BOUND_BY_METHOD] = [&]() {
         boundedGraph->removeAllBounds();
+        boundedGraph->ungroupAllNodes(boundedGraph->bounds);
         boundedGraph->boundByMethod();
         boundedGraph->resetBounds();
         };

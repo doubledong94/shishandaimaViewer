@@ -148,9 +148,6 @@ void BoundFrame::scaleIcon(float iconSize) {
 }
 
 void BoundFrame::setDim(bool is2D) {
-    if (not (is2D ^ this->is2D)) {
-        return;
-    }
     if (is2D) {
         start.z = 0;
         end.z = 0;
@@ -159,6 +156,9 @@ void BoundFrame::setDim(bool is2D) {
         start.z = 0;
         end.z = (abs(end.x - start.x) + abs(end.y - end.y)) / 2;
         frameGeo->setDrawRange(0, 12 * 6);
+    }
+    if (not (is2D ^ this->is2D)) {
+        return;
     }
     this->is2D = is2D;
     applyPosAndSize();

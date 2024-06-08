@@ -1432,7 +1432,7 @@ void BoundedIncrementalGraph::prepareComponent() {
 
 void BoundedIncrementalGraph::clearEmptyGroup(vector<set<int>>& groups) {
     list<int> toBeRemoved;
-    for (int i = 0;i < groups.size();i++) {
+    for (int i = groups.size() - 1; i > -1; i--) {
         if (groups[i].size() < 2) {
             toBeRemoved.push_front(i);
         }
@@ -2412,6 +2412,7 @@ void BoundedIncrementalGraph::ungroupNodes(set<int>& ungroup, vector<set<int>>& 
             group.clear();
         }
     }
+    clearEmptyGroup(groups);
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     resetLayoutBound(is2D);
     onNodeColorChanged();
@@ -2428,6 +2429,7 @@ void BoundedIncrementalGraph::ungroupAllNodes(vector<set<int>>& groups) {
         }
         FOR_EACH_ITEM(tobeUngrouped, group.erase(item););
     }
+    clearEmptyGroup(groups);
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     resetLayoutBound(is2D);
     onNodeColorChanged();
