@@ -129,6 +129,7 @@ char* ChineseStringRes::getHotKeyTitle_SelectedNodeAlphaDecr() { return hotKeyTi
 char* ChineseStringRes::getHotKeyTitle_ColorNodeByFlow() { return hotKeyTitle_ColorNodeByFlow.data(); }
 char* ChineseStringRes::getHotKeyTitle_ClearAllNodeColor() { return hotKeyTitle_ClearAllNodeColor.data(); }
 char* ChineseStringRes::getHotKeyTitle_ShowAndHideTooltip() { return hotKeyTitle_ShowAndHideTooltip.data(); }
+char* ChineseStringRes::getHotKeyTitle_ShowAndHideBoundFrame() { return hotKeyTitle_ShowAndHideBoundFrame.data(); }
 char* ChineseStringRes::getHotKeyTitle_ChooseColorForSelectedNode() { return hotKeyTitle_ChooseColorForSelectedNode.data(); }
 char* ChineseStringRes::getHotKeyTitle_NodeTextOnAndOff() { return hotKeyTitle_NodeTextOnAndOff.data(); }
 char* ChineseStringRes::getHotKeyTitle_NodeTextSizeIncr() { return hotKeyTitle_NodeTextSizeIncr.data(); }
@@ -268,6 +269,7 @@ char* EnglishStringRes::getHotKeyTitle_SelectedNodeAlphaDecr() { return hotKeyTi
 char* EnglishStringRes::getHotKeyTitle_ColorNodeByFlow() { return hotKeyTitle_ColorNodeByFlow.data(); }
 char* EnglishStringRes::getHotKeyTitle_ClearAllNodeColor() { return hotKeyTitle_ClearAllNodeColor.data(); }
 char* EnglishStringRes::getHotKeyTitle_ShowAndHideTooltip() { return hotKeyTitle_ShowAndHideTooltip.data(); }
+char* EnglishStringRes::getHotKeyTitle_ShowAndHideBoundFrame() { return hotKeyTitle_ShowAndHideBoundFrame.data(); }
 char* EnglishStringRes::getHotKeyTitle_ChooseColorForSelectedNode() { return hotKeyTitle_ChooseColorForSelectedNode.data(); }
 char* EnglishStringRes::getHotKeyTitle_NodeTextOnAndOff() { return hotKeyTitle_NodeTextOnAndOff.data(); }
 char* EnglishStringRes::getHotKeyTitle_NodeTextSizeIncr() { return hotKeyTitle_NodeTextSizeIncr.data(); }

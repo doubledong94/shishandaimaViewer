@@ -148,6 +148,7 @@ int app::Application::ApplicationMain() {
     static bool openPopupForSaveGraph = false;
     static bool showTooltip = false;
     static bool showTooltipSwitchOn = true;
+    static bool showBoundFrameSwitchOn = true;
     static bool restoreGraphPopupOpen = false;
     static bool deleteGraphPopupOpen = false;
 
@@ -661,6 +662,11 @@ int app::Application::ApplicationMain() {
         showTooltip = false;
         };
     scene->add(boundedGraph);
+
+    HotkeyConfig::functionEnumToFunction[SHOW_AND_HIDE_BOUND_FRAME] = [&]() {
+        showBoundFrameSwitchOn = !showBoundFrameSwitchOn;
+        boundedGraph->showAndHideBoundFrame(showBoundFrameSwitchOn);
+        };
 
     std::function<void()> restoreGraph = []() {};
 

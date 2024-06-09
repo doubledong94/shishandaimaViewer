@@ -2817,3 +2817,9 @@ void BoundedIncrementalGraph::boundByMethod() {
         }
     }
 }
+
+void BoundedIncrementalGraph::showAndHideBoundFrame(bool show) {
+    for (auto& boundFrame : boundFrames) {
+        boundFrame->visible = show;
+    }
+}

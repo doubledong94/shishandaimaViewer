@@ -317,6 +317,8 @@ public:
 
     void applyLayoutPosition();
 
+    void showAndHideBoundFrame(bool show);
+
     // tested property start
     bool isDag();
 
