@@ -142,6 +142,7 @@ void BoundFrame::scaleIcon() {
 }
 
 void BoundFrame::scaleIcon(float iconSize) {
+    iconSize *= 0.7;
     dragIcon->scale = { iconSize,iconSize,iconSize };
     float resizeSize = iconSize * 0.7;
     resizeIcon->scale = { resizeSize,resizeSize,resizeSize };
