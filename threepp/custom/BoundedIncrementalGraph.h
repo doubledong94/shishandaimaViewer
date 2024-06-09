@@ -79,6 +79,7 @@ public:
     igraph_matrix_t* layoutMatrix;
     igraph_vector_t* layoutBounds[6];
     igraph_vector_t* weights;
+    threepp::Vector3 srcPos = { 0,0,0 };
     vector<threepp::Vector3> points;
     vector<pair<int, int>> edgePairs;
     float temperature = 0.1f;
@@ -307,6 +308,8 @@ public:
     list<pair<string, string>> getSelectedKey();
 
     list<tuple<string, string, string, int, string, string>> getSelectedRuntime();
+
+    threepp::Vector3 getMidPosOfSelectedNodes();
 
     bool is2DLayout();
 

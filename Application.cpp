@@ -937,6 +937,7 @@ int app::Application::ApplicationMain() {
                         if (searchingInProgress) {
                             return;
                         }
+                        boundedGraph->srcPos.copy(boundedGraph->getMidPosOfSelectedNodes());
                         startSearchTime = absl::GetCurrentTimeNanos();
                         searchingInProgress = true;
                         printf("PL_set_engine: %d\n", PL_set_engine(pl_engine_for_earching, NULL));
@@ -959,6 +960,7 @@ int app::Application::ApplicationMain() {
                         printf("PL_set_engine: %d\n", PL_set_engine(NULL, NULL));
                         searchingInProgress = false;
                         lineInstance->removeRuntimeNode(lineDown);
+                        boundedGraph->srcPos.set(0,0,0);
                         }, lineInstance, lineDown);
                     worker.detach();
                 }

@@ -595,7 +595,7 @@ void BoundedIncrementalGraph::updateGraph() {
         // update node of graph
         igraph_add_vertices(theOriginalGraph, newNodeCount, NULL);
         for (int i = 0;i < newNodeCount;i++) {
-            points.push_back(threepp::Vector3(0, 0, 0));
+            points.push_back(srcPos);
             textMesh.push_back(NULL);
         }
     }
@@ -640,6 +640,15 @@ void BoundedIncrementalGraph::reCreateLayout(int nodeCount, bool is2D, bool dime
                 MATRIX(*newLayout, i, j) = MATRIX(*layoutMatrix, VECTOR(*mapFromNewToOldNodeId)[i], j);
             } else {
                 MATRIX(*newLayout, i, j) = MATRIX(*layoutMatrix, i, j);
+            }
+        }
+    }
+    if (newLayout->nrow > layoutMatrix->nrow) {
+        for (int i = layoutMatrix->nrow;i < newLayout->nrow;i++) {
+            MATRIX(*newLayout, i, 0) = srcPos.x;
+            MATRIX(*newLayout, i, 1) = srcPos.y;
+            if (not is2D) {
+                MATRIX(*newLayout, i, 2) = srcPos.z;
             }
         }
     }
@@ -2373,6 +2382,18 @@ list<tuple<string, string, string, int, string, string>> BoundedIncrementalGraph
         auto& nodeInfo = nodesOrderedByNodeId[i];
         ret.push_back({ nodeInfo->methodOfRuntime,nodeInfo->runtimeKey,nodeInfo->key,nodeInfo->keyType, nodeInfo->getRuntimeClass(), nodeInfo->getDeclaredInClass() });
     }
+    return ret;
+}
+
+threepp::Vector3 BoundedIncrementalGraph::getMidPosOfSelectedNodes() {
+    threepp::Vector3 ret = { 0,0,0 };
+    if (not nodesObj->selected.size()) {
+        return ret;
+    }
+    for (int i : nodesObj->selected) {
+        ret.add(points[i]);
+    }
+    ret.divideScalar(nodesObj->selected.size()).add({ 1,1,0 });
     return ret;
 }
 
