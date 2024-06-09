@@ -133,7 +133,7 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
 
     void onMouseDown(int button, const threepp::Vector2& pos) override {
         hasMoved = false;
-        if (not scope->layoutAnimating or button != mouse_left_button) {
+        if (button != mouse_left_button) {
             return;
         }
         auto size = scope->canvas->size();
@@ -1110,6 +1110,9 @@ void BoundedIncrementalGraph::resetLayoutBound(bool is2D) {
 }
 
 void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, float deltaZ) {
+    if (not layoutAnimating) {
+        return;
+    }
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     if (raycastOnFrame) {
         for (int id : ids) {
@@ -1134,6 +1137,9 @@ void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, 
 }
 
 void BoundedIncrementalGraph::onDragX(set<int>& ids, float deltaX) {
+    if (not layoutAnimating) {
+        return;
+    }
     for (int id : ids) {
         points[id].x += deltaX;
         VECTOR(*layoutBounds[0])[id] = points[id].x;
@@ -1142,6 +1148,9 @@ void BoundedIncrementalGraph::onDragX(set<int>& ids, float deltaX) {
 }
 
 void BoundedIncrementalGraph::onDragY(set<int>& ids, float deltaY) {
+    if (not layoutAnimating) {
+        return;
+    }
     for (int id : ids) {
         points[id].y += deltaY;
         VECTOR(*layoutBounds[2])[id] = points[id].y;
