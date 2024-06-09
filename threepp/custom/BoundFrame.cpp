@@ -15,13 +15,13 @@ std::shared_ptr<threepp::Texture> BoundFrame::dragTexture = NULL;
 std::shared_ptr<threepp::Texture> BoundFrame::resizeTexture = NULL;
 
 BoundFrame::BoundFrame() {
-    if (not dragTexture) {
-        TextureLoader loader;
-        dragTexture = loader.load(FileManager::boundFrameDragIconPath);
-    }
     if (not resizeTexture) {
         TextureLoader loader;
-        resizeTexture = loader.load(FileManager::boundFrameResizeIconPath);
+        resizeTexture = loader.load(FileManager::boundFrameResizeIconPath, true);
+    }
+    if (not dragTexture) {
+        TextureLoader loader;
+        dragTexture = loader.load(FileManager::boundFrameDragIconPath, false);
     }
     start = { 0,0,0 };
     if (is2D) {
