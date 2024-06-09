@@ -155,7 +155,7 @@ namespace SimpleView {
         string extraStr;
         pair<string, string> nodeKey;
         list<pair<string, string>> nodeList;
-        list<tuple<string, string, string, int, string, string>> runtimeNodeList;
+        list<tuple<string, string, string, int, string>> runtimeNodeList;
         ClassScope* classScope = nullptr;
         ClassScope* classScope2 = NULL;
         Node* referenceNode = nullptr;
@@ -370,7 +370,7 @@ namespace SimpleView {
 
         bool findIntersectionIndexByChar(IntersectionPointInLine* intersection, RegexTree* regexTree, char c);
 
-        void addRuntimeNode(list<tuple<string, string, string, int, string, string>>& runtimeNodes, bool downward);
+        void addRuntimeNode(list<tuple<string, string, string, int, string>>& runtimeNodes, bool downward);
 
         void removeRuntimeNode(bool downward);
     };
@@ -510,7 +510,6 @@ public:
     static void saveVocabulary(SimpleViewLexer& lexer);
     static void init();
     static void declareStepRules();
-    static void declareCalledKeyToDeclaredClass();
     static void declareLoadRuntimeByStepKey();
     static void searchClass(char* searchStr, vector<const char*>& searchResult);
     static void searchNode(const char* classKey, vector<const char*>& searchResult);

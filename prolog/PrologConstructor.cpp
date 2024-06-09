@@ -324,18 +324,6 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getCalledParamToDeclarationClassTerm(Term* calledParam, Term* classKey) {
-    return makeTerm(HEAD_CALLED_PARAM_TO_DECLARATION_CLASS, calledParam, classKey);
-}
-
-CompoundTerm* CompoundTerm::getCalledReturnToDeclarationClassTerm(Term* calledReturn, Term* classKey) {
-    return makeTerm(HEAD_CALLED_RETURN_TO_DECLARATION_CLASS, calledReturn, classKey);
-}
-
-CompoundTerm* CompoundTerm::getCalledMethodToDeclarationClassTerm(Term* calledMethod, Term* classKey) {
-    return makeTerm(HEAD_CALLED_METHOD_TO_DECLARATION_CLASS, calledMethod, classKey);
-}
-
 CompoundTerm* CompoundTerm::getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey) {
     return makeTerm(HEAD_STEP_KEY_TO_CLASS_KEY, stepKey, classKey);
 }

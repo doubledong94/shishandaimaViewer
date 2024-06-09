@@ -176,7 +176,6 @@ void EasierSimpleView::init() {
     SimpleView::declareNodeResolveRules();
     declareStepRules();
     declareLoadRuntimeByStepKey();
-    declareCalledKeyToDeclaredClass();
 
     spdlog::get(ErrorManager::TimerTag)->info("simple init started.");
     std::ifstream stream(FileManager::simpleViewConfig);
@@ -358,32 +357,6 @@ void EasierSimpleView::declareStepRules() {
     outerMethod->returnThisToPool();
     step->returnThisToPool();
 
-}
-
-void EasierSimpleView::declareCalledKeyToDeclaredClass() {
-    vector<Rule*> rules;
-    Term* calledParam = Term::getVar("CalledParam");
-    Term* param = Term::getVar("Param");
-    Term* calledReturn = Term::getVar("CalledReturn");
-    Term* returnKey = Term::getVar("Return");
-    Term* calledMethod = Term::getVar("CalledMethod");
-    Term* method = Term::getVar("Method");
-    Term* classKey = Term::getVar("Class");
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledParamToDeclarationClassTerm(calledParam, classKey), {
-        CompoundTerm::getCalledParamTerm(param,calledParam),CompoundTerm::getParameterTerm(method,param),DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(classKey,method),CompoundTerm::getConstructorTerm(classKey,method))
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledReturnToDeclarationClassTerm(calledReturn, classKey), {
-        CompoundTerm::getCalledReturnTerm(returnKey,calledReturn),CompoundTerm::getReturnTerm(method,returnKey),DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(classKey,method),CompoundTerm::getConstructorTerm(classKey,method))
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledMethodToDeclarationClassTerm(calledMethod, classKey), {
-        CompoundTerm::getCalledMethodTerm(method,calledMethod),DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(classKey,method),CompoundTerm::getConstructorTerm(classKey,method))
-        }));
-    for (auto& rule : rules) {
-        PrologWrapper::addRule(rule->toString());
-    }
-    for (auto& rule : rules) {
-        rule->returnThisToPool();
-    }
 }
 
 void EasierSimpleView::declareLoadRuntimeByStepKey() {
@@ -1330,9 +1303,6 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
                 Term::getStr(std::get<0>(runtimeNode)), Term::getStr(std::get<1>(runtimeNode)),
                 Term::getStr(std::get<2>(runtimeNode)), Term::getInt(std::get<3>(runtimeNode))
             );
-            if (not std::get<5>(runtimeNode).empty()) {
-                PrologWrapper::plCall(CompoundTerm::getLoadAddressableTerm(Term::getStr(std::get<5>(runtimeNode)))->toString(true));
-            }
             PrologWrapper::plCall(CompoundTerm::getLoadAddressableTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::plCall(CompoundTerm::getLoadRuntimeTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::addFact(resolveRuntime->toString(true));
@@ -2166,7 +2136,7 @@ bool SimpleView::LineInstance::findIntersectionIndexByChar(IntersectionPointInLi
     return false;
 }
 
-void SimpleView::LineInstance::addRuntimeNode(list<tuple<string, string, string, int, string, string>>& runtimeNodes, bool downward) {
+void SimpleView::LineInstance::addRuntimeNode(list<tuple<string, string, string, int, string>>& runtimeNodes, bool downward) {
     Node* node = new Node();
     node->nodeType = Node::NODE_TYPE_RUNTIME;
     node->displayName = node->innerValName;

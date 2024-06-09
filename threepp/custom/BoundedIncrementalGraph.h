@@ -13,7 +13,6 @@ class NodeInfo {
 public:
     list<PositionInRegex*> positionInRegex;
     string runtimeClass;
-    string declaredInClass;
     string methodOfRuntime;
     string runtimeKey;
     string key;
@@ -27,11 +26,9 @@ public:
     void makeSimpleName();
     void makeTypeKey();
     void makeRuntimeClass();
-    void makeDeclaredInClass();
     string& getSimpleName();
     string& getTypeKey();
     string& getRuntimeClass();
-    string& getDeclaredInClass();
     void toFile(ofstream& f);
     void fromFile(ifstream& f);
 };
@@ -307,7 +304,7 @@ public:
 
     list<pair<string, string>> getSelectedKey();
 
-    list<tuple<string, string, string, int, string, string>> getSelectedRuntime();
+    list<tuple<string, string, string, int, string>> getSelectedRuntime();
 
     threepp::Vector3 getMidPosOfSelectedNodes();
 

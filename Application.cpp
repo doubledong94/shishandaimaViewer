@@ -932,7 +932,7 @@ int app::Application::ApplicationMain() {
             for (int i = 0;i < lineDownAndUpCount;i++) {
                 shishan::putIcon(SimpleView::SimpleViewToGraphConverter::valNameToLine[lineDownAndUp[i]]->iconId, ImGui::GetFontSize());
                 if (ImGui::Selectable(lineDownAndUp[i])) {
-                    auto runtimeNodes = boundedGraph->getSelectedRuntime();
+                    list<tuple<string, string, string, int, string>> runtimeNodes = boundedGraph->getSelectedRuntime();
                     if (runtimeNodes.empty()) {
                         continue;
                     }

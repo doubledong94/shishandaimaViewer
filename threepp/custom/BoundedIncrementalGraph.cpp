@@ -342,13 +342,6 @@ string& NodeInfo::getRuntimeClass() {
     return runtimeClass;
 }
 
-string& NodeInfo::getDeclaredInClass() {
-    if (declaredInClass.empty()) {
-        makeDeclaredInClass();
-    }
-    return declaredInClass;
-}
-
 void NodeInfo::makeTypeKey() {
     if (keyType == GlobalInfo::KEY_TYPE_FIELD or
         keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
@@ -383,21 +376,6 @@ void NodeInfo::makeRuntimeClass() {
     }
 }
 
-void NodeInfo::makeDeclaredInClass() {
-    if (keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD) {
-        auto* result = PrologWrapper::query(CompoundTerm::getCalledMethodToDeclarationClassTerm(Term::getStr(key), Term::getVar("Class")));
-        declaredInClass = result->atomOrVar;
-    }
-    if (keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
-        auto* result = PrologWrapper::query(CompoundTerm::getCalledParamToDeclarationClassTerm(Term::getStr(key), Term::getVar("Class")));
-        declaredInClass = result->atomOrVar;
-    }
-    if (keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
-        auto* result = PrologWrapper::query(CompoundTerm::getCalledReturnToDeclarationClassTerm(Term::getStr(key), Term::getVar("Class")));
-        declaredInClass = result->atomOrVar;
-    }
-}
-
 void NodeInfo::toFile(ofstream& f) {
     f << positionInRegex.size() << "\n";
     FOR_EACH_ITEM(positionInRegex, item->toFile(f););
@@ -410,7 +388,6 @@ void NodeInfo::toFile(ofstream& f) {
     f << typeKey << "\n";
     f << simpleName << "\n";
     f << runtimeClass << "\n";
-    f << declaredInClass << "\n";
 }
 
 void NodeInfo::fromFile(ifstream& f) {
@@ -429,7 +406,6 @@ void NodeInfo::fromFile(ifstream& f) {
     getline(f, typeKey);
     getline(f, simpleName);
     getline(f, runtimeClass);
-    getline(f, declaredInClass);
 }
 
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
@@ -2052,7 +2028,6 @@ void BoundedIncrementalGraph::toFile(ofstream& f) {
         nodeInfo->getSimpleName();
         nodeInfo->getTypeKey();
         nodeInfo->getRuntimeClass();
-        nodeInfo->getDeclaredInClass();
     }
     f << searchingGraphName << "\n";
     // dimension
@@ -2376,11 +2351,11 @@ list<pair<string, string>> BoundedIncrementalGraph::getSelectedKey() {
     return ret;
 }
 
-list<tuple<string, string, string, int, string, string>> BoundedIncrementalGraph::getSelectedRuntime() {
-    auto ret = list<tuple<string, string, string, int, string, string>>();
+list<tuple<string, string, string, int, string>> BoundedIncrementalGraph::getSelectedRuntime() {
+    auto ret = list<tuple<string, string, string, int, string>>();
     for (int i : nodesObj->selected) {
         auto& nodeInfo = nodesOrderedByNodeId[i];
-        ret.push_back({ nodeInfo->methodOfRuntime,nodeInfo->runtimeKey,nodeInfo->key,nodeInfo->keyType, nodeInfo->getRuntimeClass(), nodeInfo->getDeclaredInClass() });
+        ret.push_back({ nodeInfo->methodOfRuntime,nodeInfo->runtimeKey,nodeInfo->key,nodeInfo->keyType, nodeInfo->getRuntimeClass() });
     }
     return ret;
 }
