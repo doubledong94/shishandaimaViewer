@@ -2033,6 +2033,8 @@ void BoundedIncrementalGraph::toFile(ofstream& f) {
     FOR_EACH_ITEM(xCoordFixed, groupToFile(f, item););
     f << yCoordFixed.size() << "\n";
     FOR_EACH_ITEM(yCoordFixed, groupToFile(f, item););
+    f << bounds.size() << "\n";
+    FOR_EACH_ITEM(bounds, groupToFile(f, item););
     // node obj
     nodesObj->toFile(f);
     // edge obj
@@ -2056,6 +2058,7 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         yCoordFixed.clear();
         textMesh.clear();
         nodesObj->selected.clear();
+        ungroupAllNodes(bounds);
 
         getline(f, searchingGraphName);
         // dimension
@@ -2123,6 +2126,14 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
                 yCoordFixed.push_back(g);
             }
         }
+        groupCount = getInt(f);
+        for (int i = 0; i < groupCount;i++) {
+            set<int> g;
+            groupFromFile(f, g);
+            if (not g.empty()) {
+                bounds.push_back(g);
+            }
+        }
         // node obj
         nodesObj->fromFile(f);
         nodesObj->setPointPositions(points);
@@ -2144,6 +2155,7 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         igraph_add_edges(theOriginalGraph, &newEdges_, NULL);
         // layout
         reCreateLayoutWithNoOldLayoutInfo(nodeCount, is2D, false);
+        resetBounds();
         for (int i = 0;i < nodeCount;i++) {
             MATRIX(*layoutMatrix, i, 0) = points[i].x;
             MATRIX(*layoutMatrix, i, 1) = points[i].y;
