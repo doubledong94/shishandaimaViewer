@@ -984,8 +984,12 @@ void SimpleView::ClassScope::resolve(std::function<void(int, int, const char*)>*
 
 void SimpleView::ClassScope::resolveForRuntime(std::function<void(int, int, const char*)>* update) {
     resolve(update);
+    loadAddressableForRuntime(resolvedList, update);
+}
+
+void SimpleView::ClassScope::loadAddressableForRuntime(const set<string>& runtimeClassKey, std::function<void(int, int, const char*)>* update) {
     set<string> usedBy;
-    for (auto& typeKey : resolvedList) {
+    for (auto& typeKey : runtimeClassKey) {
         PrologWrapper::queryList(CompoundTerm::getRelatedTypeTerm(Term::getStr(typeKey), Term::getVar("U")), [&](vector<Term*>& retList) {usedBy.insert(retList[0]->atomOrVar);});
     }
     int c = 0;
@@ -1303,6 +1307,7 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
                 Term::getStr(std::get<0>(runtimeNode)), Term::getStr(std::get<1>(runtimeNode)),
                 Term::getStr(std::get<2>(runtimeNode)), Term::getInt(std::get<3>(runtimeNode))
             );
+            SimpleView::ClassScope::loadAddressableForRuntime({std::get<4>(runtimeNode)},update);
             PrologWrapper::plCall(CompoundTerm::getLoadAddressableTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::plCall(CompoundTerm::getLoadRuntimeTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::addFact(resolveRuntime->toString(true));

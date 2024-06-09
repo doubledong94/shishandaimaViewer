@@ -75,6 +75,8 @@ namespace SimpleView {
 
         void resolveForRuntime(std::function<void(int, int, const char*)>* update);
 
+        static void loadAddressableForRuntime(const set<string>& runtimeClassKey, std::function<void(int, int, const char*)>* update);
+
         void unResolve(bool retract = false) override;
 
         int getClassType() override;
