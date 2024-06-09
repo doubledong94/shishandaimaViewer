@@ -197,6 +197,10 @@ static Term* HEAD_LOAD_CLASS_BY_STEP_KEY = new Term("loadAddressableAndRuntimeBy
 static Term* HEAD_LOAD_RUNTIME = new Term("load_unaddressable", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LOAD_ADDRESSABLE = new Term("load_addressable", Term::TERM_TYPE_ATOM);
 
+static Term* HEAD_CALLED_PARAM_TO_DECLARATION_CLASS = new Term("calledParamToDeclarationClass", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CALLED_RETURN_TO_DECLARATION_CLASS = new Term("calledReturnToDeclarationClass", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CALLED_METHOD_TO_DECLARATION_CLASS = new Term("calledMethodToDeclarationClass", Term::TERM_TYPE_ATOM);
+
 static map<Term*, int> addressableMultiFileFunctorName2ArgCount;
 
 class CompoundTerm : public Term, public PooledItem<CompoundTerm> {
@@ -222,6 +226,10 @@ public:
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4);
 
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5, Term* arg6);
+
+    static CompoundTerm* getCalledParamToDeclarationClassTerm(Term* calledParam, Term* classKey);
+    static CompoundTerm* getCalledReturnToDeclarationClassTerm(Term* calledReturn, Term* classKey);
+    static CompoundTerm* getCalledMethodToDeclarationClassTerm(Term* calledMethod, Term* classKey);
 
     static CompoundTerm* getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey);
 
