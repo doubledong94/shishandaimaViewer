@@ -996,23 +996,36 @@ void BoundedIncrementalGraph::onBoundDragIconClicked(int id) {
 }
 
 void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
-    if (nodesObj->selected.count(nodeInstanceId)) {
-        nodesObj->selected.erase(nodeInstanceId);
+    bool controlPressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) or ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+    if (controlPressed) {
+        set<int> g;
+        getGroupIfGrouped(nodeInstanceId, g, groups);
+        select(g);
+        getGroupIfGrouped(nodeInstanceId, g, xCoordFixed);
+        select(g);
+        getGroupIfGrouped(nodeInstanceId, g, yCoordFixed);
+        select(g);
+        getGroupIfGrouped(nodeInstanceId, g, bounds);
+        select(g);
     } else {
-        nodesObj->selected.insert(nodeInstanceId);
-    }
-    if (lastClickedNodeId == nodeInstanceId) {
-        nodeClickedForTheFirstTime = false;
-    } else {
-        nodeClickedForTheFirstTime = true;
-    }
-    lastClickedNodeId = nodeInstanceId;
-    doubleClickStateMachine->onClick([&, nodeInstanceId]() {
-        if (not nodeClickedForTheFirstTime) {
+        if (nodesObj->selected.count(nodeInstanceId)) {
+            nodesObj->selected.erase(nodeInstanceId);
+        } else {
             nodesObj->selected.insert(nodeInstanceId);
-            onFocusOn(points[nodeInstanceId]);
         }
-        });
+        if (lastClickedNodeId == nodeInstanceId) {
+            nodeClickedForTheFirstTime = false;
+        } else {
+            nodeClickedForTheFirstTime = true;
+        }
+        lastClickedNodeId = nodeInstanceId;
+        doubleClickStateMachine->onClick([&, nodeInstanceId]() {
+            if (not nodeClickedForTheFirstTime) {
+                nodesObj->selected.insert(nodeInstanceId);
+                onFocusOn(points[nodeInstanceId]);
+            }
+            });
+    }
     onNodeColorChanged();
 }
 
