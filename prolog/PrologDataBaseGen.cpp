@@ -82,7 +82,7 @@ void DataFlowVisitor::afterRunSplitCodeBlock(CodeBlock* superCodeBlock, SplitCod
     if (splitCodeBlocks->isClosed()) {
         for (auto& lv2lastWriteKeys : superCodeBlock->lvToLastWrittenKeys) {
             bool lvIsUpdatedByEveryBranch = splitCodeBlocks->blocks.size() > 0;
-            FOR_EACH_ITEM(splitCodeBlocks->blocks, if (!item->lvKeysUpdatedByThisBlock100Percent.count(lv2lastWriteKeys.first)) { lvIsUpdatedByEveryBranch = false; });
+            FOR_EACH_ITEM(splitCodeBlocks->blocks, if (!item->lvKeysUpdatedByThisBlock100Percent.count(lv2lastWriteKeys.first) and not item->has_return_sentence) { lvIsUpdatedByEveryBranch = false; });
             if (lvIsUpdatedByEveryBranch) {
                 superCodeBlock->lvToLastWrittenKeys[lv2lastWriteKeys.first].clear();
                 superCodeBlock->lvKeysUpdatedByThisBlock100Percent.insert(lv2lastWriteKeys.first);
@@ -90,6 +90,9 @@ void DataFlowVisitor::afterRunSplitCodeBlock(CodeBlock* superCodeBlock, SplitCod
         }
     }
     for (CodeBlock* subCodeBlock : splitCodeBlocks->blocks) {
+        if (subCodeBlock->has_return_sentence) {
+            continue;
+        }
         for (auto& lv2lastWriteKeys : subCodeBlock->lvToLastWrittenKeys) {
             if (superCodeBlock->lvToLastWrittenKeys.count(lv2lastWriteKeys.first) > 0) {
                 FOR_EACH_ITEM(lv2lastWriteKeys.second, superCodeBlock->lvToLastWrittenKeys[lv2lastWriteKeys.first].insert(item););
