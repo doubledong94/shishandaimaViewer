@@ -413,7 +413,7 @@ namespace SimpleView {
 
         void declareStartingTransitionRuleI(int currentState, int nextState, string& regexChar);
 
-        void declareTransitionRuleI(int currentState, int nextState, string& regexChar);
+        void declareTransitionRuleI(int currentState, int nextState, string& regexChar, bool lastTransition);
 
         void printCharToCharCode(const string& regex);
 

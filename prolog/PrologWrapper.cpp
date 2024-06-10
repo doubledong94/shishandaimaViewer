@@ -12,7 +12,7 @@ PlEngine* PrologWrapper::e = NULL;
 ofstream debug_prolog_file;
 
 bool PrologWrapper::init() {
-    debug_prolog_file.open("debug_prolog.pl");
+    debug_prolog_file.open(FileManager::baseFolder + "debug_prolog.pl");
     debug_prolog_file << (":-discontiguous resolve/2.") << "\n";
     debug_prolog_file << (":-discontiguous resolveRuntime/6.") << "\n";
     debug_prolog_file << (":-discontiguous forwardFa/7.") << "\n";

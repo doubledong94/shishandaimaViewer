@@ -1307,7 +1307,7 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
                 Term::getStr(std::get<0>(runtimeNode)), Term::getStr(std::get<1>(runtimeNode)),
                 Term::getStr(std::get<2>(runtimeNode)), Term::getInt(std::get<3>(runtimeNode))
             );
-            SimpleView::ClassScope::loadAddressableForRuntime({std::get<4>(runtimeNode)},update);
+            SimpleView::ClassScope::loadAddressableForRuntime({ std::get<4>(runtimeNode) }, update);
             PrologWrapper::plCall(CompoundTerm::getLoadAddressableTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::plCall(CompoundTerm::getLoadRuntimeTerm(Term::getStr(std::get<4>(runtimeNode)))->toString(true));
             PrologWrapper::addFact(resolveRuntime->toString(true));
@@ -2628,6 +2628,14 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
 void SimpleView::HalfLineTheFA::declareTransitionRules() {
     // transition code (char code) a can enable a transition from state A to state B
     // for each transition code (char code)
+    set<int> endingStates;
+    for (auto& charCodeAndTransitions : charCodeToStateTransition) {
+        if (not charCodeToChars.count(charCodeAndTransitions.first) or charCodeToChars[charCodeAndTransitions.first].empty()) {
+            for (auto& endingTransition : charCodeAndTransitions.second) {
+                endingStates.insert(endingTransition.first);
+            }
+        }
+    }
     for (auto& charCodeAndTransitions : charCodeToStateTransition) {
         if (not charCodeToChars[charCodeAndTransitions.first].empty()) {
             // for each regex char corresponding to this transition code
@@ -2637,7 +2645,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRules() {
                     if (transition.first == 0) {
                         declareStartingTransitionRuleI(transition.first, transition.second, regexChar);
                     } else {
-                        declareTransitionRuleI(transition.first, transition.second, regexChar);
+                        declareTransitionRuleI(transition.first, transition.second, regexChar, endingStates.count(transition.second));
                     }
                 }
             }
@@ -2720,7 +2728,7 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
     nodeValNameTerm->returnThisToPool();
 }
 
-void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nextState, string& regexChar) {
+void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nextState, string& regexChar, bool lastTransition) {
     Node* node = lineInstance->turnParamNodeToArgNode(lineTemplate->charToNodeTemplate[regexChar[0]]->node);
     int intersectionIndex = lineInstance->findIntersectionIndexByChar(regexChar[0]);
     bool isIntersection = intersectionIndex > -1;
@@ -2788,7 +2796,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         break;
     }
     // generate nextKeyTerm by dataflow term
-    if (isStep) {
+    if (isStep and not lastTransition) {
         Term* midStepTermRuntime = Term::getVar("MidStepRuntime");
         ruleBody.push_back(Unification::getUnificationInstance(midStepTermRuntime, expectingNextKeyTerm));
         Term* stepAddressable = Term::getVar("StepAddressable");
@@ -2858,7 +2866,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
     }
     // generate the next method key and next steps
-    if (not isStep) {
+    if (not isStep or lastTransition) {
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
