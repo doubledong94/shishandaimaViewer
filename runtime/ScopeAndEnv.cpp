@@ -278,6 +278,15 @@ void ClassScopeAndEnv::addClassScopeAndEnvForAllTypes() {
         }
         classScopeAndEnv->name2typeInfo[typeInfo->simpletypeName] = typeInfo;
     }
+    AddressableInfo::primitive_boolTypeInfo->classScopeAndEnv = AddressableInfo::boolTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_charTypeInfo->classScopeAndEnv = AddressableInfo::charTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_intTypeInfo->classScopeAndEnv = AddressableInfo::intTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_floatTypeInfo->classScopeAndEnv = AddressableInfo::floatTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_byteTypeInfo->classScopeAndEnv = AddressableInfo::byteTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_shortTypeInfo->classScopeAndEnv = AddressableInfo::shortTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_longTypeInfo->classScopeAndEnv = AddressableInfo::longTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_doubleTypeInfo->classScopeAndEnv = AddressableInfo::doubleTypeInfo->classScopeAndEnv;
+    AddressableInfo::primitive_enumTypeInfo->classScopeAndEnv = AddressableInfo::enumTypeInfo->classScopeAndEnv;
 }
 
 void ClassScopeAndEnv::linkSuperScopeAndEnv(TypeInfo* typeInfo, TypeInfo* superTypeInfo) {
