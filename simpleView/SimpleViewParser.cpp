@@ -69,9 +69,9 @@ void simpleviewParserInitialize() {
       "'ClassScope'", "'Node'", "'Reference'", "'Condition'", "'Else'", 
       "'DataStep'", "'TimingStep'", "'Field'", "'Method'", "'Constructor'", 
       "'CalledMethod'", "'Parameter'", "'CalledParameter'", "'Return'", 
-      "'CalledReturn'", "'Seg'", "'Line'", "'LineInstance'", "'Glue'", "'GlueRuntime'", 
-      "'GlueMemberOf'", "'GlueInstanceOf'", "'GlueOverride'", "'GlueHierarchy'", 
-      "'Graph'", "'GraphInstance'", "'CodeOrder'", "'show'"
+      "'CalledReturn'", "'Index'", "'Seg'", "'Line'", "'LineInstance'", 
+      "'Glue'", "'GlueRuntime'", "'GlueMemberOf'", "'GlueInstanceOf'", "'GlueOverride'", 
+      "'GlueHierarchy'", "'Graph'", "'GraphInstance'", "'CodeOrder'", "'show'"
     },
     std::vector<std::string>{
       "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", 
@@ -84,14 +84,14 @@ void simpleviewParserInitialize() {
       "SUB", "STYLE", "DEFAULT_STYLE", "BASIC_STYLE", "CLASS_SCOPE", "NODE", 
       "REFERENCE", "CONDITION", "ELSE", "DATA_STEP", "TIMING_STEP", "FIELD", 
       "METHOD", "CONSTRUCTOR", "CALLED_METHOD", "PARAMETER", "CALLED_PARAMETER", 
-      "RETURN", "CALLED_RETURN", "SEGMENT", "LINE", "LINE_INSTANCE", "GLUE", 
-      "GLUE_RUNTIME", "GLULE_MEMBER_OF", "GLUE_INSTANCE_OF", "GLUE_OVERRIDE", 
+      "RETURN", "CALLED_RETURN", "INDEX", "SEGMENT", "LINE", "LINE_INSTANCE", 
+      "GLUE", "GLUE_RUNTIME", "GLULE_MEMBER_OF", "GLUE_INSTANCE_OF", "GLUE_OVERRIDE", 
       "GLUE_HIERARCHY", "GRAPH", "GRAPH_INSTANCE", "CODE_ORDER", "SHOW", 
       "STRING", "IDENTIFIER", "FLOAT", "INT", "WS", "LINE_COMMENT"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,85,376,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,86,377,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,1,0,1,0,
   	1,0,4,0,32,8,0,11,0,12,0,33,1,0,1,0,1,0,5,0,39,8,0,10,0,12,0,42,9,0,1,
   	1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
@@ -105,41 +105,41 @@ void simpleviewParserInitialize() {
   	3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,
   	1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,
   	3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,
-  	1,3,1,3,1,3,3,3,231,8,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,5,3,242,8,
-  	3,10,3,12,3,245,9,3,1,4,1,4,1,4,1,4,5,4,251,8,4,10,4,12,4,254,9,4,1,4,
-  	1,4,1,5,1,5,1,5,4,5,261,8,5,11,5,12,5,262,1,6,1,6,1,6,1,6,3,6,269,8,6,
-  	1,6,3,6,272,8,6,1,7,1,7,1,7,1,7,5,7,278,8,7,10,7,12,7,281,9,7,1,7,1,7,
-  	1,8,1,8,3,8,287,8,8,1,9,1,9,1,9,5,9,292,8,9,10,9,12,9,295,9,9,1,10,1,
-  	10,1,10,1,10,5,10,301,8,10,10,10,12,10,304,9,10,1,10,1,10,1,10,3,10,309,
-  	8,10,1,11,1,11,1,11,1,11,5,11,315,8,11,10,11,12,11,318,9,11,1,11,1,11,
-  	1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,3,12,333,8,12,
-  	1,12,1,12,1,12,1,12,1,12,1,12,1,12,5,12,342,8,12,10,12,12,12,345,9,12,
-  	1,12,1,12,1,12,1,12,3,12,351,8,12,1,12,1,12,1,12,4,12,356,8,12,11,12,
-  	12,12,357,1,12,1,12,1,12,1,12,1,12,3,12,365,8,12,1,13,1,13,1,13,1,13,
-  	1,13,1,13,1,13,1,13,1,13,1,13,0,2,4,6,14,0,2,4,6,8,10,12,14,16,18,20,
-  	22,24,26,0,3,1,0,14,16,2,0,67,68,78,78,2,0,69,69,77,77,432,0,31,1,0,0,
-  	0,2,68,1,0,0,0,4,114,1,0,0,0,6,230,1,0,0,0,8,246,1,0,0,0,10,257,1,0,0,
-  	0,12,268,1,0,0,0,14,273,1,0,0,0,16,284,1,0,0,0,18,288,1,0,0,0,20,308,
-  	1,0,0,0,22,310,1,0,0,0,24,364,1,0,0,0,26,366,1,0,0,0,28,29,3,24,12,0,
-  	29,30,5,1,0,0,30,32,1,0,0,0,31,28,1,0,0,0,32,33,1,0,0,0,33,31,1,0,0,0,
-  	33,34,1,0,0,0,34,40,1,0,0,0,35,36,3,26,13,0,36,37,5,1,0,0,37,39,1,0,0,
-  	0,38,35,1,0,0,0,39,42,1,0,0,0,40,38,1,0,0,0,40,41,1,0,0,0,41,1,1,0,0,
-  	0,42,40,1,0,0,0,43,44,5,71,0,0,44,45,5,2,0,0,45,46,3,6,3,0,46,47,5,1,
-  	0,0,47,69,1,0,0,0,48,49,5,72,0,0,49,50,5,2,0,0,50,51,3,4,2,0,51,52,5,
-  	1,0,0,52,69,1,0,0,0,53,54,5,73,0,0,54,55,5,2,0,0,55,56,3,4,2,0,56,57,
-  	5,1,0,0,57,69,1,0,0,0,58,59,5,74,0,0,59,60,5,2,0,0,60,61,3,6,3,0,61,62,
-  	5,1,0,0,62,69,1,0,0,0,63,64,5,75,0,0,64,65,5,2,0,0,65,66,3,4,2,0,66,67,
+  	1,3,1,3,1,3,1,3,3,3,232,8,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,5,3,243,
+  	8,3,10,3,12,3,246,9,3,1,4,1,4,1,4,1,4,5,4,252,8,4,10,4,12,4,255,9,4,1,
+  	4,1,4,1,5,1,5,1,5,4,5,262,8,5,11,5,12,5,263,1,6,1,6,1,6,1,6,3,6,270,8,
+  	6,1,6,3,6,273,8,6,1,7,1,7,1,7,1,7,5,7,279,8,7,10,7,12,7,282,9,7,1,7,1,
+  	7,1,8,1,8,3,8,288,8,8,1,9,1,9,1,9,5,9,293,8,9,10,9,12,9,296,9,9,1,10,
+  	1,10,1,10,1,10,5,10,302,8,10,10,10,12,10,305,9,10,1,10,1,10,1,10,3,10,
+  	310,8,10,1,11,1,11,1,11,1,11,5,11,316,8,11,10,11,12,11,319,9,11,1,11,
+  	1,11,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,3,12,334,
+  	8,12,1,12,1,12,1,12,1,12,1,12,1,12,1,12,5,12,343,8,12,10,12,12,12,346,
+  	9,12,1,12,1,12,1,12,1,12,3,12,352,8,12,1,12,1,12,1,12,4,12,357,8,12,11,
+  	12,12,12,358,1,12,1,12,1,12,1,12,1,12,3,12,366,8,12,1,13,1,13,1,13,1,
+  	13,1,13,1,13,1,13,1,13,1,13,1,13,0,2,4,6,14,0,2,4,6,8,10,12,14,16,18,
+  	20,22,24,26,0,3,1,0,14,16,2,0,68,69,79,79,2,0,70,70,78,78,434,0,31,1,
+  	0,0,0,2,68,1,0,0,0,4,114,1,0,0,0,6,231,1,0,0,0,8,247,1,0,0,0,10,258,1,
+  	0,0,0,12,269,1,0,0,0,14,274,1,0,0,0,16,285,1,0,0,0,18,289,1,0,0,0,20,
+  	309,1,0,0,0,22,311,1,0,0,0,24,365,1,0,0,0,26,367,1,0,0,0,28,29,3,24,12,
+  	0,29,30,5,1,0,0,30,32,1,0,0,0,31,28,1,0,0,0,32,33,1,0,0,0,33,31,1,0,0,
+  	0,33,34,1,0,0,0,34,40,1,0,0,0,35,36,3,26,13,0,36,37,5,1,0,0,37,39,1,0,
+  	0,0,38,35,1,0,0,0,39,42,1,0,0,0,40,38,1,0,0,0,40,41,1,0,0,0,41,1,1,0,
+  	0,0,42,40,1,0,0,0,43,44,5,72,0,0,44,45,5,2,0,0,45,46,3,6,3,0,46,47,5,
+  	1,0,0,47,69,1,0,0,0,48,49,5,73,0,0,49,50,5,2,0,0,50,51,3,4,2,0,51,52,
+  	5,1,0,0,52,69,1,0,0,0,53,54,5,74,0,0,54,55,5,2,0,0,55,56,3,4,2,0,56,57,
+  	5,1,0,0,57,69,1,0,0,0,58,59,5,75,0,0,59,60,5,2,0,0,60,61,3,6,3,0,61,62,
+  	5,1,0,0,62,69,1,0,0,0,63,64,5,76,0,0,64,65,5,2,0,0,65,66,3,4,2,0,66,67,
   	5,1,0,0,67,69,1,0,0,0,68,43,1,0,0,0,68,48,1,0,0,0,68,53,1,0,0,0,68,58,
-  	1,0,0,0,68,63,1,0,0,0,69,3,1,0,0,0,70,71,6,2,-1,0,71,115,5,80,0,0,72,
-  	73,5,3,0,0,73,78,5,80,0,0,74,75,5,4,0,0,75,77,5,80,0,0,76,74,1,0,0,0,
+  	1,0,0,0,68,63,1,0,0,0,69,3,1,0,0,0,70,71,6,2,-1,0,71,115,5,81,0,0,72,
+  	73,5,3,0,0,73,78,5,81,0,0,74,75,5,4,0,0,75,77,5,81,0,0,76,74,1,0,0,0,
   	77,80,1,0,0,0,78,76,1,0,0,0,78,79,1,0,0,0,79,81,1,0,0,0,80,78,1,0,0,0,
-  	81,115,5,5,0,0,82,83,5,43,0,0,83,84,5,6,0,0,84,85,5,80,0,0,85,115,5,7,
+  	81,115,5,5,0,0,82,83,5,43,0,0,83,84,5,6,0,0,84,85,5,81,0,0,85,115,5,7,
   	0,0,86,87,5,44,0,0,87,88,5,6,0,0,88,89,3,4,2,0,89,90,5,7,0,0,90,115,1,
   	0,0,0,91,92,5,45,0,0,92,93,5,6,0,0,93,94,3,4,2,0,94,95,5,7,0,0,95,115,
   	1,0,0,0,96,97,5,47,0,0,97,98,5,6,0,0,98,99,3,4,2,0,99,100,5,7,0,0,100,
   	115,1,0,0,0,101,102,5,48,0,0,102,103,5,6,0,0,103,104,3,4,2,0,104,105,
   	5,7,0,0,105,115,1,0,0,0,106,107,5,6,0,0,107,108,3,4,2,0,108,109,5,7,0,
-  	0,109,115,1,0,0,0,110,115,5,81,0,0,111,112,5,11,0,0,112,113,5,81,0,0,
+  	0,109,115,1,0,0,0,110,115,5,82,0,0,111,112,5,11,0,0,112,113,5,82,0,0,
   	113,115,5,12,0,0,114,70,1,0,0,0,114,72,1,0,0,0,114,82,1,0,0,0,114,86,
   	1,0,0,0,114,91,1,0,0,0,114,96,1,0,0,0,114,101,1,0,0,0,114,106,1,0,0,0,
   	114,110,1,0,0,0,114,111,1,0,0,0,115,127,1,0,0,0,116,117,10,6,0,0,117,
@@ -147,77 +147,77 @@ void simpleviewParserInitialize() {
   	3,4,2,6,122,123,10,4,0,0,123,124,5,10,0,0,124,126,3,4,2,5,125,116,1,0,
   	0,0,125,119,1,0,0,0,125,122,1,0,0,0,126,129,1,0,0,0,127,125,1,0,0,0,127,
   	128,1,0,0,0,128,5,1,0,0,0,129,127,1,0,0,0,130,131,6,3,-1,0,131,132,5,
-  	80,0,0,132,133,5,6,0,0,133,134,5,80,0,0,134,231,5,7,0,0,135,136,5,3,0,
-  	0,136,137,5,80,0,0,137,138,5,6,0,0,138,139,5,80,0,0,139,147,5,7,0,0,140,
-  	141,5,4,0,0,141,142,5,80,0,0,142,143,5,6,0,0,143,144,5,80,0,0,144,146,
+  	81,0,0,132,133,5,6,0,0,133,134,5,81,0,0,134,232,5,7,0,0,135,136,5,3,0,
+  	0,136,137,5,81,0,0,137,138,5,6,0,0,138,139,5,81,0,0,139,147,5,7,0,0,140,
+  	141,5,4,0,0,141,142,5,81,0,0,142,143,5,6,0,0,143,144,5,81,0,0,144,146,
   	5,7,0,0,145,140,1,0,0,0,146,149,1,0,0,0,147,145,1,0,0,0,147,148,1,0,0,
-  	0,148,150,1,0,0,0,149,147,1,0,0,0,150,231,5,5,0,0,151,152,5,32,0,0,152,
-  	153,5,6,0,0,153,154,3,4,2,0,154,155,5,7,0,0,155,231,1,0,0,0,156,157,5,
-  	34,0,0,157,158,5,6,0,0,158,159,3,4,2,0,159,160,5,7,0,0,160,231,1,0,0,
+  	0,148,150,1,0,0,0,149,147,1,0,0,0,150,232,5,5,0,0,151,152,5,32,0,0,152,
+  	153,5,6,0,0,153,154,3,4,2,0,154,155,5,7,0,0,155,232,1,0,0,0,156,157,5,
+  	34,0,0,157,158,5,6,0,0,158,159,3,4,2,0,159,160,5,7,0,0,160,232,1,0,0,
   	0,161,162,5,36,0,0,162,163,5,6,0,0,163,164,3,6,3,0,164,165,5,7,0,0,165,
-  	231,1,0,0,0,166,167,5,37,0,0,167,168,5,6,0,0,168,169,3,6,3,0,169,170,
-  	5,7,0,0,170,231,1,0,0,0,171,172,5,33,0,0,172,173,5,6,0,0,173,174,3,4,
-  	2,0,174,175,5,4,0,0,175,176,3,4,2,0,176,177,5,7,0,0,177,231,1,0,0,0,178,
-  	179,5,35,0,0,179,180,5,6,0,0,180,181,3,4,2,0,181,182,5,7,0,0,182,231,
+  	232,1,0,0,0,166,167,5,37,0,0,167,168,5,6,0,0,168,169,3,6,3,0,169,170,
+  	5,7,0,0,170,232,1,0,0,0,171,172,5,33,0,0,172,173,5,6,0,0,173,174,3,4,
+  	2,0,174,175,5,4,0,0,175,176,3,4,2,0,176,177,5,7,0,0,177,232,1,0,0,0,178,
+  	179,5,35,0,0,179,180,5,6,0,0,180,181,3,4,2,0,181,182,5,7,0,0,182,232,
   	1,0,0,0,183,184,5,40,0,0,184,185,5,6,0,0,185,186,3,6,3,0,186,187,5,7,
-  	0,0,187,231,1,0,0,0,188,189,5,38,0,0,189,190,5,6,0,0,190,191,3,6,3,0,
-  	191,192,5,7,0,0,192,231,1,0,0,0,193,194,5,39,0,0,194,195,5,6,0,0,195,
-  	196,3,6,3,0,196,197,5,7,0,0,197,231,1,0,0,0,198,199,5,41,0,0,199,200,
-  	5,6,0,0,200,201,3,6,3,0,201,202,5,7,0,0,202,231,1,0,0,0,203,204,5,42,
-  	0,0,204,205,5,6,0,0,205,206,3,6,3,0,206,207,5,7,0,0,207,231,1,0,0,0,208,
-  	231,5,31,0,0,209,231,5,54,0,0,210,231,5,55,0,0,211,231,5,56,0,0,212,231,
-  	5,57,0,0,213,231,5,58,0,0,214,231,5,59,0,0,215,231,5,60,0,0,216,231,5,
-  	61,0,0,217,231,5,62,0,0,218,231,5,63,0,0,219,231,5,64,0,0,220,231,5,65,
-  	0,0,221,231,5,66,0,0,222,223,5,6,0,0,223,224,3,6,3,0,224,225,5,7,0,0,
-  	225,231,1,0,0,0,226,231,5,81,0,0,227,228,5,11,0,0,228,229,5,81,0,0,229,
-  	231,5,12,0,0,230,130,1,0,0,0,230,135,1,0,0,0,230,151,1,0,0,0,230,156,
-  	1,0,0,0,230,161,1,0,0,0,230,166,1,0,0,0,230,171,1,0,0,0,230,178,1,0,0,
-  	0,230,183,1,0,0,0,230,188,1,0,0,0,230,193,1,0,0,0,230,198,1,0,0,0,230,
-  	203,1,0,0,0,230,208,1,0,0,0,230,209,1,0,0,0,230,210,1,0,0,0,230,211,1,
-  	0,0,0,230,212,1,0,0,0,230,213,1,0,0,0,230,214,1,0,0,0,230,215,1,0,0,0,
-  	230,216,1,0,0,0,230,217,1,0,0,0,230,218,1,0,0,0,230,219,1,0,0,0,230,220,
-  	1,0,0,0,230,221,1,0,0,0,230,222,1,0,0,0,230,226,1,0,0,0,230,227,1,0,0,
-  	0,231,243,1,0,0,0,232,233,10,22,0,0,233,234,5,9,0,0,234,242,3,6,3,23,
-  	235,236,10,21,0,0,236,237,5,8,0,0,237,242,3,6,3,22,238,239,10,20,0,0,
-  	239,240,5,10,0,0,240,242,3,6,3,21,241,232,1,0,0,0,241,235,1,0,0,0,241,
-  	238,1,0,0,0,242,245,1,0,0,0,243,241,1,0,0,0,243,244,1,0,0,0,244,7,1,0,
-  	0,0,245,243,1,0,0,0,246,247,5,6,0,0,247,252,5,81,0,0,248,249,5,4,0,0,
-  	249,251,5,81,0,0,250,248,1,0,0,0,251,254,1,0,0,0,252,250,1,0,0,0,252,
-  	253,1,0,0,0,253,255,1,0,0,0,254,252,1,0,0,0,255,256,5,7,0,0,256,9,1,0,
-  	0,0,257,260,3,12,6,0,258,259,5,13,0,0,259,261,3,12,6,0,260,258,1,0,0,
-  	0,261,262,1,0,0,0,262,260,1,0,0,0,262,263,1,0,0,0,263,11,1,0,0,0,264,
-  	265,5,3,0,0,265,266,5,81,0,0,266,269,5,5,0,0,267,269,3,6,3,0,268,264,
-  	1,0,0,0,268,267,1,0,0,0,269,271,1,0,0,0,270,272,7,0,0,0,271,270,1,0,0,
-  	0,271,272,1,0,0,0,272,13,1,0,0,0,273,274,5,6,0,0,274,279,5,81,0,0,275,
-  	276,5,4,0,0,276,278,5,81,0,0,277,275,1,0,0,0,278,281,1,0,0,0,279,277,
-  	1,0,0,0,279,280,1,0,0,0,280,282,1,0,0,0,281,279,1,0,0,0,282,283,5,7,0,
-  	0,283,15,1,0,0,0,284,286,5,81,0,0,285,287,3,14,7,0,286,285,1,0,0,0,286,
-  	287,1,0,0,0,287,17,1,0,0,0,288,293,3,16,8,0,289,290,5,4,0,0,290,292,3,
-  	16,8,0,291,289,1,0,0,0,292,295,1,0,0,0,293,291,1,0,0,0,293,294,1,0,0,
-  	0,294,19,1,0,0,0,295,293,1,0,0,0,296,297,5,3,0,0,297,302,3,20,10,0,298,
-  	299,5,4,0,0,299,301,3,20,10,0,300,298,1,0,0,0,301,304,1,0,0,0,302,300,
-  	1,0,0,0,302,303,1,0,0,0,303,305,1,0,0,0,304,302,1,0,0,0,305,306,5,5,0,
-  	0,306,309,1,0,0,0,307,309,5,83,0,0,308,296,1,0,0,0,308,307,1,0,0,0,309,
-  	21,1,0,0,0,310,311,5,17,0,0,311,316,3,20,10,0,312,313,5,4,0,0,313,315,
-  	3,20,10,0,314,312,1,0,0,0,315,318,1,0,0,0,316,314,1,0,0,0,316,317,1,0,
-  	0,0,317,319,1,0,0,0,318,316,1,0,0,0,319,320,5,18,0,0,320,23,1,0,0,0,321,
-  	322,5,52,0,0,322,323,5,81,0,0,323,324,5,19,0,0,324,365,3,4,2,0,325,326,
-  	5,53,0,0,326,327,5,81,0,0,327,328,5,19,0,0,328,365,3,6,3,0,329,330,7,
-  	1,0,0,330,332,5,81,0,0,331,333,3,8,4,0,332,331,1,0,0,0,332,333,1,0,0,
-  	0,333,334,1,0,0,0,334,335,5,19,0,0,335,365,3,10,5,0,336,337,5,70,0,0,
-  	337,338,5,81,0,0,338,339,5,19,0,0,339,343,5,11,0,0,340,342,3,2,1,0,341,
-  	340,1,0,0,0,342,345,1,0,0,0,343,341,1,0,0,0,343,344,1,0,0,0,344,346,1,
-  	0,0,0,345,343,1,0,0,0,346,365,5,12,0,0,347,348,5,76,0,0,348,350,5,81,
-  	0,0,349,351,3,8,4,0,350,349,1,0,0,0,350,351,1,0,0,0,351,352,1,0,0,0,352,
-  	353,5,19,0,0,353,355,3,18,9,0,354,356,3,22,11,0,355,354,1,0,0,0,356,357,
-  	1,0,0,0,357,355,1,0,0,0,357,358,1,0,0,0,358,365,1,0,0,0,359,360,7,2,0,
-  	0,360,361,5,81,0,0,361,362,5,19,0,0,362,363,5,81,0,0,363,365,3,14,7,0,
-  	364,321,1,0,0,0,364,325,1,0,0,0,364,329,1,0,0,0,364,336,1,0,0,0,364,347,
-  	1,0,0,0,364,359,1,0,0,0,365,25,1,0,0,0,366,367,5,79,0,0,367,368,5,6,0,
-  	0,368,369,5,81,0,0,369,370,5,4,0,0,370,371,5,81,0,0,371,372,5,4,0,0,372,
-  	373,5,81,0,0,373,374,5,7,0,0,374,27,1,0,0,0,26,33,40,68,78,114,125,127,
-  	147,230,241,243,252,262,268,271,279,286,293,302,308,316,332,343,350,357,
-  	364
+  	0,0,187,232,1,0,0,0,188,189,5,38,0,0,189,190,5,6,0,0,190,191,3,6,3,0,
+  	191,192,5,7,0,0,192,232,1,0,0,0,193,194,5,39,0,0,194,195,5,6,0,0,195,
+  	196,3,6,3,0,196,197,5,7,0,0,197,232,1,0,0,0,198,199,5,41,0,0,199,200,
+  	5,6,0,0,200,201,3,6,3,0,201,202,5,7,0,0,202,232,1,0,0,0,203,204,5,42,
+  	0,0,204,205,5,6,0,0,205,206,3,6,3,0,206,207,5,7,0,0,207,232,1,0,0,0,208,
+  	232,5,31,0,0,209,232,5,54,0,0,210,232,5,55,0,0,211,232,5,56,0,0,212,232,
+  	5,57,0,0,213,232,5,58,0,0,214,232,5,59,0,0,215,232,5,60,0,0,216,232,5,
+  	61,0,0,217,232,5,62,0,0,218,232,5,63,0,0,219,232,5,64,0,0,220,232,5,65,
+  	0,0,221,232,5,66,0,0,222,232,5,67,0,0,223,224,5,6,0,0,224,225,3,6,3,0,
+  	225,226,5,7,0,0,226,232,1,0,0,0,227,232,5,82,0,0,228,229,5,11,0,0,229,
+  	230,5,82,0,0,230,232,5,12,0,0,231,130,1,0,0,0,231,135,1,0,0,0,231,151,
+  	1,0,0,0,231,156,1,0,0,0,231,161,1,0,0,0,231,166,1,0,0,0,231,171,1,0,0,
+  	0,231,178,1,0,0,0,231,183,1,0,0,0,231,188,1,0,0,0,231,193,1,0,0,0,231,
+  	198,1,0,0,0,231,203,1,0,0,0,231,208,1,0,0,0,231,209,1,0,0,0,231,210,1,
+  	0,0,0,231,211,1,0,0,0,231,212,1,0,0,0,231,213,1,0,0,0,231,214,1,0,0,0,
+  	231,215,1,0,0,0,231,216,1,0,0,0,231,217,1,0,0,0,231,218,1,0,0,0,231,219,
+  	1,0,0,0,231,220,1,0,0,0,231,221,1,0,0,0,231,222,1,0,0,0,231,223,1,0,0,
+  	0,231,227,1,0,0,0,231,228,1,0,0,0,232,244,1,0,0,0,233,234,10,23,0,0,234,
+  	235,5,9,0,0,235,243,3,6,3,24,236,237,10,22,0,0,237,238,5,8,0,0,238,243,
+  	3,6,3,23,239,240,10,21,0,0,240,241,5,10,0,0,241,243,3,6,3,22,242,233,
+  	1,0,0,0,242,236,1,0,0,0,242,239,1,0,0,0,243,246,1,0,0,0,244,242,1,0,0,
+  	0,244,245,1,0,0,0,245,7,1,0,0,0,246,244,1,0,0,0,247,248,5,6,0,0,248,253,
+  	5,82,0,0,249,250,5,4,0,0,250,252,5,82,0,0,251,249,1,0,0,0,252,255,1,0,
+  	0,0,253,251,1,0,0,0,253,254,1,0,0,0,254,256,1,0,0,0,255,253,1,0,0,0,256,
+  	257,5,7,0,0,257,9,1,0,0,0,258,261,3,12,6,0,259,260,5,13,0,0,260,262,3,
+  	12,6,0,261,259,1,0,0,0,262,263,1,0,0,0,263,261,1,0,0,0,263,264,1,0,0,
+  	0,264,11,1,0,0,0,265,266,5,3,0,0,266,267,5,82,0,0,267,270,5,5,0,0,268,
+  	270,3,6,3,0,269,265,1,0,0,0,269,268,1,0,0,0,270,272,1,0,0,0,271,273,7,
+  	0,0,0,272,271,1,0,0,0,272,273,1,0,0,0,273,13,1,0,0,0,274,275,5,6,0,0,
+  	275,280,5,82,0,0,276,277,5,4,0,0,277,279,5,82,0,0,278,276,1,0,0,0,279,
+  	282,1,0,0,0,280,278,1,0,0,0,280,281,1,0,0,0,281,283,1,0,0,0,282,280,1,
+  	0,0,0,283,284,5,7,0,0,284,15,1,0,0,0,285,287,5,82,0,0,286,288,3,14,7,
+  	0,287,286,1,0,0,0,287,288,1,0,0,0,288,17,1,0,0,0,289,294,3,16,8,0,290,
+  	291,5,4,0,0,291,293,3,16,8,0,292,290,1,0,0,0,293,296,1,0,0,0,294,292,
+  	1,0,0,0,294,295,1,0,0,0,295,19,1,0,0,0,296,294,1,0,0,0,297,298,5,3,0,
+  	0,298,303,3,20,10,0,299,300,5,4,0,0,300,302,3,20,10,0,301,299,1,0,0,0,
+  	302,305,1,0,0,0,303,301,1,0,0,0,303,304,1,0,0,0,304,306,1,0,0,0,305,303,
+  	1,0,0,0,306,307,5,5,0,0,307,310,1,0,0,0,308,310,5,84,0,0,309,297,1,0,
+  	0,0,309,308,1,0,0,0,310,21,1,0,0,0,311,312,5,17,0,0,312,317,3,20,10,0,
+  	313,314,5,4,0,0,314,316,3,20,10,0,315,313,1,0,0,0,316,319,1,0,0,0,317,
+  	315,1,0,0,0,317,318,1,0,0,0,318,320,1,0,0,0,319,317,1,0,0,0,320,321,5,
+  	18,0,0,321,23,1,0,0,0,322,323,5,52,0,0,323,324,5,82,0,0,324,325,5,19,
+  	0,0,325,366,3,4,2,0,326,327,5,53,0,0,327,328,5,82,0,0,328,329,5,19,0,
+  	0,329,366,3,6,3,0,330,331,7,1,0,0,331,333,5,82,0,0,332,334,3,8,4,0,333,
+  	332,1,0,0,0,333,334,1,0,0,0,334,335,1,0,0,0,335,336,5,19,0,0,336,366,
+  	3,10,5,0,337,338,5,71,0,0,338,339,5,82,0,0,339,340,5,19,0,0,340,344,5,
+  	11,0,0,341,343,3,2,1,0,342,341,1,0,0,0,343,346,1,0,0,0,344,342,1,0,0,
+  	0,344,345,1,0,0,0,345,347,1,0,0,0,346,344,1,0,0,0,347,366,5,12,0,0,348,
+  	349,5,77,0,0,349,351,5,82,0,0,350,352,3,8,4,0,351,350,1,0,0,0,351,352,
+  	1,0,0,0,352,353,1,0,0,0,353,354,5,19,0,0,354,356,3,18,9,0,355,357,3,22,
+  	11,0,356,355,1,0,0,0,357,358,1,0,0,0,358,356,1,0,0,0,358,359,1,0,0,0,
+  	359,366,1,0,0,0,360,361,7,2,0,0,361,362,5,82,0,0,362,363,5,19,0,0,363,
+  	364,5,82,0,0,364,366,3,14,7,0,365,322,1,0,0,0,365,326,1,0,0,0,365,330,
+  	1,0,0,0,365,337,1,0,0,0,365,348,1,0,0,0,365,360,1,0,0,0,366,25,1,0,0,
+  	0,367,368,5,80,0,0,368,369,5,6,0,0,369,370,5,82,0,0,370,371,5,4,0,0,371,
+  	372,5,82,0,0,372,373,5,4,0,0,373,374,5,82,0,0,374,375,5,7,0,0,375,27,
+  	1,0,0,0,26,33,40,68,78,114,125,127,147,231,242,244,253,263,269,272,280,
+  	287,294,303,309,317,333,344,351,358,365
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -327,7 +327,7 @@ SimpleViewParser::CompilationUnitContext* SimpleViewParser::compilationUnit() {
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while (((((_la - 52) & ~ 0x3fULL) == 0) &&
-      ((1ULL << (_la - 52)) & 117932035) != 0));
+      ((1ULL << (_la - 52)) & 235864067) != 0));
     setState(40);
     _errHandler->sync(this);
     _la = _input->LA(1);
@@ -895,6 +895,10 @@ tree::TerminalNode* SimpleViewParser::NodeExpContext::CALLED_RETURN() {
   return getToken(SimpleViewParser::CALLED_RETURN, 0);
 }
 
+tree::TerminalNode* SimpleViewParser::NodeExpContext::INDEX() {
+  return getToken(SimpleViewParser::INDEX, 0);
+}
+
 tree::TerminalNode* SimpleViewParser::NodeExpContext::IDENTIFIER() {
   return getToken(SimpleViewParser::IDENTIFIER, 0);
 }
@@ -938,7 +942,7 @@ SimpleViewParser::NodeExpContext* SimpleViewParser::nodeExp(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(230);
+    setState(231);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case SimpleViewParser::STRING: {
@@ -1207,28 +1211,34 @@ SimpleViewParser::NodeExpContext* SimpleViewParser::nodeExp(int precedence) {
         break;
       }
 
-      case SimpleViewParser::T__5: {
+      case SimpleViewParser::INDEX: {
         setState(222);
-        match(SimpleViewParser::T__5);
+        match(SimpleViewParser::INDEX);
+        break;
+      }
+
+      case SimpleViewParser::T__5: {
         setState(223);
-        antlrcpp::downCast<NodeExpContext *>(_localctx)->bracket = nodeExp(0);
+        match(SimpleViewParser::T__5);
         setState(224);
+        antlrcpp::downCast<NodeExpContext *>(_localctx)->bracket = nodeExp(0);
+        setState(225);
         match(SimpleViewParser::T__6);
         break;
       }
 
       case SimpleViewParser::IDENTIFIER: {
-        setState(226);
+        setState(227);
         antlrcpp::downCast<NodeExpContext *>(_localctx)->refOtherNode = match(SimpleViewParser::IDENTIFIER);
         break;
       }
 
       case SimpleViewParser::T__10: {
-        setState(227);
-        antlrcpp::downCast<NodeExpContext *>(_localctx)->varNode = match(SimpleViewParser::T__10);
         setState(228);
-        match(SimpleViewParser::IDENTIFIER);
+        antlrcpp::downCast<NodeExpContext *>(_localctx)->varNode = match(SimpleViewParser::T__10);
         setState(229);
+        match(SimpleViewParser::IDENTIFIER);
+        setState(230);
         match(SimpleViewParser::T__11);
         break;
       }
@@ -1237,7 +1247,7 @@ SimpleViewParser::NodeExpContext* SimpleViewParser::nodeExp(int precedence) {
       throw NoViableAltException(this);
     }
     _ctx->stop = _input->LT(-1);
-    setState(243);
+    setState(244);
     _errHandler->sync(this);
     alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 10, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
@@ -1245,45 +1255,45 @@ SimpleViewParser::NodeExpContext* SimpleViewParser::nodeExp(int precedence) {
         if (!_parseListeners.empty())
           triggerExitRuleEvent();
         previousContext = _localctx;
-        setState(241);
+        setState(242);
         _errHandler->sync(this);
         switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 9, _ctx)) {
         case 1: {
           _localctx = _tracker.createInstance<NodeExpContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RuleNodeExp);
-          setState(232);
-
-          if (!(precpred(_ctx, 22))) throw FailedPredicateException(this, "precpred(_ctx, 22)");
           setState(233);
-          antlrcpp::downCast<NodeExpContext *>(_localctx)->intersection = match(SimpleViewParser::T__8);
+
+          if (!(precpred(_ctx, 23))) throw FailedPredicateException(this, "precpred(_ctx, 23)");
           setState(234);
-          nodeExp(23);
+          antlrcpp::downCast<NodeExpContext *>(_localctx)->intersection = match(SimpleViewParser::T__8);
+          setState(235);
+          nodeExp(24);
           break;
         }
 
         case 2: {
           _localctx = _tracker.createInstance<NodeExpContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RuleNodeExp);
-          setState(235);
-
-          if (!(precpred(_ctx, 21))) throw FailedPredicateException(this, "precpred(_ctx, 21)");
           setState(236);
-          antlrcpp::downCast<NodeExpContext *>(_localctx)->union_ = match(SimpleViewParser::T__7);
+
+          if (!(precpred(_ctx, 22))) throw FailedPredicateException(this, "precpred(_ctx, 22)");
           setState(237);
-          nodeExp(22);
+          antlrcpp::downCast<NodeExpContext *>(_localctx)->union_ = match(SimpleViewParser::T__7);
+          setState(238);
+          nodeExp(23);
           break;
         }
 
         case 3: {
           _localctx = _tracker.createInstance<NodeExpContext>(parentContext, parentState);
           pushNewRecursionContext(_localctx, startState, RuleNodeExp);
-          setState(238);
-
-          if (!(precpred(_ctx, 20))) throw FailedPredicateException(this, "precpred(_ctx, 20)");
           setState(239);
-          antlrcpp::downCast<NodeExpContext *>(_localctx)->difference = match(SimpleViewParser::T__9);
+
+          if (!(precpred(_ctx, 21))) throw FailedPredicateException(this, "precpred(_ctx, 21)");
           setState(240);
-          nodeExp(21);
+          antlrcpp::downCast<NodeExpContext *>(_localctx)->difference = match(SimpleViewParser::T__9);
+          setState(241);
+          nodeExp(22);
           break;
         }
 
@@ -1291,7 +1301,7 @@ SimpleViewParser::NodeExpContext* SimpleViewParser::nodeExp(int precedence) {
           break;
         } 
       }
-      setState(245);
+      setState(246);
       _errHandler->sync(this);
       alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 10, _ctx);
     }
@@ -1345,23 +1355,23 @@ SimpleViewParser::ParamListContext* SimpleViewParser::paramList() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(246);
-    match(SimpleViewParser::T__5);
     setState(247);
+    match(SimpleViewParser::T__5);
+    setState(248);
     match(SimpleViewParser::IDENTIFIER);
-    setState(252);
+    setState(253);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == SimpleViewParser::T__3) {
-      setState(248);
-      match(SimpleViewParser::T__3);
       setState(249);
+      match(SimpleViewParser::T__3);
+      setState(250);
       match(SimpleViewParser::IDENTIFIER);
-      setState(254);
+      setState(255);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(255);
+    setState(256);
     match(SimpleViewParser::T__6);
    
   }
@@ -1415,17 +1425,17 @@ SimpleViewParser::LineExpContext* SimpleViewParser::lineExp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(257);
+    setState(258);
     lineSegOrNodeExp();
-    setState(260); 
+    setState(261); 
     _errHandler->sync(this);
     _la = _input->LA(1);
     do {
-      setState(258);
-      match(SimpleViewParser::T__12);
       setState(259);
+      match(SimpleViewParser::T__12);
+      setState(260);
       lineSegOrNodeExp();
-      setState(262); 
+      setState(263); 
       _errHandler->sync(this);
       _la = _input->LA(1);
     } while (_la == SimpleViewParser::T__12);
@@ -1481,21 +1491,21 @@ SimpleViewParser::LineSegOrNodeExpContext* SimpleViewParser::lineSegOrNodeExp() 
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(268);
+    setState(269);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx)) {
     case 1: {
-      setState(264);
-      match(SimpleViewParser::T__2);
       setState(265);
-      antlrcpp::downCast<LineSegOrNodeExpContext *>(_localctx)->segName = match(SimpleViewParser::IDENTIFIER);
+      match(SimpleViewParser::T__2);
       setState(266);
+      antlrcpp::downCast<LineSegOrNodeExpContext *>(_localctx)->segName = match(SimpleViewParser::IDENTIFIER);
+      setState(267);
       match(SimpleViewParser::T__4);
       break;
     }
 
     case 2: {
-      setState(267);
+      setState(268);
       nodeExp(0);
       break;
     }
@@ -1503,13 +1513,13 @@ SimpleViewParser::LineSegOrNodeExpContext* SimpleViewParser::lineSegOrNodeExp() 
     default:
       break;
     }
-    setState(271);
+    setState(272);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 114688) != 0)) {
-      setState(270);
+      setState(271);
       antlrcpp::downCast<LineSegOrNodeExpContext *>(_localctx)->wildcard = _input->LT(1);
       _la = _input->LA(1);
       if (!((((_la & ~ 0x3fULL) == 0) &&
@@ -1573,23 +1583,23 @@ SimpleViewParser::LineArgumentListContext* SimpleViewParser::lineArgumentList() 
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(273);
-    match(SimpleViewParser::T__5);
     setState(274);
+    match(SimpleViewParser::T__5);
+    setState(275);
     match(SimpleViewParser::IDENTIFIER);
-    setState(279);
+    setState(280);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == SimpleViewParser::T__3) {
-      setState(275);
-      match(SimpleViewParser::T__3);
       setState(276);
+      match(SimpleViewParser::T__3);
+      setState(277);
       match(SimpleViewParser::IDENTIFIER);
-      setState(281);
+      setState(282);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(282);
+    setState(283);
     match(SimpleViewParser::T__6);
    
   }
@@ -1643,14 +1653,14 @@ SimpleViewParser::GraphElementContext* SimpleViewParser::graphElement() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(284);
+    setState(285);
     antlrcpp::downCast<GraphElementContext *>(_localctx)->lineName = match(SimpleViewParser::IDENTIFIER);
-    setState(286);
+    setState(287);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if (_la == SimpleViewParser::T__5) {
-      setState(285);
+      setState(286);
       lineArgumentList();
     }
    
@@ -1705,17 +1715,17 @@ SimpleViewParser::GraphBodyContext* SimpleViewParser::graphBody() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(288);
+    setState(289);
     graphElement();
-    setState(293);
+    setState(294);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == SimpleViewParser::T__3) {
-      setState(289);
-      match(SimpleViewParser::T__3);
       setState(290);
+      match(SimpleViewParser::T__3);
+      setState(291);
       graphElement();
-      setState(295);
+      setState(296);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1774,35 +1784,35 @@ SimpleViewParser::PointInLineContext* SimpleViewParser::pointInLine() {
     exitRule();
   });
   try {
-    setState(308);
+    setState(309);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case SimpleViewParser::T__2: {
         enterOuterAlt(_localctx, 1);
-        setState(296);
-        match(SimpleViewParser::T__2);
         setState(297);
+        match(SimpleViewParser::T__2);
+        setState(298);
         pointInLine();
-        setState(302);
+        setState(303);
         _errHandler->sync(this);
         _la = _input->LA(1);
         while (_la == SimpleViewParser::T__3) {
-          setState(298);
-          match(SimpleViewParser::T__3);
           setState(299);
+          match(SimpleViewParser::T__3);
+          setState(300);
           pointInLine();
-          setState(304);
+          setState(305);
           _errHandler->sync(this);
           _la = _input->LA(1);
         }
-        setState(305);
+        setState(306);
         match(SimpleViewParser::T__4);
         break;
       }
 
       case SimpleViewParser::INT: {
         enterOuterAlt(_localctx, 2);
-        setState(307);
+        setState(308);
         match(SimpleViewParser::INT);
         break;
       }
@@ -1862,23 +1872,23 @@ SimpleViewParser::IntersectionPointContext* SimpleViewParser::intersectionPoint(
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(310);
-    match(SimpleViewParser::T__16);
     setState(311);
+    match(SimpleViewParser::T__16);
+    setState(312);
     pointInLine();
-    setState(316);
+    setState(317);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == SimpleViewParser::T__3) {
-      setState(312);
-      match(SimpleViewParser::T__3);
       setState(313);
+      match(SimpleViewParser::T__3);
+      setState(314);
       pointInLine();
-      setState(318);
+      setState(319);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(319);
+    setState(320);
     match(SimpleViewParser::T__17);
    
   }
@@ -2093,19 +2103,19 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
     exitRule();
   });
   try {
-    setState(364);
+    setState(365);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case SimpleViewParser::CLASS_SCOPE: {
         _localctx = _tracker.createInstance<SimpleViewParser::ClassScopeDeclarationContext>(_localctx);
         enterOuterAlt(_localctx, 1);
-        setState(321);
-        match(SimpleViewParser::CLASS_SCOPE);
         setState(322);
-        match(SimpleViewParser::IDENTIFIER);
+        match(SimpleViewParser::CLASS_SCOPE);
         setState(323);
-        match(SimpleViewParser::T__18);
+        match(SimpleViewParser::IDENTIFIER);
         setState(324);
+        match(SimpleViewParser::T__18);
+        setState(325);
         classScopeExp(0);
         break;
       }
@@ -2113,13 +2123,13 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
       case SimpleViewParser::NODE: {
         _localctx = _tracker.createInstance<SimpleViewParser::NodeDeclarationContext>(_localctx);
         enterOuterAlt(_localctx, 2);
-        setState(325);
-        match(SimpleViewParser::NODE);
         setState(326);
-        match(SimpleViewParser::IDENTIFIER);
+        match(SimpleViewParser::NODE);
         setState(327);
-        match(SimpleViewParser::T__18);
+        match(SimpleViewParser::IDENTIFIER);
         setState(328);
+        match(SimpleViewParser::T__18);
+        setState(329);
         nodeExp(0);
         break;
       }
@@ -2129,29 +2139,29 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
       case SimpleViewParser::CODE_ORDER: {
         _localctx = _tracker.createInstance<SimpleViewParser::LineDeclarationContext>(_localctx);
         enterOuterAlt(_localctx, 3);
-        setState(329);
+        setState(330);
         _la = _input->LA(1);
-        if (!(((((_la - 67) & ~ 0x3fULL) == 0) &&
-          ((1ULL << (_la - 67)) & 2051) != 0))) {
+        if (!(((((_la - 68) & ~ 0x3fULL) == 0) &&
+          ((1ULL << (_la - 68)) & 2051) != 0))) {
         _errHandler->recoverInline(this);
         }
         else {
           _errHandler->reportMatch(this);
           consume();
         }
-        setState(330);
+        setState(331);
         match(SimpleViewParser::IDENTIFIER);
-        setState(332);
+        setState(333);
         _errHandler->sync(this);
 
         _la = _input->LA(1);
         if (_la == SimpleViewParser::T__5) {
-          setState(331);
+          setState(332);
           paramList();
         }
-        setState(334);
-        match(SimpleViewParser::T__18);
         setState(335);
+        match(SimpleViewParser::T__18);
+        setState(336);
         lineExp();
         break;
       }
@@ -2159,26 +2169,26 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
       case SimpleViewParser::GLUE: {
         _localctx = _tracker.createInstance<SimpleViewParser::GlueDeclarationContext>(_localctx);
         enterOuterAlt(_localctx, 4);
-        setState(336);
-        match(SimpleViewParser::GLUE);
         setState(337);
-        match(SimpleViewParser::IDENTIFIER);
+        match(SimpleViewParser::GLUE);
         setState(338);
-        match(SimpleViewParser::T__18);
+        match(SimpleViewParser::IDENTIFIER);
         setState(339);
+        match(SimpleViewParser::T__18);
+        setState(340);
         match(SimpleViewParser::T__10);
-        setState(343);
+        setState(344);
         _errHandler->sync(this);
         _la = _input->LA(1);
-        while (((((_la - 71) & ~ 0x3fULL) == 0) &&
-          ((1ULL << (_la - 71)) & 31) != 0)) {
-          setState(340);
+        while (((((_la - 72) & ~ 0x3fULL) == 0) &&
+          ((1ULL << (_la - 72)) & 31) != 0)) {
+          setState(341);
           glueAttr();
-          setState(345);
+          setState(346);
           _errHandler->sync(this);
           _la = _input->LA(1);
         }
-        setState(346);
+        setState(347);
         match(SimpleViewParser::T__11);
         break;
       }
@@ -2186,29 +2196,29 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
       case SimpleViewParser::GRAPH: {
         _localctx = _tracker.createInstance<SimpleViewParser::GraphDeclarationContext>(_localctx);
         enterOuterAlt(_localctx, 5);
-        setState(347);
-        match(SimpleViewParser::GRAPH);
         setState(348);
+        match(SimpleViewParser::GRAPH);
+        setState(349);
         antlrcpp::downCast<GraphDeclarationContext *>(_localctx)->graphName = match(SimpleViewParser::IDENTIFIER);
-        setState(350);
+        setState(351);
         _errHandler->sync(this);
 
         _la = _input->LA(1);
         if (_la == SimpleViewParser::T__5) {
-          setState(349);
+          setState(350);
           paramList();
         }
-        setState(352);
-        match(SimpleViewParser::T__18);
         setState(353);
+        match(SimpleViewParser::T__18);
+        setState(354);
         graphBody();
-        setState(355); 
+        setState(356); 
         _errHandler->sync(this);
         _la = _input->LA(1);
         do {
-          setState(354);
+          setState(355);
           intersectionPoint();
-          setState(357); 
+          setState(358); 
           _errHandler->sync(this);
           _la = _input->LA(1);
         } while (_la == SimpleViewParser::T__16);
@@ -2219,7 +2229,7 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
       case SimpleViewParser::GRAPH_INSTANCE: {
         _localctx = _tracker.createInstance<SimpleViewParser::LineAndGraphInstanceContext>(_localctx);
         enterOuterAlt(_localctx, 6);
-        setState(359);
+        setState(360);
         _la = _input->LA(1);
         if (!(_la == SimpleViewParser::LINE_INSTANCE
 
@@ -2230,13 +2240,13 @@ SimpleViewParser::DeclarationContext* SimpleViewParser::declaration() {
           _errHandler->reportMatch(this);
           consume();
         }
-        setState(360);
-        match(SimpleViewParser::IDENTIFIER);
         setState(361);
-        match(SimpleViewParser::T__18);
-        setState(362);
         match(SimpleViewParser::IDENTIFIER);
+        setState(362);
+        match(SimpleViewParser::T__18);
         setState(363);
+        match(SimpleViewParser::IDENTIFIER);
+        setState(364);
         lineArgumentList();
         break;
       }
@@ -2299,21 +2309,21 @@ SimpleViewParser::ShowCommandContext* SimpleViewParser::showCommand() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(366);
-    match(SimpleViewParser::SHOW);
     setState(367);
-    match(SimpleViewParser::T__5);
+    match(SimpleViewParser::SHOW);
     setState(368);
-    antlrcpp::downCast<ShowCommandContext *>(_localctx)->graphName = match(SimpleViewParser::IDENTIFIER);
+    match(SimpleViewParser::T__5);
     setState(369);
-    match(SimpleViewParser::T__3);
+    antlrcpp::downCast<ShowCommandContext *>(_localctx)->graphName = match(SimpleViewParser::IDENTIFIER);
     setState(370);
-    antlrcpp::downCast<ShowCommandContext *>(_localctx)->defaultStyleName = match(SimpleViewParser::IDENTIFIER);
-    setState(371);
     match(SimpleViewParser::T__3);
+    setState(371);
+    antlrcpp::downCast<ShowCommandContext *>(_localctx)->defaultStyleName = match(SimpleViewParser::IDENTIFIER);
     setState(372);
-    antlrcpp::downCast<ShowCommandContext *>(_localctx)->basicStyleName = match(SimpleViewParser::IDENTIFIER);
+    match(SimpleViewParser::T__3);
     setState(373);
+    antlrcpp::downCast<ShowCommandContext *>(_localctx)->basicStyleName = match(SimpleViewParser::IDENTIFIER);
+    setState(374);
     match(SimpleViewParser::T__6);
    
   }
@@ -2351,9 +2361,9 @@ bool SimpleViewParser::classScopeExpSempred(ClassScopeExpContext *_localctx, siz
 
 bool SimpleViewParser::nodeExpSempred(NodeExpContext *_localctx, size_t predicateIndex) {
   switch (predicateIndex) {
-    case 3: return precpred(_ctx, 22);
-    case 4: return precpred(_ctx, 21);
-    case 5: return precpred(_ctx, 20);
+    case 3: return precpred(_ctx, 23);
+    case 4: return precpred(_ctx, 22);
+    case 5: return precpred(_ctx, 21);
 
   default:
     break;

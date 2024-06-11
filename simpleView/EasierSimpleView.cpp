@@ -89,6 +89,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::CALLED_PARAMETER);
     saveVocabulary(lexer, SimpleViewLexer::RETURN);
     saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN);
+    saveVocabulary(lexer, SimpleViewLexer::INDEX);
     // line
     saveVocabulary(lexer, SimpleViewLexer::LINE);
     saveVocabulary(lexer, SimpleViewLexer::CODE_ORDER);
@@ -157,6 +158,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_RETURN,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_RETURN,Images::returnIconId},
+                {SimpleView::Node::NODE_TYPE_INDEX,Images::indexIcon},
                 {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_VAR,Images::varIconId},
     };
@@ -196,6 +198,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_CALLED_PARAMETER = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CALLED_PARAMETER);
     SimpleView::Node::NODE_RETURN = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_RETURN);
     SimpleView::Node::NODE_CALLED_RETURN = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CALLED_RETURN);
+    SimpleView::Node::NODE_INDEX = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_INDEX);
 
     antlr4::CommonTokenStream tokenStream(&lexer);
     SimpleViewParser parser(&tokenStream);
@@ -1138,6 +1141,7 @@ SimpleView::Node* SimpleView::Node::NODE_PARAMETER = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CALLED_PARAMETER = NULL;
 SimpleView::Node* SimpleView::Node::NODE_RETURN = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CALLED_RETURN = NULL;
+SimpleView::Node* SimpleView::Node::NODE_INDEX = NULL;
 
 SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     auto* node = new Node();
@@ -1198,6 +1202,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_CALLED_RETURN:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CALLED_RETURN];
         node->iconId = Images::returnIconId;
+        break;
+    case Node::NODE_TYPE_INDEX:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::INDEX];
+        node->iconId = Images::indexIcon;
         break;
     default:
         break;
@@ -1417,6 +1425,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::RETURN];
     case NODE_TYPE_CALLED_RETURN:
         return voc[SimpleViewLexer::CALLED_RETURN];
+    case NODE_TYPE_INDEX:
+        return voc[SimpleViewLexer::INDEX];
     case NODE_TYPE_INTERSECTION:
         return operandForSetOperation.first->displayName + " & " + operandForSetOperation.second->displayName;
     case NODE_TYPE_UNION:
@@ -1445,7 +1455,8 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_PARAMETER
         and nodeType != NODE_TYPE_CALLED_PARAMETER
         and nodeType != NODE_TYPE_RETURN
-        and nodeType != NODE_TYPE_CALLED_RETURN;
+        and nodeType != NODE_TYPE_CALLED_RETURN
+        and nodeType != NODE_TYPE_INDEX;
 }
 
 void SimpleView::Node::release() {
@@ -1876,6 +1887,7 @@ bool SimpleView::LineTemplate::hasRepeatOnceNodeExceptFor(const string& exceptio
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CALLED_PARAMETER
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_RETURN
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CALLED_RETURN
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_INDEX
             and nodeAndRepeatTypeI->repeatType == SimpleView::LineTemplate::REPEAT_TYPE_ONE) {
             foundRepeatTypeOnce = true;
             break;
@@ -1914,7 +1926,8 @@ bool SimpleView::LineTemplate::checkValidation(vector<const char*>& values, vect
                 and node != SimpleView::Node::NODE_PARAMETER
                 and node != SimpleView::Node::NODE_CALLED_PARAMETER
                 and node != SimpleView::Node::NODE_RETURN
-                and node != SimpleView::Node::NODE_CALLED_RETURN) {
+                and node != SimpleView::Node::NODE_CALLED_RETURN
+                and node != SimpleView::Node::NODE_INDEX) {
                 foundRepeatTypeOnce = true;
                 break;
             }
@@ -2799,6 +2812,9 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_CALLED_RETURN:
         specialKeyType = GlobalInfo::KEY_TYPE_CALLED_RETURN;
         break;
+    case Node::NODE_TYPE_INDEX:
+        specialKeyType = GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN;
+        break;
     }
     // generate nextKeyTerm by dataflow term
     if (isStep and not lastTransition) {
@@ -2843,6 +2859,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN))));
         break;
     case Node::NODE_TYPE_REFERENCE:
     case Node::NODE_TYPE_CONDITION:
@@ -2857,6 +2874,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_CALLED_PARAMETER:
     case Node::NODE_TYPE_RETURN:
     case Node::NODE_TYPE_CALLED_RETURN:
+    case Node::NODE_TYPE_INDEX:
         // check by node type
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));

@@ -124,6 +124,7 @@ git submodule update --init --remote --recursive
 12. CalledParameter，匹配任意CalledParameter      
 13. Return，匹配任意函数的返回      
 14. CalledReturn，匹配任意CalledReturn      
+15. Index，匹配数组访问
 
 ### 类范围
 一个项目会有成千上万个类，而矢山在搜索时，需要把所搜索的类加载到内存中。如果为了搜一个类要把上万个类都加载到内存中，是非常不划算的。因此用户需要指定搜索范围，也就是要指定：你搜索的时机传递/数据流动等，发生在哪些类的函数中。

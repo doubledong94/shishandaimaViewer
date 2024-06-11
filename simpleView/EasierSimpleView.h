@@ -128,6 +128,7 @@ namespace SimpleView {
             NODE_TYPE_CALLED_PARAMETER,
             NODE_TYPE_RETURN,
             NODE_TYPE_CALLED_RETURN,
+            NODE_TYPE_INDEX,
 
             NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,
             NODE_TYPE_RUNTIME,
@@ -152,6 +153,7 @@ namespace SimpleView {
         static Node* NODE_CALLED_PARAMETER;
         static Node* NODE_RETURN;
         static Node* NODE_CALLED_RETURN;
+        static Node* NODE_INDEX;
 
         int nodeType = -1;
         string extraStr;

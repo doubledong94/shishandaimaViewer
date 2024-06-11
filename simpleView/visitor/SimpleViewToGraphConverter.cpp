@@ -239,6 +239,8 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_RETURN;
         } else if (ctx->CALLED_RETURN()) {
             ret = Node::NODE_CALLED_RETURN;
+        } else if (ctx->INDEX()) {
+            ret = Node::NODE_INDEX;
         } else if (ctx->varNode) {
             ret->nodeType = Node::NODE_TYPE_VAR;
             ret->referenceNode = valNameToNode[ctx->IDENTIFIER()->getText()];

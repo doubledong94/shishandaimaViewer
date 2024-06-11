@@ -860,6 +860,9 @@ namespace shishan {
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("TimingStep##specialNodeTimingStep", SimpleView::Node::NODE_TIMING_STEP);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Index##specialNodeIndex", SimpleView::Node::NODE_INDEX);
 
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Field##specialNodeField", SimpleView::Node::NODE_FIELD);
@@ -1879,6 +1882,7 @@ namespace shishan {
                     or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_PARAMETER
                     or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_RETURN
                     or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_RETURN
+                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_INDEX
                     )));
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {

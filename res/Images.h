@@ -28,6 +28,7 @@ public:
     static unsigned int superAndSubIconId;
     static unsigned int graphIconId;
     static unsigned int instanceIconId;
+    static unsigned int indexIcon;
 
     static void init();
 };

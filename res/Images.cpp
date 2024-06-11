@@ -70,6 +70,7 @@ unsigned int Images::inPackageIconId = 0;
 unsigned int Images::superAndSubIconId = 0;
 unsigned int Images::graphIconId = 0;
 unsigned int Images::instanceIconId = 0;
+unsigned int Images::indexIcon = 0;
 
 void Images::init() {
     int my_image_width = 0;
@@ -184,4 +185,5 @@ void Images::init() {
     superAndSubIconId = S;
     graphIconId = G;
     instanceIconId = I;
+    indexIcon = I;
 }
