@@ -340,6 +340,10 @@ CompoundTerm* CompoundTerm::getLoadAddressableTerm(Term* classKey) {
     return makeTerm(HEAD_LOAD_ADDRESSABLE, classKey);
 }
 
+CompoundTerm* CompoundTerm::getLoadAddressableForRuntimeTerm(Term* classKey) {
+    return makeTerm(HEAD_LOAD_ADDRESSABLE_FOR_RUNTIME, classKey);
+}
+
 CompoundTerm* CompoundTerm::getDataFlowTerm(Term* mk, Term* src, Term* dst) {
     return makeTerm(HEAD_DATA_FLOW, mk, src, dst);
 }

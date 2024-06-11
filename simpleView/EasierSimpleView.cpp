@@ -363,6 +363,7 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     vector<Rule*> rules;
     Term* stepKey = Term::getVar("StepKey");
     Term* classKey = Term::getVar("ClassKey");
+    Term* usedClassKey = Term::getVar("UsedClassKey");
     Term* methodKey = Term::getVar("MethodKey");
     Term* calledMethodKey = Term::getVar("CalledMethodKey");
     Term* paramKey = Term::getVar("ParamKey");
@@ -372,6 +373,9 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     Term* methodToClassTerm = DisjunctionTerm::getDisjunctionInstance(
         CompoundTerm::getMethodTerm(classKey, methodKey), CompoundTerm::getConstructorTerm(classKey, methodKey)
     );
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey), {
+        CompoundTerm::getRelatedTypeTerm(classKey,usedClassKey),CompoundTerm::getLoadAddressableTerm(usedClassKey)
+        }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
             CompoundTerm::getStepTerm(methodKey,stepKey),methodToClassTerm
         }));
@@ -392,7 +396,8 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
         }));
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepKeyTerm(stepKey), {
-        CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey))
+        CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
+        NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey))
         }));
 
     for (auto& rule : rules) {
