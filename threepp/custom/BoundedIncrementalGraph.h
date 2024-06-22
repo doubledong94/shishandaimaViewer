@@ -179,7 +179,11 @@ public:
 
     void selectUpward();
 
+    void selectUpwardToTheTop();
+
     void selectDownward();
+
+    void selectDownwardToTheBottom();
 
     void reverseSelect();
 

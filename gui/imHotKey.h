@@ -174,7 +174,7 @@ namespace ImHotKey {
         }
 
         const char* fmt = strLib[orderCodeCount - 1];
-        HotKeySPrintf(buffer, bufferSize, fmt, functionLib, clickStyle, lib[0], lib[1], lib[2], lib[3]);
+        HotKeySPrintf(buffer, bufferSize, fmt, functionLib, "", lib[0], lib[1], lib[2], lib[3]);
     }
 
     static int editingHotkey = -1;
@@ -247,19 +247,19 @@ namespace ImHotKey {
                 if (i == 10) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_select_node());
                 }
-                if (i == 26) {
+                if (i == 28) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_layout());
                 }
-                if (i == 54) {
+                if (i == 56) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_style());
                 }
-                if (i == 72) {
+                if (i == 74) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_explore());
                 }
-                if (i == 74) {
+                if (i == 76) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_next_round());
                 }
-                if (i == 75) {
+                if (i == 77) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cat_saveAndRestoreGraph());
                 }
                 addHotKeySelectable(hotkey[i], i);
@@ -303,15 +303,15 @@ namespace ImHotKey {
         }
         ImGui::InvisibleButton("space", ImVec2(10, 30 * scale));
 
-        ImGui::RadioButton(StringRes::singleton->getRadioText_SingleClick(), &(hotkey[editingHotkey].clickStyle), ClickStyle::SINGLE_CLICK);
-        ImGui::SameLine();
-        ImGui::RadioButton(StringRes::singleton->getRadioText_DoubleClick(), &(hotkey[editingHotkey].clickStyle), ClickStyle::DOUBLE_CLICK);
-        ImGui::SameLine();
-        ImGui::RadioButton(StringRes::singleton->getRadioText_LongPress(), &(hotkey[editingHotkey].clickStyle), ClickStyle::LONG_PRESS);
+        // ImGui::RadioButton(StringRes::singleton->getRadioText_SingleClick(), &(hotkey[editingHotkey].clickStyle), ClickStyle::SINGLE_CLICK);
+        // ImGui::SameLine();
+        // ImGui::RadioButton(StringRes::singleton->getRadioText_DoubleClick(), &(hotkey[editingHotkey].clickStyle), ClickStyle::DOUBLE_CLICK);
+        // ImGui::SameLine();
+        // ImGui::RadioButton(StringRes::singleton->getRadioText_LongPress(), &(hotkey[editingHotkey].clickStyle), ClickStyle::LONG_PRESS);
 
-        ImGui::SameLine();
-        ImGui::InvisibleButton("space", ImVec2(20 * scale, 10));
-        ImGui::SameLine();
+        // ImGui::SameLine();
+        // ImGui::InvisibleButton("space", ImVec2(20 * scale, 10));
+        // ImGui::SameLine();
 
         int keyDownCount = 0;
         for (auto d : keyDown) {

@@ -35,6 +35,8 @@ public:
     virtual char* getHotKeyTitle_unselectAllNode() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeUpward() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeDownward() { return NULL; };
+    virtual char* getHotKeyTitle_selectNodeUpwardToTheTop() { return NULL; };
+    virtual char* getHotKeyTitle_selectNodeDownwardToTheBottom() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeBackward() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeInBetween() { return NULL; };
     virtual char* getHotKeyTitle_selectPathUpward() { return NULL; };
@@ -139,6 +141,8 @@ private:
     string hotKeyTitle_unselectAllNode = "取消选择所有节点";
     string hotKeyTitle_selectNodeUpward = "向上选择";
     string hotKeyTitle_selectNodeDownward = "向下选择";
+    string hotKeyTitle_selectNodeUpwardToTheTop = "向上选择到顶";
+    string hotKeyTitle_selectNodeDownwardToTheBottom = "向下选择到底";
     string hotKeyTitle_selectNodeBackward = "反向选择";
     string hotKeyTitle_selectNodeInBetween = "选择连线";
     string hotKeyTitle_selectPathUpward = "向上选择连线";
@@ -241,6 +245,8 @@ public:
     char* getHotKeyTitle_unselectAllNode() override;
     char* getHotKeyTitle_selectNodeUpward() override;
     char* getHotKeyTitle_selectNodeDownward() override;
+    char* getHotKeyTitle_selectNodeUpwardToTheTop() override;
+    char* getHotKeyTitle_selectNodeDownwardToTheBottom() override;
     char* getHotKeyTitle_selectNodeBackward() override;
     char* getHotKeyTitle_selectNodeInBetween() override;
     char* getHotKeyTitle_selectPathUpward() override;
@@ -345,6 +351,8 @@ private:
     string hotKeyTitle_unselectAllNode = "取消选择所有节点";
     string hotKeyTitle_selectNodeUpward = "向上选择";
     string hotKeyTitle_selectNodeDownward = "向下选择";
+    string hotKeyTitle_selectNodeUpwardToTheTop = "向上选择到顶";
+    string hotKeyTitle_selectNodeDownwardToTheBottom = "向下选择到底";
     string hotKeyTitle_selectNodeBackward = "反向选择";
     string hotKeyTitle_selectNodeInBetween = "选择连线";
     string hotKeyTitle_selectPathUpward = "向上选择连线";
@@ -447,6 +455,8 @@ public:
     char* getHotKeyTitle_unselectAllNode() override;
     char* getHotKeyTitle_selectNodeUpward() override;
     char* getHotKeyTitle_selectNodeDownward() override;
+    char* getHotKeyTitle_selectNodeUpwardToTheTop() override;
+    char* getHotKeyTitle_selectNodeDownwardToTheBottom() override;
     char* getHotKeyTitle_selectNodeBackward() override;
     char* getHotKeyTitle_selectNodeInBetween() override;
     char* getHotKeyTitle_selectPathUpward() override;

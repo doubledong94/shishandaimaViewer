@@ -451,6 +451,12 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[SELECT_DOWNWARD] = [&]() {
         boundedGraph->selectDownward();
         };
+    HotkeyConfig::functionEnumToFunction[SELECT_UPWARD_TO_THE_TOP] = [&]() {
+        boundedGraph->selectUpwardToTheTop();
+        };
+    HotkeyConfig::functionEnumToFunction[SELECT_DOWNWARD_TO_THE_BOTTOM] = [&]() {
+        boundedGraph->selectDownwardToTheBottom();
+        };
     HotkeyConfig::functionEnumToFunction[REVERSE_SELECT] = [&]() {
         boundedGraph->reverseSelect();
         };

@@ -1237,6 +1237,14 @@ void BoundedIncrementalGraph::selectUpward() {
     onNodeColorChanged();
 }
 
+void BoundedIncrementalGraph::selectUpwardToTheTop() {
+    int oldSelectedCount = -1;
+    while (oldSelectedCount != nodesObj->selected.size()) {
+        oldSelectedCount = nodesObj->selected.size();
+        selectUpward();
+    }
+}
+
 void BoundedIncrementalGraph::selectDownward() {
     set<int> newNodes;
     for (int i : nodesObj->selected) {
@@ -1253,6 +1261,14 @@ void BoundedIncrementalGraph::selectDownward() {
     }
     nodesObj->selected.insert(newNodes.begin(), newNodes.end());
     onNodeColorChanged();
+}
+
+void BoundedIncrementalGraph::selectDownwardToTheBottom() {
+    int oldSelectedCount = -1;
+    while (oldSelectedCount != nodesObj->selected.size()) {
+        oldSelectedCount = nodesObj->selected.size();
+        selectDownward();
+    }
 }
 
 void BoundedIncrementalGraph::reverseSelect() {
