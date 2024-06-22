@@ -111,7 +111,7 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
     auto& read = relation->read;
     auto& writen = relation->writen;
     // data flow from lvToLastWrittenKeys
-    genDataFlowForLastWrittenLvs(methodKey, read, codeBlock, prologLines);
+    genDataFlowFromLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // data flow of this relation
     prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
     // data flow of step
@@ -137,15 +137,14 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntime });
     }
     // mark local variable
-    if (read->keyType != GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN and
-        (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER)) {
+    if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
         codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
         codeBlock->lvKeysUpdatedByThisBlock100Percent.insert(writen->variableKey);
     }
 }
 
-void DataFlowVisitor::genDataFlowForLastWrittenLvs(const string& methodKey, ResolvingItem* read, CodeBlock* codeBlock, list<string>& prologLines) {
+void DataFlowVisitor::genDataFlowFromLastWrittenLvs(const string& methodKey, ResolvingItem* read, CodeBlock* codeBlock, list<string>& prologLines) {
     if (read->readFromLastWriteAdded) {
         return;
     }
@@ -168,13 +167,16 @@ void DataFlowVisitor::genDataFlowForLastWrittenLvs(const string& methodKey, Reso
         }
     }
     if (read->referencedBy) {
-        genDataFlowForLastWrittenLvs(methodKey, read->referencedBy, codeBlock, prologLines);
+        genDataFlowFromLastWrittenLvs(methodKey, read->referencedBy, codeBlock, prologLines);
+    }
+    if (read->indexedBy) {
+        genDataFlowFromLastWrittenLvs(methodKey, read->indexedBy, codeBlock, prologLines);
     }
 }
 
 void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
     if (codeBlock->toConditionValue) {
-        genDataFlowForLastWrittenLvs(methodKey, codeBlock->toConditionValue, codeBlock, prologLines);
+        genDataFlowFromLastWrittenLvs(methodKey, codeBlock->toConditionValue, codeBlock, prologLines);
     }
     GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
 }
@@ -248,11 +250,15 @@ void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBl
     if (item->referencedBy) {
         addTimingFlow(methodKey, codeBlock, item->referencedBy, prologLines);
     }
+    if (item->indexedBy) {
+        addTimingFlow(methodKey, codeBlock, item->indexedBy, prologLines);
+    }
 }
 
 void ScopeFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
     if (codeBlock->toConditionValue) {
         codeBlock->toConditionValue->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
+        codeBlock->toConditionValue->addIndexProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
     }
     GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
 }
@@ -260,6 +266,8 @@ void ScopeFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBl
 void ScopeFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) {
     relation->read->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
     relation->writen->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
+    relation->read->addIndexProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
+    relation->writen->addIndexProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
 }
 
 void CodeOrderVisitor::visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) {

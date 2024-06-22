@@ -15,6 +15,7 @@ void ResolvingItem::reset() {
     indexInsideStatement.clear();
     keyType = -1;
     referencedBy = nullptr;
+    indexedBy = nullptr;
     extraInfoForOptr.clear();
     runtimeKey.clear();
     referenceKey.clear();
@@ -27,6 +28,7 @@ void ResolvingItem::reset() {
     runtimeWriteAdded = false;
     conditionToAdded = false;
     referenceAdded = false;
+    indexAdded = false;
     orderPrologAdded = false;
     readFromLastWriteAdded = false;
 }
@@ -83,6 +85,10 @@ void ResolvingItem::addRuntimeProlog(string(*act)(const string& methodKey, const
         prologLines.emplace_back(act(methodKey, referencedBy->referenceKey, referencedBy->referenceRuntimeKey, GlobalInfo::KEY_TYPE_REFERENCE));
         referencedBy->addRuntimeProlog(act, methodKey, prologLines);
     }
+    if (indexedBy != nullptr) {
+        prologLines.emplace_back(act(methodKey, GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, makeRuntimeKey(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, structureKey, sentenceIndex, indexInsideStatement), GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN));
+        indexedBy->addRuntimeProlog(act, methodKey, prologLines);
+    }
     runtimeAdded = true;
 }
 
@@ -97,6 +103,9 @@ void ResolvingItem::addRuntimeReadProlog(string(*act)(const string&, const strin
     prologLines.emplace_back(act(methodKey, variableKey, runtimeKey));
     if (referencedBy != nullptr) {
         referencedBy->addRuntimeReadProlog(act, methodKey, prologLines);
+    }
+    if (indexedBy != nullptr) {
+        indexedBy->addRuntimeReadProlog(act, methodKey, prologLines);
     }
     runtimeReadAdded = true;
 }
@@ -128,6 +137,20 @@ void ResolvingItem::addReferenceProlog(string(*act)(const string&, const string&
     }
     referenceAdded = true;
 }
+
+void ResolvingItem::addIndexProlog(string(*act)(const string&, const string&, const string&), const string& methodKey, list<string>& prologLines) {
+    if (indexAdded) {
+        return;
+    }
+    if (indexedBy != nullptr) {
+        string indexRuntimeKey = makeRuntimeKey(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, structureKey, sentenceIndex, indexInsideStatement);
+        prologLines.emplace_back(act(methodKey, indexedBy->runtimeKey, indexRuntimeKey));
+        prologLines.emplace_back(act(methodKey, indexRuntimeKey, runtimeKey));
+        indexedBy->addIndexProlog(act, methodKey, prologLines);
+    }
+    indexAdded = true;
+}
+
 
 Relation::Relation(CodeStructure* parent) {
     if (parent != nullptr) {

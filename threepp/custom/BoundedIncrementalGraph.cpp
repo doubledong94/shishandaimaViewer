@@ -310,6 +310,8 @@ void NodeInfo::makeSimpleName() {
         simpleName = key;
     } else if (keyType == GlobalInfo::KEY_TYPE_REFERENCE) {
         simpleName = "[reference]";
+    } else if (keyType == GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN) {
+        simpleName = "[i]";
     } else if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
         simpleName = "[step]";
     } else if (keyType == GlobalInfo::KEY_TYPE_ERROR) {

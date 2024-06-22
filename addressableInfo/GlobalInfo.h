@@ -46,8 +46,6 @@ public:
     const static string GLOBAL_KEY_OPTR_INSTANCE_OF_PARAMETER1;
     const static string GLOBAL_KEY_OPTR_INSTANCE_OF_PARAMETER2;
     const static string GLOBAL_KEY_OPTR_INDEX_RETURN;
-    const static string GLOBAL_KEY_OPTR_INDEX_PARAMETER1;
-    const static string GLOBAL_KEY_OPTR_INDEX_PARAMETER2;
 
     static void saveGlobalInfo();
 
@@ -68,6 +66,7 @@ public:
         KEY_TYPE_REFERENCE,
         KEY_TYPE_DATA_STEP,
         KEY_TYPE_TIMING_STEP,
+        KEY_TYPE_OPTR_INDEX_RETURN,
 
         KEY_TYPE_LOCAL_VARIABLE,
         KEY_TYPE_FINAL,
@@ -107,9 +106,6 @@ public:
         KEY_TYPE_OPTR_INSTANCE_OF_PARAMETER1,
         KEY_TYPE_OPTR_INSTANCE_OF_PARAMETER2,
 
-        KEY_TYPE_OPTR_INDEX_RETURN,
-        KEY_TYPE_OPTR_INDEX_PARAMETER1,
-        KEY_TYPE_OPTR_INDEX_PARAMETER2,
         KEY_TYPE_OPTR_END,
         // OPTR keys ends
 

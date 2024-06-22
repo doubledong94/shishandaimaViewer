@@ -50,8 +50,6 @@ const string GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_RETURN = GlobalInfo::instan
 const string GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_PARAMETER1 = GlobalInfo::instanceof + "param1";
 const string GlobalInfo::GLOBAL_KEY_OPTR_INSTANCE_OF_PARAMETER2 = GlobalInfo::instanceof + "param2";
 const string GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN = GlobalInfo::indexOptr + "return";
-const string GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER1 = GlobalInfo::indexOptr + "param1";
-const string GlobalInfo::GLOBAL_KEY_OPTR_INDEX_PARAMETER2 = GlobalInfo::indexOptr + "param2";
 
 
 void GlobalInfo::saveGlobalInfo() {

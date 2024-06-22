@@ -1052,10 +1052,7 @@ std::any StatementVisitor::visitExpressionArrayAccess(JavaParser::ExpressionArra
     }
     auto* indexedItem = any_cast<ResolvingItem*>(itemOrNull1);
     auto* indexItem = any_cast<ResolvingItem*>(itemOrNull2);
-    auto* optrRet = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, indexedItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN, "[i]");
-    // array index
-    new Relation(getSentence(), indexItem, optrRet);
-    new Relation(getSentence(), optrRet, indexedItem);
+    indexedItem->indexedBy = indexItem;
     return indexedItem;
 }
 
