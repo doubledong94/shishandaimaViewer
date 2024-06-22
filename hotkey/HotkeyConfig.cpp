@@ -105,6 +105,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SELECT_BY_DEGREE, "select by degree", 0xffff6a01,SINGLE_CLICK},
     {SELECT_BY_IN_DEGREE, "select by in degree", 0xffff6c01,SINGLE_CLICK},
     {SELECT_BY_OUT_DEGREE, "select by out degree", 0xffff6d01,SINGLE_CLICK},
+    {SELECT_BY_METHOD_SATCK_SIZE, "select by method stack size", 0xffff4201,SINGLE_CLICK},
     {SELECT_BY_COMPONENT, "select by component", 0xffffff32,SINGLE_CLICK},
     {SELECT_BY_GROUP, "select by group", 0xffff3201,SINGLE_CLICK},
     // layout
@@ -256,6 +257,7 @@ void HotkeyConfig::init() {
     hotkeyMap[SELECT_PATH_DOWNWARD]->functionName = StringRes::singleton->getHotKeyTitle_selectPathDownward();
     hotkeyMap[SELECT_BY_IN_DEGREE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByInDegree();
     hotkeyMap[SELECT_BY_OUT_DEGREE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByOutDegree();
+    hotkeyMap[SELECT_BY_METHOD_SATCK_SIZE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByMethodStackSize();
     hotkeyMap[SELECT_BY_DEGREE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByDegree();
     hotkeyMap[SELECT_BY_COMPONENT]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByComponent();
     hotkeyMap[FLOW_COLOR_MAP]->functionName = StringRes::singleton->getHotKeyTitle_ColorNodeByFlow();

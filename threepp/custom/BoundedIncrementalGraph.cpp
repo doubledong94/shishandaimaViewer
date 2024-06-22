@@ -390,6 +390,7 @@ void NodeInfo::toFile(ofstream& f) {
     f << typeKey << "\n";
     f << simpleName << "\n";
     f << runtimeClass << "\n";
+    f << methodStackSize << "\n";
 }
 
 void NodeInfo::fromFile(ifstream& f) {
@@ -408,6 +409,7 @@ void NodeInfo::fromFile(ifstream& f) {
     getline(f, typeKey);
     getline(f, simpleName);
     getline(f, runtimeClass);
+    methodStackSize = getInt(f);
 }
 
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
@@ -493,6 +495,7 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
             nodeInfo->positionInRegex.push_back(new PositionInRegex(searchingGraphName, lineInstanceName, regexChar));
         }
     }
+    nodeInfo->methodStackSize = tail->headElements[6]->integer;
     saveNodeInfo(nodeInfo);
     return nodeInfo;
 }
@@ -2048,6 +2051,7 @@ void BoundedIncrementalGraph::invalidateAllGraphInfo() {
     distanceFromTop.needUpdate = true;
     distanceToBottom.needUpdate = true;
     distance.needUpdate = true;
+    methodStackSizeToNodes.needUpdate = true;
 }
 
 void BoundedIncrementalGraph::groupToFile(ofstream& f, set<int>& group) {
@@ -2837,5 +2841,19 @@ void BoundedIncrementalGraph::boundByMethod() {
 void BoundedIncrementalGraph::showAndHideBoundFrame(bool show) {
     for (auto& boundFrame : boundFrames) {
         boundFrame->visible = show;
+    }
+}
+
+void BoundedIncrementalGraph::prepareSelectByMethodStackSize() {
+    if (not methodStackSizeToNodes.needUpdate) {
+        return;
+    }
+    methodStackSizeToNodes.needUpdate = false;
+    methodStackSizeToNodes.data.clear();
+    for (auto& nodeInfo : nodesOrderedByNodeId) {
+        if (not methodStackSizeToNodes.data.count(nodeInfo->methodStackSize)) {
+            methodStackSizeToNodes.data[nodeInfo->methodStackSize] = set<int>();
+        }
+        methodStackSizeToNodes.data[nodeInfo->methodStackSize].insert(nodeInfo->nodeId);
     }
 }

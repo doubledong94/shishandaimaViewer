@@ -2731,7 +2731,7 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
         Term::getIgnoredVar(),
         nextPoint, Tail::getInstanceByElements({}), // next value
         lineInstance->intersectionTerms, // intersections
-        getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), // output
+        getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType, Term::getInt(0)), // output
         isBackward), ruleBody))->toString(true));
     lineInstanceValNameTerm->returnThisToPool();
     classScopeTerm->returnThisToPool();
@@ -2893,9 +2893,11 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
+    Term* depth = Term::getVar("Depth");
+    ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));
     // debug purpose
 #ifdef DEBUG_PROLOG
-    ruleBody.push_back(CompoundTerm::getToFileTerm(getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), Term::getStr("a.txt")));
+    ruleBody.push_back(CompoundTerm::getToFileTerm(getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType, depth), Term::getStr("a.txt")));
 #endif
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getTransitionTerm(
         lineInstanceValNameTerm, classScopeTerm,
@@ -2908,7 +2910,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         nextPoint,
         nextStepsTerm,
         lineInstance->intersectionTerms,
-        getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType), isBackward
+        getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType, depth), isBackward
     ), ruleBody))->toString(true));
     currentMethodKeyTerm->returnThisToPool();
     currentKeyTerm->returnThisToPool();
@@ -2923,7 +2925,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     expectingNextKeyTerm->returnThisToPool();
 }
 
-Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType) {
+Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth) {
     Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
     return Tail::getInstanceByElements({
         Term::getStr(to_string(lineInstance->indexInsideGraph) + ": " + lineInstance->valName),
@@ -2931,7 +2933,8 @@ Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMe
         nextMethodKeyTerm,
         nextKeyTerm,
         outputAddressableKey,
-        keyType });
+        keyType,
+        depth });
 }
 
 void SimpleView::HalfLineTheFA::printCharToCharCode(const string& regex) {

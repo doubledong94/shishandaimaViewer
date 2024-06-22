@@ -44,6 +44,7 @@ public:
     virtual char* getHotKeyTitle_selectNodeByInDegree() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByOutDegree() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByDegree() { return NULL; };
+    virtual char* getHotKeyTitle_selectNodeByMethodStackSize() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByComponent() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByGroup() { return NULL; };
     virtual char* getHotKeyTitle_2DLayout() { return NULL; };
@@ -150,6 +151,7 @@ private:
     string hotKeyTitle_selectNodeByInDegree = "按入度选择";
     string hotKeyTitle_selectNodeByOutDegree = "按出度选择";
     string hotKeyTitle_selectNodeByDegree = "按度选择";
+    string hotKeyTitle_selectNodeByMethodStackSize = "按照函数深度选择";
     string hotKeyTitle_selectNodeByComponent = "按联通子图选择";
     string hotKeyTitle_selectNodeByGroup = "按照聚合选择";
     string hotKeyTitle_2DLayout = "2d布局";
@@ -254,6 +256,7 @@ public:
     char* getHotKeyTitle_selectNodeByInDegree() override;
     char* getHotKeyTitle_selectNodeByOutDegree() override;
     char* getHotKeyTitle_selectNodeByDegree() override;
+    char* getHotKeyTitle_selectNodeByMethodStackSize() override;
     char* getHotKeyTitle_selectNodeByComponent() override;
     char* getHotKeyTitle_selectNodeByGroup() override;
     char* getHotKeyTitle_2DLayout() override;
@@ -360,6 +363,7 @@ private:
     string hotKeyTitle_selectNodeByInDegree = "按入度选择";
     string hotKeyTitle_selectNodeByOutDegree = "按出度选择";
     string hotKeyTitle_selectNodeByDegree = "按度选择";
+    string hotKeyTitle_selectNodeByMethodStackSize = "按照函数深度选择";
     string hotKeyTitle_selectNodeByComponent = "按联通子图选择";
     string hotKeyTitle_selectNodeByGroup = "按照聚合选择";
     string hotKeyTitle_2DLayout = "2d布局";
@@ -464,6 +468,7 @@ public:
     char* getHotKeyTitle_selectNodeByInDegree() override;
     char* getHotKeyTitle_selectNodeByOutDegree() override;
     char* getHotKeyTitle_selectNodeByDegree() override;
+    char* getHotKeyTitle_selectNodeByMethodStackSize() override;
     char* getHotKeyTitle_selectNodeByComponent() override;
     char* getHotKeyTitle_selectNodeByGroup() override;
     char* getHotKeyTitle_2DLayout() override;

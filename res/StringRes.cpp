@@ -96,6 +96,7 @@ char* ChineseStringRes::getHotKeyTitle_selectPathDownward() { return hotKeyTitle
 char* ChineseStringRes::getHotKeyTitle_selectNodeByInDegree() { return hotKeyTitle_selectNodeByInDegree.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeByOutDegree() { return hotKeyTitle_selectNodeByOutDegree.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeByDegree() { return hotKeyTitle_selectNodeByDegree.data(); }
+char* ChineseStringRes::getHotKeyTitle_selectNodeByMethodStackSize() { return hotKeyTitle_selectNodeByMethodStackSize.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeByComponent() { return hotKeyTitle_selectNodeByComponent.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeByGroup() { return hotKeyTitle_selectNodeByGroup.data(); }
 char* ChineseStringRes::getHotKeyTitle_2DLayout() { return hotKeyTitle_2DLayout.data(); }
@@ -239,6 +240,7 @@ char* EnglishStringRes::getHotKeyTitle_selectPathDownward() { return hotKeyTitle
 char* EnglishStringRes::getHotKeyTitle_selectNodeByInDegree() { return hotKeyTitle_selectNodeByInDegree.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeByOutDegree() { return hotKeyTitle_selectNodeByOutDegree.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeByDegree() { return hotKeyTitle_selectNodeByDegree.data(); }
+char* EnglishStringRes::getHotKeyTitle_selectNodeByMethodStackSize() { return hotKeyTitle_selectNodeByMethodStackSize.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeByComponent() { return hotKeyTitle_selectNodeByComponent.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeByGroup() { return hotKeyTitle_selectNodeByGroup.data(); }
 char* EnglishStringRes::getHotKeyTitle_2DLayout() { return hotKeyTitle_2DLayout.data(); }

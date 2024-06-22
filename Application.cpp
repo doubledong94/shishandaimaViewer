@@ -139,6 +139,7 @@ int app::Application::ApplicationMain() {
     static bool selectByInDegreePopupOpen = false;
     static bool selectByOutDegreePopupOpen = false;
     static bool selectByDegreePopupOpen = false;
+    static bool selectByMethodStackSize = false;
     static bool selectByComponentPopupOpen = false;
     static bool selectByGroupPopupOpen = false;
     static bool selectByKeyTypePopupOpen = false;
@@ -484,6 +485,11 @@ int app::Application::ApplicationMain() {
         showTooltip = false;
         selectByDegreePopupOpen = true;
         };
+    HotkeyConfig::functionEnumToFunction[SELECT_BY_METHOD_SATCK_SIZE] = [&]() {
+        boundedGraph->prepareSelectByMethodStackSize();
+        showTooltip = false;
+        selectByMethodStackSize = true;
+        };
     HotkeyConfig::functionEnumToFunction[SELECT_BY_COMPONENT] = [&]() {
         boundedGraph->prepareComponent();
         showTooltip = false;
@@ -708,6 +714,7 @@ int app::Application::ApplicationMain() {
                 ImGui::IsPopupOpen("selectByInDegreePopupOpen") or
                 ImGui::IsPopupOpen("selectByOutDegreePopupOpen") or
                 ImGui::IsPopupOpen("selectByDegreePopupOpen") or
+                ImGui::IsPopupOpen("selectByMethodStackSize") or
                 ImGui::IsPopupOpen("selectByComponentPopupOpen") or
                 ImGui::IsPopupOpen("selectByGroupPopupOpen") or
                 ImGui::IsPopupOpen("selectByKeyTypePopupOpen") or
@@ -827,6 +834,20 @@ int app::Application::ApplicationMain() {
                 string s = to_string(degreeAndNodes.first) + "  [" + to_string(degreeAndNodes.second.size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(degreeAndNodes.second);
+                }
+            }
+            ImGui::EndPopup();
+        }
+        if (selectByMethodStackSize) {
+            ImGui::OpenPopup("selectByMethodStackSize");
+            selectByMethodStackSize = false;
+        }
+        if (ImGui::BeginPopup("selectByMethodStackSize")) {
+            ImGui::SeparatorText("select by method stack size");
+            for (auto& stackSizeAndNodes : boundedGraph->methodStackSizeToNodes.data) {
+                string s = to_string(stackSizeAndNodes.first) + "  [" + to_string(stackSizeAndNodes.second.size()) + "]";
+                if (ImGui::Selectable(s.data())) {
+                    boundedGraph->select(stackSizeAndNodes.second);
                 }
             }
             ImGui::EndPopup();

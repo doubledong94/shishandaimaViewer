@@ -20,6 +20,7 @@ public:
     int keyType;
     string simpleName;
     string uniKey;
+    int methodStackSize = 0;
     int nodeId = -1;
     PositionInRegex* getExistingPositionInRegex(const string& graphName, const string& lineName, const string& regex);
     static string makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey);
@@ -217,6 +218,8 @@ public:
 
     void prepareComponent();
 
+    void prepareSelectByMethodStackSize();
+
     void clearEmptyGroup(vector<set<int>>& groups);
 
     void flowColor();
@@ -341,6 +344,7 @@ public:
     NeedToBeUpdated<map<int, set<int>>> outDegreeToNodes;
     NeedToBeUpdated<map<int, set<int>>> degreeToNodes;
     NeedToBeUpdated<map<int, set<int>>> componentToNodes;
+    NeedToBeUpdated<map<int, set<int>>> methodStackSizeToNodes;
     vector<set<int>*> orderedByComponentSize;
     NeedToBeUpdated<igraph_matrix_t> distanceFromTop;
     NeedToBeUpdated<igraph_matrix_t> distanceToBottom;

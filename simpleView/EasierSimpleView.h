@@ -419,7 +419,7 @@ namespace SimpleView {
 
         void printCharToCharCode(const string& regex);
 
-        Tail* getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType);
+        Tail* getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth);
     };
 
     class GraphInstance;
