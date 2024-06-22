@@ -30,6 +30,7 @@ public:
     virtual char* getHotKeyTitle_transitiveReduction() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByPosition() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByKeyType() { return NULL; };
+    virtual char* getHotKeyTitle_selectFromAll() { return NULL; };
     virtual char* getHotKeyTitle_selectAllNode() { return NULL; };
     virtual char* getHotKeyTitle_unselectAllNode() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeUpward() { return NULL; };
@@ -133,6 +134,7 @@ private:
     string hotKeyTitle_transitiveReduction = "Transitive Reduction";
     string hotKeyTitle_selectNodeByPosition = "按照在line中的位置选择节点";
     string hotKeyTitle_selectByKeyType = "按照节点类型选择";
+    string hotKeyTitle_selectFromAll = "切换多次选择的累积效果";
     string hotKeyTitle_selectAllNode = "选择所有节点";
     string hotKeyTitle_unselectAllNode = "取消选择所有节点";
     string hotKeyTitle_selectNodeUpward = "向上选择";
@@ -234,6 +236,7 @@ public:
     char* getHotKeyTitle_transitiveReduction() override;
     char* getHotKeyTitle_selectNodeByPosition() override;
     char* getHotKeyTitle_selectNodeByKeyType() override;
+    char* getHotKeyTitle_selectFromAll() override;
     char* getHotKeyTitle_selectAllNode() override;
     char* getHotKeyTitle_unselectAllNode() override;
     char* getHotKeyTitle_selectNodeUpward() override;
@@ -337,6 +340,7 @@ private:
     string hotKeyTitle_transitiveReduction = "Transitive Reduction";
     string hotKeyTitle_selectNodeByPosition = "按照在line中的位置选择节点";
     string hotKeyTitle_selectByKeyType = "按照节点类型选择";
+    string hotKeyTitle_selectFromAll = "切换多次选择的累积效果";
     string hotKeyTitle_selectAllNode = "选择所有节点";
     string hotKeyTitle_unselectAllNode = "取消选择所有节点";
     string hotKeyTitle_selectNodeUpward = "向上选择";
@@ -438,6 +442,7 @@ public:
     char* getHotKeyTitle_transitiveReduction() override;
     char* getHotKeyTitle_selectNodeByPosition() override;
     char* getHotKeyTitle_selectNodeByKeyType() override;
+    char* getHotKeyTitle_selectFromAll() override;
     char* getHotKeyTitle_selectAllNode() override;
     char* getHotKeyTitle_unselectAllNode() override;
     char* getHotKeyTitle_selectNodeUpward() override;

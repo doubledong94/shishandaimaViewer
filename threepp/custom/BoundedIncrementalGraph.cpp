@@ -1011,13 +1011,21 @@ void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
     if (controlPressed) {
         set<int> g;
         getGroupIfGrouped(nodeInstanceId, g, groups);
-        select(g);
+        if (g.size() > 1) {
+            select(g);
+        }
         getGroupIfGrouped(nodeInstanceId, g, xCoordFixed);
-        select(g);
+        if (g.size() > 1) {
+            select(g);
+        }
         getGroupIfGrouped(nodeInstanceId, g, yCoordFixed);
-        select(g);
+        if (g.size() > 1) {
+            select(g);
+        }
         getGroupIfGrouped(nodeInstanceId, g, bounds);
-        select(g);
+        if (g.size() > 1) {
+            select(g);
+        }
     } else {
         if (nodesObj->selected.count(nodeInstanceId)) {
             nodesObj->selected.erase(nodeInstanceId);
@@ -1187,11 +1195,13 @@ void BoundedIncrementalGraph::onNodeColorChanged() {
 }
 
 void BoundedIncrementalGraph::selectByKeyType(int keyType) {
+    set<int> s;
     for (auto& nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == keyType) {
-            nodesObj->selected.insert(nodeInfo->nodeId);
+            s.insert(nodeInfo->nodeId);
         }
     }
+    select(s);
     onNodeColorChanged();
 }
 
@@ -1392,13 +1402,26 @@ void BoundedIncrementalGraph::lookEachOtherForPath(int i, set<int>& otherNodes, 
 }
 
 void BoundedIncrementalGraph::select(set<int>& s) {
-    nodesObj->selected.insert(s.begin(), s.end());
+    if (selectedFromAll) {
+        nodesObj->selected.insert(s.begin(), s.end());
+    } else {
+        set<int> oldSelected;
+        oldSelected.insert(nodesObj->selected.begin(), nodesObj->selected.end());
+        nodesObj->selected.clear();
+        for (int i : s) {
+            if (oldSelected.count(i)) {
+                nodesObj->selected.insert(i);
+            }
+        }
+    }
     onNodeColorChanged();
 }
 void BoundedIncrementalGraph::select(set<const char*>& uniKeys) {
+    set<int> s;
     for (auto& uniKey : uniKeys) {
-        nodesObj->selected.insert(uniKeyToNodeInfo[uniKey]->nodeId);
+        s.insert(uniKeyToNodeInfo[uniKey]->nodeId);
     }
+    select(s);
     onNodeColorChanged();
 }
 

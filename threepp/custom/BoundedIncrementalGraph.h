@@ -91,6 +91,7 @@ public:
     vector<set<int>> xCoordFixed;
     vector<set<int>> yCoordFixed;
     vector<set<int>> bounds;
+    bool selectedFromAll = true;
     void groupToFile(ofstream& f, set<int>& group);
     void groupFromFile(ifstream& f, set<int>& group);
     vector<std::shared_ptr<threepp::Mesh>> textMesh;

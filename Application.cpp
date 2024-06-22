@@ -432,6 +432,13 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[DECREASE_ALPHA_FOR_SELECTED] = [&]() {
         boundedGraph->increaseDecreaseAlphaForSelected(false);
         };
+    HotkeyConfig::functionEnumToFunction[SELECT_FROM_ALL] = [&]() {
+        if (boundedGraph->selectedFromAll) {
+            boundedGraph->selectedFromAll = false;
+        } else {
+            boundedGraph->selectedFromAll = true;
+        }
+        };
     HotkeyConfig::functionEnumToFunction[SELECT_ALL_NODE] = [&]() {
         boundedGraph->selectAll();
         };
@@ -1045,10 +1052,15 @@ int app::Application::ApplicationMain() {
             if (ImGui::Begin("status bar", &showStatusBar, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove)) {
                 ImGui::Text("node count %d", boundedGraph->getNodeCount());
                 ImGui::Text("edge count  %d", boundedGraph->getEdgeCount());
+                ImGui::Text("layout animation %s", boundedGraph->layoutAnimating ? "on" : "off");
+                ImGui::Text("layout temperature %.3f", boundedGraph->getLayoutTemperature());
+                if (boundedGraph->selectedFromAll) {
+                    ImGui::Text("select from all");
+                } else {
+                    ImGui::Text("select from selected");
+                }
                 ImGui::Text("selected alpha %.2f", boundedGraph->getAlphaForSelected());
                 ImGui::Text("unselected alpha %.2f", boundedGraph->getAlphaForUnselected());
-                ImGui::Text("layout temperature %.3f", boundedGraph->getLayoutTemperature());
-                ImGui::Text("layout animation %s", boundedGraph->layoutAnimating ? "on" : "off");
                 ImGui::Text(StringRes::singleton->getHint_press1ToShowHotkey());
             }
             ImGui::End();
