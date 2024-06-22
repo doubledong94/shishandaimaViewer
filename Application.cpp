@@ -58,6 +58,7 @@
 #include "gui/imDoubleCheckDialog.h"
 #include "gui/imEditLineAndGraph.h"
 #include "gui/imGraphSelector.h"
+#include "gui/imDimControl.h"
 #include "file/FileManager.h"
 #include "threepp/helpers/AxesHelper.hpp"
 #include "absl/time/clock.h"
@@ -128,6 +129,7 @@ int app::Application::ApplicationMain() {
 
     static bool hotkeyPopupOpen = false;
     static bool editLineAndGraphOpen = false;
+    static bool editDimControlOpen = false;
     static bool searchedLineAndGraphOpen = false;
     static bool chooseClassScopePopupOpen = false;
     static bool chooseLineInstancePopupOpen = false;
@@ -182,6 +184,7 @@ int app::Application::ApplicationMain() {
     "Reference",
     "DataStep",
     "TimingStep",
+    "Index",
     "Local Variable",
     "Final Value",
     "Default Value",
@@ -439,6 +442,11 @@ int app::Application::ApplicationMain() {
         } else {
             boundedGraph->selectedFromAll = true;
         }
+        };
+    HotkeyConfig::functionEnumToFunction[DIM_CONTROL_EDITOR] = [&]() {
+        showTooltip = false;
+        shishan::dimControlLastWindowSize = { 0,0 };
+        editDimControlOpen = !editDimControlOpen;
         };
     HotkeyConfig::functionEnumToFunction[SELECT_ALL_NODE] = [&]() {
         boundedGraph->selectAll();
@@ -700,6 +708,7 @@ int app::Application::ApplicationMain() {
 
         if (!hotkeyPopupOpen and
             !editLineAndGraphOpen and
+            !editDimControlOpen and
             !searchedLineAndGraphOpen and
             !aboutToParseFile and
             !aboutToDeleteGraph and
@@ -768,8 +777,16 @@ int app::Application::ApplicationMain() {
                 }
                 boundedGraph->select(uniKeys);
             }
+            if (editDimControlOpen) {
+                // exit form dim control
+                ofstream f;
+                f.open(FileManager::dimControlConfig);
+                shishan::dimControlToFile(f);
+                f.close();
+            }
             hotkeyPopupOpen = false;
             editLineAndGraphOpen = false;
+            editDimControlOpen = false;
             searchedLineAndGraphOpen = false;
             showColorSelectorWindow = false;
             aboutToParseFile = false;
@@ -795,6 +812,7 @@ int app::Application::ApplicationMain() {
 
         shishan::editLineAndGraph(editLineAndGraphOpen);
         shishan::showGraphSelectorWindow(searchedLineAndGraphOpen, methodOfRuntimeForNodeSelection, graphNameToLineNameToRegex);
+        shishan::showDimControlWindow(editDimControlOpen);
 
         if (selectByInDegreePopupOpen) {
             ImGui::OpenPopup("selectByInDegreePopupOpen");
@@ -1289,10 +1307,62 @@ int main(int argc, char** argv) {
     PrologConstructor::init();
     app::Parser parser;
     HotkeyConfig::loadHotkeyConfig(FileManager::hotkeyConfig);
+    ifstream ifs;
+    ifs.open(FileManager::dimControlConfig);
+    shishan::dimControlFromFile(ifs);
+    ifs.close();
+    BoundedIncrementalGraph::getDimControl = shishan::getDimControl;
+    BoundedIncrementalGraph::deserializeFilePath();
     app::Application app(&parser);
     app.ApplicationMain();
     if (prologLoaded) {
         EasierSimpleView::saveToFile();
     }
+    ofstream ofs;
+    ofs.open(FileManager::dimControlConfig);
+    shishan::dimControlToFile(ofs);
+    ofs.close();
     HotkeyConfig::saveHotkeyConfig(FileManager::hotkeyConfig);
 }
+
+shishan::DimControlSetting::DimControlSetting(const string& name) {
+    this->name = name;
+}
+
+void shishan::DimControlSetting::toFile(ofstream& f) {
+    f << name << "\n";
+    f << (chosen_constructor ? 1 : 0) << "\n";
+    f << (chosen_method ? 1 : 0) << "\n";
+    f << (chosen_parameter ? 1 : 0) << "\n";
+    f << (chosen_return ? 1 : 0) << "\n";
+    f << (chosen_calledMethod ? 1 : 0) << "\n";
+    f << (chosen_calledParameter ? 1 : 0) << "\n";
+    f << (chosen_calledReturn ? 1 : 0) << "\n";
+    f << (chosen_condition ? 1 : 0) << "\n";
+    f << (chosen_else ? 1 : 0) << "\n";
+    f << (chosen_reference ? 1 : 0) << "\n";
+    f << (chosen_dataStep ? 1 : 0) << "\n";
+    f << (chosen_timingStep ? 1 : 0) << "\n";
+    f << (chosen_index ? 1 : 0) << "\n";
+}
+
+void shishan::DimControlSetting::fromFile(ifstream& f) {
+    getline(f, name);
+    chosen_constructor = getInt(f);
+    chosen_method = getInt(f);
+    chosen_parameter = getInt(f);
+    chosen_return = getInt(f);
+    chosen_calledMethod = getInt(f);
+    chosen_calledParameter = getInt(f);
+    chosen_calledReturn = getInt(f);
+    chosen_condition = getInt(f);
+    chosen_else = getInt(f);
+    chosen_reference = getInt(f);
+    chosen_dataStep = getInt(f);
+    chosen_timingStep = getInt(f);
+    chosen_index = getInt(f);
+}
+
+
+
+

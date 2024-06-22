@@ -49,6 +49,55 @@ const int mouse_left_button = 0;
 const int mouse_right_button = 1;
 const int mouse_middle_button = 2;
 
+static set<int> AllKeyTypes = {
+        GlobalInfo::KEY_TYPE_CLASS,
+        GlobalInfo::KEY_TYPE_FIELD,
+        GlobalInfo::KEY_TYPE_CONSTRUCTOR,
+        GlobalInfo::KEY_TYPE_METHOD,
+        GlobalInfo::KEY_TYPE_METHOD_PARAMETER,
+        GlobalInfo::KEY_TYPE_METHOD_RETURN,
+        GlobalInfo::KEY_TYPE_CALLED_METHOD,
+        GlobalInfo::KEY_TYPE_CALLED_PARAMETER,
+        GlobalInfo::KEY_TYPE_CALLED_RETURN,
+        GlobalInfo::KEY_TYPE_CONDITION,
+        GlobalInfo::KEY_TYPE_ELSE,
+        GlobalInfo::KEY_TYPE_REFERENCE,
+        GlobalInfo::KEY_TYPE_DATA_STEP,
+        GlobalInfo::KEY_TYPE_TIMING_STEP,
+        GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN,
+        GlobalInfo::KEY_TYPE_LOCAL_VARIABLE,
+        GlobalInfo::KEY_TYPE_FINAL,
+        GlobalInfo::KEY_TYPE_DEFAULT_VALUE,
+        GlobalInfo::KEY_TYPE_KEY_WORD_VALUE,
+        GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS,
+        GlobalInfo::KEY_TYPE_METHOD_REFERENCE,
+        GlobalInfo::KEY_TYPE_ENUM_INSTANCE,
+        GlobalInfo::KEY_TYPE_ARRAY_INIT,
+        GlobalInfo::KEY_TYPE_OPTR_START,
+        GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER2,
+        GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_UNARY_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_UNARY_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_LOGIC_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_LOGIC_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_LOGIC_PARAMETER2,
+        GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_RELATION_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_RELATION_PARAMETER2,
+        GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_PARAMETER2,
+        GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_PARAMETER3,
+        GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_RETURN,
+        GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_PARAMETER1,
+        GlobalInfo::KEY_TYPE_OPTR_INSTANCE_OF_PARAMETER2,
+        GlobalInfo::KEY_TYPE_OPTR_END,
+        GlobalInfo::KEY_TYPE_ERROR,
+};
+
 struct GraphShowTextMouseListener : ReactiveMouseListener {
     BoundedIncrementalGraph* scope;
     threepp::Camera* camera;
@@ -303,7 +352,6 @@ void NodeInfo::makeSimpleName() {
         keyType == GlobalInfo::KEY_TYPE_CONDITION or
         keyType == GlobalInfo::KEY_TYPE_ELSE or
         keyType == GlobalInfo::KEY_TYPE_FINAL or
-        keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or
         keyType == GlobalInfo::KEY_TYPE_DEFAULT_VALUE or
         keyType == GlobalInfo::KEY_TYPE_KEY_WORD_VALUE or
         keyType == GlobalInfo::KEY_TYPE_ENUM_INSTANCE) {
@@ -318,6 +366,9 @@ void NodeInfo::makeSimpleName() {
         simpleName = "[error]";
     } else if (keyType == GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS) {
         simpleName = "[anonymous]";
+    } else if (keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE) {
+        int pos = key.rfind('-');
+        simpleName = key.substr(pos + 1);
     } else {
         simpleName = key;
     }
@@ -1011,6 +1062,13 @@ void BoundedIncrementalGraph::onBoundDragIconClicked(int id) {
 
 void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
     bool controlPressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) or ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+    bool shiftPressed = ImGui::IsKeyDown(ImGuiKey_LeftShift) or ImGui::IsKeyDown(ImGuiKey_RightShift);
+    bool key4pressed = ImGui::IsKeyDown(ImGuiKey_4);
+    bool key5pressed = ImGui::IsKeyDown(ImGuiKey_5);
+    bool key6pressed = ImGui::IsKeyDown(ImGuiKey_6);
+    bool key7pressed = ImGui::IsKeyDown(ImGuiKey_7);
+    bool key8pressed = ImGui::IsKeyDown(ImGuiKey_8);
+    bool key9pressed = ImGui::IsKeyDown(ImGuiKey_9);
     if (controlPressed) {
         set<int> g;
         getGroupIfGrouped(nodeInstanceId, g, groups);
@@ -1028,6 +1086,37 @@ void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
         getGroupIfGrouped(nodeInstanceId, g, bounds);
         if (g.size() > 1) {
             select(g);
+        }
+    } else if (key5pressed or key6pressed or key7pressed or key8pressed or key9pressed) {
+        int keyPressed = 0;
+        if (key5pressed) {
+            keyPressed = 5;
+        }
+        if (key6pressed) {
+            keyPressed = 6;
+        }
+        if (key7pressed) {
+            keyPressed = 7;
+        }
+        if (key8pressed) {
+            keyPressed = 8;
+        }
+        if (key9pressed) {
+            keyPressed = 9;
+        }
+        set<int> dimKeyTypes;
+        dimKeyTypes.insert(AllKeyTypes.begin(), AllKeyTypes.end());
+        getDimControl(keyPressed, dimKeyTypes);
+        set<int> selectedNodes;
+        getConnectedNodesByDim(nodeInstanceId, dimKeyTypes, selectedNodes, key4pressed);
+        select(selectedNodes);
+    } else if (shiftPressed) {
+        if (classKeyToFilePath.count(nodesOrderedByNodeId[nodeInstanceId]->getRuntimeClass())) {
+            string filePath = classKeyToFilePath[nodesOrderedByNodeId[nodeInstanceId]->getRuntimeClass()];
+            std::thread worker([&](string filePath) {
+                std::system(("google-chrome file://" + filePath).data());
+                }, filePath);
+            worker.detach();
         }
     } else {
         if (nodesObj->selected.count(nodeInstanceId)) {
@@ -2248,6 +2337,29 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         });
 }
 
+map<string, string> BoundedIncrementalGraph::classKeyToFilePath;
+
+void BoundedIncrementalGraph::deserializeFilePath() {
+    ifstream f;
+    f.open(FileManager::prologGlobalInfo_filePath2typeKey2FilePath);
+    if (not f.is_open()) {
+        return;
+    }
+    int fileCount = Serializable::getInt(f);
+    for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
+        string filePath;
+        getline(f, filePath);
+        int typeCount = Serializable::getInt(f);
+        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
+            string typeKey;
+            getline(f, typeKey);
+            string filePath;
+            getline(f, filePath);
+            classKeyToFilePath[typeKey] = filePath;
+        }
+    }
+}
+
 void BoundedIncrementalGraph::changeTextSize(bool increase) {
     float s = 0;
     if (increase) {
@@ -2844,6 +2956,27 @@ void BoundedIncrementalGraph::showAndHideBoundFrame(bool show) {
     }
 }
 
+void BoundedIncrementalGraph::getConnectedNodesByDim(int nodeId, set<int>& nodeTypes, set<int>& connected, bool dir) {
+    if (connected.count(nodeId)) {
+        return;
+    }
+    connected.insert(nodeId);
+    igraph_vector_int_t neighbors;
+    igraph_vector_int_init(&neighbors, 0);
+    if (dir) {
+        igraph_neighbors(theOriginalGraph, &neighbors, nodeId, IGRAPH_IN);
+    } else {
+        igraph_neighbors(theOriginalGraph, &neighbors, nodeId, IGRAPH_OUT);
+    }
+    for (int index = 0; index < igraph_vector_int_size(&neighbors); ++index) {
+        int neighborId = VECTOR(neighbors)[index];
+        if (nodeTypes.count(nodesOrderedByNodeId[neighborId]->keyType)) {
+            getConnectedNodesByDim(neighborId, nodeTypes, connected, dir);
+        }
+    }
+    igraph_vector_int_destroy(&neighbors);
+}
+
 void BoundedIncrementalGraph::prepareSelectByMethodStackSize() {
     if (not methodStackSizeToNodes.needUpdate) {
         return;
@@ -2857,3 +2990,5 @@ void BoundedIncrementalGraph::prepareSelectByMethodStackSize() {
         methodStackSizeToNodes.data[nodeInfo->methodStackSize].insert(nodeInfo->nodeId);
     }
 }
+
+std::function<void(int, set<int>&)> BoundedIncrementalGraph::getDimControl;

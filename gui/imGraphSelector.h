@@ -24,7 +24,6 @@ namespace shishan {
         float fontSize = ImGui::GetFontSize();
         ImGui::GetStyle().WindowShadowSize = 0;
         ImGui::GetStyle().WindowBorderSize = 0;
-        ImVec4 panelBgColor = ColorRes::controlPanelBgColor;
 
         // style start
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ColorRes::noBgColor);
@@ -42,7 +41,7 @@ namespace shishan {
         // selector window start
         ImGui::SetCursorPos({ mainWindowPadding,mainWindowPadding });
         ImGui::BeginChild("selectorWindow", ImVec2(editWindowWidth, childWindowHeight), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, panelBgColor);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::controlPanelBgColor);
         {
             ImGui::SetCursorPos({ childWindowPadding,childWindowPadding });
             shadow(classWindowWidth, classWindowHeight);
@@ -198,7 +197,7 @@ namespace shishan {
         // result window start
         ImGui::SetCursorPos({ editWindowWidth + mainWindowPadding + spacingHor,mainWindowPadding });
         ImGui::BeginChild("filteredResultWindow", ImVec2(displayWindowWidth, childWindowHeight), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, panelBgColor);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::controlPanelBgColor);
 
         // adjust window start
         ImGui::SetCursorPos({ searchBarLeft - childWindowPadding,childWindowPadding });

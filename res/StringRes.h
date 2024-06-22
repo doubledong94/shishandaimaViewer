@@ -47,6 +47,7 @@ public:
     virtual char* getHotKeyTitle_selectNodeByMethodStackSize() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByComponent() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeByGroup() { return NULL; };
+    virtual char* getHotKeyTitle_dimControlEditor() { return NULL; };
     virtual char* getHotKeyTitle_2DLayout() { return NULL; };
     virtual char* getHotKeyTitle_3DLayout() { return NULL; };
     virtual char* getHotKeyTitle_LayoutOnAndOff() { return NULL; };
@@ -154,6 +155,7 @@ private:
     string hotKeyTitle_selectNodeByMethodStackSize = "按照函数深度选择";
     string hotKeyTitle_selectNodeByComponent = "按联通子图选择";
     string hotKeyTitle_selectNodeByGroup = "按照聚合选择";
+    string hotKeyTitle_dimControlEditor = "限制维度";
     string hotKeyTitle_2DLayout = "2d布局";
     string hotKeyTitle_3DLayout = "3d布局";
     string hotKeyTitle_LayoutOnAndOff = "布局动画开关";
@@ -259,6 +261,7 @@ public:
     char* getHotKeyTitle_selectNodeByMethodStackSize() override;
     char* getHotKeyTitle_selectNodeByComponent() override;
     char* getHotKeyTitle_selectNodeByGroup() override;
+    char* getHotKeyTitle_dimControlEditor() override;
     char* getHotKeyTitle_2DLayout() override;
     char* getHotKeyTitle_3DLayout() override;
     char* getHotKeyTitle_LayoutOnAndOff() override;
@@ -366,6 +369,7 @@ private:
     string hotKeyTitle_selectNodeByMethodStackSize = "按照函数深度选择";
     string hotKeyTitle_selectNodeByComponent = "按联通子图选择";
     string hotKeyTitle_selectNodeByGroup = "按照聚合选择";
+    string hotKeyTitle_dimControlEditor = "限制维度";
     string hotKeyTitle_2DLayout = "2d布局";
     string hotKeyTitle_3DLayout = "3d布局";
     string hotKeyTitle_LayoutOnAndOff = "布局动画开关";
@@ -471,6 +475,7 @@ public:
     char* getHotKeyTitle_selectNodeByMethodStackSize() override;
     char* getHotKeyTitle_selectNodeByComponent() override;
     char* getHotKeyTitle_selectNodeByGroup() override;
+    char* getHotKeyTitle_dimControlEditor() override;
     char* getHotKeyTitle_2DLayout() override;
     char* getHotKeyTitle_3DLayout() override;
     char* getHotKeyTitle_LayoutOnAndOff() override;

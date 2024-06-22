@@ -89,7 +89,6 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {REMOVE_ALL_NODES, "remove all node", 0xff6e0501,SINGLE_CLICK},
     {TRANSITIVE_REDUCTION, "transitive reduction", 0xffff2c01,SINGLE_CLICK},
     // select node
-    {SELECT_FROM_ALL, "select from all or from selected", 0xffffff36,SINGLE_CLICK},
     {SELECT_ALL_NODE, "select all node", 0xffff3301,SINGLE_CLICK},
     {UNSELECT_ALL, "unselect all node", 0xffffff3e,SINGLE_CLICK},
     {REVERSE_SELECT, "reverse selection", 0xffff6e03,SINGLE_CLICK},
@@ -108,6 +107,8 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SELECT_BY_METHOD_SATCK_SIZE, "select by method stack size", 0xffff4201,SINGLE_CLICK},
     {SELECT_BY_COMPONENT, "select by component", 0xffffff32,SINGLE_CLICK},
     {SELECT_BY_GROUP, "select by group", 0xffff3201,SINGLE_CLICK},
+    {SELECT_FROM_ALL, "select from all or from selected", 0xffffff36,SINGLE_CLICK},
+    {DIM_CONTROL_EDITOR, "dim control editor", 0xffffff2f,SINGLE_CLICK},
     // layout
     {START_OR_STOP_LAYOUT_ANIM, "start/stop layout animiation", 0xffffff3c,SINGLE_CLICK},
     {TO_2D_LAYOUT,"2D layout",0xffffff52, SINGLE_CLICK},
@@ -242,6 +243,7 @@ void HotkeyConfig::init() {
     hotkeyMap[INCREASE_ALPHA_FOR_SELECTED]->functionName = StringRes::singleton->getHotKeyTitle_SelectedNodeAlphaIncr();
     hotkeyMap[DECREASE_ALPHA_FOR_SELECTED]->functionName = StringRes::singleton->getHotKeyTitle_SelectedNodeAlphaDecr();
     hotkeyMap[SELECT_FROM_ALL]->functionName = StringRes::singleton->getHotKeyTitle_selectFromAll();
+    hotkeyMap[DIM_CONTROL_EDITOR]->functionName = StringRes::singleton->getHotKeyTitle_dimControlEditor();
     hotkeyMap[SELECT_ALL_NODE]->functionName = StringRes::singleton->getHotKeyTitle_selectAllNode();
     hotkeyMap[UNSELECT_ALL]->functionName = StringRes::singleton->getHotKeyTitle_unselectAllNode();
     hotkeyMap[REMOVE_SELECTED_NODES]->functionName = StringRes::singleton->getHotKeyTitle_deleteNode();

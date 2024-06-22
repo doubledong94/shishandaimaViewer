@@ -11,6 +11,7 @@ cp -n prolog/base_rules.pl build/config/
 cp -n fonts/* build/fonts/
 cp -n resource/* build/resource/
 cp -n simpleView.config build/config/
+cp -n dimControl.config build/config/
 cd external/imgui/
 git checkout origin/features/shadows
 cd ../..

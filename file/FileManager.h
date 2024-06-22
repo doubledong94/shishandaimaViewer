@@ -57,6 +57,7 @@ public:
     static string imguiIniFile;
     static string hotkeyConfig;
     static string simpleViewConfig;
+    static string dimControlConfig;
     static string srcPathConfig;
     static string srcPath;
     static string resourceBaseDir;

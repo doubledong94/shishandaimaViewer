@@ -324,6 +324,9 @@ public:
 
     void showAndHideBoundFrame(bool show);
 
+    void getConnectedNodesByDim(int nodeId, set<int>& nodeTypes, set<int>& connected, bool dir);
+
+    static std::function<void(int, set<int>&)> getDimControl;
     // tested property start
     bool isDag();
 
@@ -369,6 +372,10 @@ public:
     void toFile(ofstream& f);
 
     void fromFile(ifstream& f);
+
+    static map<string, string> classKeyToFilePath;
+
+    static void deserializeFilePath();
 
 private:
 

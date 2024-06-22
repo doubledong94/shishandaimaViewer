@@ -95,6 +95,7 @@ string FileManager::configBaseDir = "";
 string FileManager::imguiIniFile = "";
 string FileManager::hotkeyConfig = "";
 string FileManager::simpleViewConfig = "";
+string FileManager::dimControlConfig = "";
 string FileManager::srcPathConfig = "";
 string FileManager::srcPath = "";
 string FileManager::resourceBaseDir = "";
@@ -151,6 +152,7 @@ void FileManager::initCurrentDir() {
     imguiIniFile = configBaseDir + "imgui.ini";
     hotkeyConfig = configBaseDir + "hotkey.config";
     simpleViewConfig = configBaseDir + "simpleView.config";
+    dimControlConfig = configBaseDir + "dimControl.config";
     srcPathConfig = configBaseDir + "srcPath.txt";
     resourceBaseDir = baseFolder + "resource/";
     graphSaveAndRestorePath = baseFolder + "graph/";

@@ -148,6 +148,7 @@ enum HotkeyFunction {
     DELETE_SAVED_GRAPH,
     BOUND_BY_CLASS,
     BOUND_BY_METHOD,
+    DIM_CONTROL_EDITOR,
 };
 
 enum ClickStyle {
