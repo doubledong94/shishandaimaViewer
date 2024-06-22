@@ -138,9 +138,16 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
     }
     // mark local variable
     if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
-        codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
-        codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
-        codeBlock->lvKeysUpdatedByThisBlock100Percent.insert(writen->variableKey);
+        if (writen->indexedBy) {
+            if (not codeBlock->lvToLastWrittenKeys.count(writen->variableKey)) {
+                codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
+            }
+            codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
+        } else {
+            codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
+            codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
+            codeBlock->lvKeysUpdatedByThisBlock100Percent.insert(writen->variableKey);
+        }
     }
 }
 
