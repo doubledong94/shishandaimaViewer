@@ -158,8 +158,8 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {FLOW_COLOR_MAP, "color by flow", 0xffff3801,SINGLE_CLICK},
     {CLEAR_ALL_COLOR, "clear all color", 0xff380501,SINGLE_CLICK},
     // explore mode
-    {SEARCH_DOWNWARD, "search downward", 0xffff6d03,SINGLE_CLICK},
-    {SEARCH_UPWARD, "search upward", 0xffff6c03,SINGLE_CLICK},
+    {SEARCH_DOWNWARD, "search downward", 0xffff6d05,SINGLE_CLICK},
+    {SEARCH_UPWARD, "search upward", 0xffff6c05,SINGLE_CLICK},
 
     // for next round
     {SAVE_SELECTED_NODE, "save selected node", 0xffff3501,SINGLE_CLICK},
