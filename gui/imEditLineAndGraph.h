@@ -1870,20 +1870,7 @@ namespace shishan {
         for (int pointCount = 0;pointCount < lineTemplate->nodeAndRepeatType.size();pointCount++) {
             auto& pI = pointsInLine->seg[pointCount];
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointCount];
-            bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE
-                or (nodeAndRepeatTypeI->node and (nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_REFERENCE
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_DATA_STEP
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_TIMING_STEP
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_FIELD
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_METHOD
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CONSTRUCTOR
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_METHOD
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_PARAMETER
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_PARAMETER
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_RETURN
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_CALLED_RETURN
-                    or nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_INDEX
-                    )));
+            bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE);
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {
             case SimpleView::LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:

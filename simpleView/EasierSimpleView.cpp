@@ -2707,8 +2707,6 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
             // consuming intersection point
             ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
             ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
-            // check by node inner name
-            ruleBody.push_back(CompoundTerm::getResolveRuntimeCheckTerm(nodeValNameTerm, classScopeTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
         } else {
             // no specified value, generate with node val name
             ruleBody.push_back(CompoundTerm::getResolveRuntimeTerm(nodeValNameTerm, classScopeTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
@@ -3387,7 +3385,8 @@ void SimpleView::GraphInstance::prepareQuery(std::function<void(int, int, const 
     vector<Term*> intersectionTerms;
     // index starting from 1
     for (int i = 1;i < graphTemplate->intersectionPointsInLine.size() + 1;i++) {
-        intersectionTerms.push_back(Term::getVar("Intersectin" + to_string(i)));
+        intersectionTerms.push_back(Term::getVar("Intersection" + to_string(i)));
+        intersectionTerms.back()->isInPool = true;
     }
     FOR_EACH_ITEM(lineInstances, item->intersectionTerms = intersectionTerms;);
     FOR_EACH_ITEM(lineInstances, item->prepareQuery(updateAddressable););
