@@ -2209,6 +2209,7 @@ void BoundedIncrementalGraph::toFile(ofstream& f) {
 void BoundedIncrementalGraph::fromFile(ifstream& f) {
     layoutThreadPool->submit([&]() {
         graphGenerateAndConsumeLock.lock();
+        uniKeyToNodeInfo.clear();
         nodesOrderedByNodeId.clear();
         textLoaded.clear();
         textLoading.clear();
