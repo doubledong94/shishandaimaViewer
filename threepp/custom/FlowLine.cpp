@@ -327,6 +327,6 @@ std::string FlowLine::fragmentSource() {
                         float f = 0.8*smoothstep(0.2,0,abs(vFlow));
                         color -= vec3(f);
                     }
-                    pc_fragColor = vec4( color, alpha * (1-smoothstep(0.7,1,abs(uv_frag.y))) );
+                    pc_fragColor = vec4( color, alpha );
                 })";
 }
