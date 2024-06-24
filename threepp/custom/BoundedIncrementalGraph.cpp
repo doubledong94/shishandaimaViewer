@@ -541,13 +541,13 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
         nodeInfo->key = key;
         nodeInfo->keyType = keyType;
         nodeInfo->uniKey = uniKey;
+        nodeInfo->methodStackSize = tail->headElements[6]->integer;
+        saveNodeInfo(nodeInfo);
     } else {
         if (not nodeInfo->getExistingPositionInRegex(searchingGraphName, lineInstanceName, regexChar)) {
             nodeInfo->positionInRegex.push_back(new PositionInRegex(searchingGraphName, lineInstanceName, regexChar));
         }
     }
-    nodeInfo->methodStackSize = tail->headElements[6]->integer;
-    saveNodeInfo(nodeInfo);
     return nodeInfo;
 }
 
@@ -2211,6 +2211,9 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
         graphGenerateAndConsumeLock.lock();
         uniKeyToNodeInfo.clear();
         nodesOrderedByNodeId.clear();
+        methodOfRuntimeToNodeInfo.clear();
+        addressableKeyToNodeInfo.clear();
+        graphNameToLineNameToRegexToNodeInfo.clear();
         textLoaded.clear();
         textLoading.clear();
         for (int i : textAdded) {
