@@ -80,6 +80,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {PARSE_FILE,"parse files",0xff320501, SINGLE_CLICK},
     // prepare 2
     {SHOW_EDIT_LINE_AND_GRAPH,"edit line and graph",0xffffff2b, SINGLE_CLICK},
+    {CHANGE_MAX_SEARCH_DEPTH,"change max search depth",0xffffff37,SINGLE_CLICK},
     {CHOOOSE_CLASS_SCOPE,"choose class scope",0xffffff33,SINGLE_CLICK},
     {CHOOSE_LINE_INSTANCE_TO_SEARCH,"search line instance",0xffffff34,SINGLE_CLICK},
     {CHOOSE_GRAPH_INSTANCE_TO_SEARCH,"search graph instance",0xffffff35,SINGLE_CLICK},
@@ -228,6 +229,7 @@ void HotkeyConfig::init() {
     hotkeyMap[SHOW_SEARCHED_LINE_AND_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByPosition();
     hotkeyMap[SELECT_BY_KEY_TYPE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByKeyType();
     hotkeyMap[SHOW_EDIT_LINE_AND_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_editLineAndGraph();
+    hotkeyMap[CHANGE_MAX_SEARCH_DEPTH]->functionName = StringRes::singleton->getHotKeyTitle_changeMaxSearchDepth();
     hotkeyMap[PARSE_FILE]->functionName = StringRes::singleton->getHotKeyTitle_parseSrc();
     hotkeyMap[TO_2D_LAYOUT]->functionName = StringRes::singleton->getHotKeyTitle_2DLayout();
     hotkeyMap[TO_3D_LAYOUT]->functionName = StringRes::singleton->getHotKeyTitle_3DLayout();

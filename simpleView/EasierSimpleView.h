@@ -189,14 +189,19 @@ namespace SimpleView {
 
     class RegexTree {
     public:
+        static int maxRecurDepth;
+        static string maxRecurDepthStr;
+        static void changeMaxRecurDepth();
+
         // if encodeChar != 0, it is a leaf node/char, otherwise it has a subStructure
         char encodeChar = 0;
-        string repeatString;
+        int repeatType;
         vector<RegexTree*> subStructure;
         string getRegex(bool isBackward, int* charCount);
         bool isBackward = false; // this field is only used in split point
         bool isSplitPosition = false; // this field is only used in split point
         RegexTree* copy();
+        string getRepeatTypeString();
     };
 
     class IntersectionPointInLine {
@@ -235,8 +240,6 @@ namespace SimpleView {
         bool isParamNode();
 
         int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex);
-
-        string getRepeatTypeString();
 
         void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName);
     };

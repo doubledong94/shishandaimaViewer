@@ -125,6 +125,8 @@ std::function<void(map<string, map<string, set<string>>>&, vector<const char*>&)
 // ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ("resident set: " + to_string(resident_set)).data());
 // ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ("total mem used: " + to_string(vm_usage + resident_set)).data());
 
+static bool searchingInProgress = false;
+
 int app::Application::ApplicationMain() {
 
     static bool hotkeyPopupOpen = false;
@@ -238,7 +240,6 @@ int app::Application::ApplicationMain() {
         }
         };
     PL_engine_t pl_engine_for_earching = PL_create_engine(NULL);
-    static bool searchingInProgress = false;
     HotkeyConfig::functionEnumToFunction[START_SEARCHING] = [&]() {
         // search line instance
         if (searchingInProgress) {
@@ -356,6 +357,9 @@ int app::Application::ApplicationMain() {
         shishan::showGraphList = false;
         shishan::forceRelayout();
         editLineAndGraphOpen = !editLineAndGraphOpen;};
+    HotkeyConfig::functionEnumToFunction[CHANGE_MAX_SEARCH_DEPTH] = [&]() {
+        SimpleView::RegexTree::changeMaxRecurDepth();
+        };
     HotkeyConfig::functionEnumToFunction[PARSE_FILE] = [&]() {
         if (not parser->parsing and not FileManager::srcPath.empty() and not openParsingProgress) {
             showTooltip = false;
@@ -765,7 +769,7 @@ int app::Application::ApplicationMain() {
         if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_Escape)) {
             if (editLineAndGraphOpen) {
                 // exit from line and graph editor
-                if (prologLoaded) {
+                if (prologLoaded and not searchingInProgress) {
                     EasierSimpleView::saveToFile();
                 }
             }
@@ -1104,8 +1108,7 @@ int app::Application::ApplicationMain() {
                 } else {
                     ImGui::Text("select from selected");
                 }
-                ImGui::Text("selected alpha %.2f", boundedGraph->getAlphaForSelected());
-                ImGui::Text("unselected alpha %.2f", boundedGraph->getAlphaForUnselected());
+                ImGui::Text("search depth %s", SimpleView::RegexTree::maxRecurDepthStr.data());
                 ImGui::Text(StringRes::singleton->getHint_press1ToShowHotkey());
             }
             ImGui::End();
@@ -1315,7 +1318,7 @@ int main(int argc, char** argv) {
     BoundedIncrementalGraph::deserializeFilePath();
     app::Application app(&parser);
     app.ApplicationMain();
-    if (prologLoaded) {
+    if (prologLoaded and not searchingInProgress) {
         EasierSimpleView::saveToFile();
     }
     ofstream ofs;

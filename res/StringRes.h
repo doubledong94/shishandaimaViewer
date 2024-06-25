@@ -21,6 +21,7 @@ public:
 
     virtual char* getHotKeyTitle_parseSrc() { return NULL; };
     virtual char* getHotKeyTitle_editLineAndGraph() { return NULL; };
+    virtual char* getHotKeyTitle_changeMaxSearchDepth() { return NULL; };
     virtual char* getHotKeyTitle_chooseClass() { return NULL; };
     virtual char* getHotKeyTitle_chooseLine() { return NULL; };
     virtual char* getHotKeyTitle_chooseGraph() { return NULL; };
@@ -129,6 +130,7 @@ private:
 
     string hotKeyTitle_parseSrc = "解析源码";
     string hotKeyTitle_editLineAndGraph = "修改line与graph";
+    string hotKeyTitle_changeMaxSearchDepth = "切换搜索深度";
     string hotKeyTitle_chooseClass = "选择class";
     string hotKeyTitle_chooseLine = "选择line";
     string hotKeyTitle_chooseGraph = "选择graph";
@@ -235,6 +237,7 @@ public:
 
     char* getHotKeyTitle_parseSrc() override;
     char* getHotKeyTitle_editLineAndGraph() override;
+    char* getHotKeyTitle_changeMaxSearchDepth() override;
     char* getHotKeyTitle_chooseClass() override;
     char* getHotKeyTitle_chooseLine() override;
     char* getHotKeyTitle_chooseGraph() override;
@@ -343,6 +346,7 @@ private:
 
     string hotKeyTitle_parseSrc = "解析源码";
     string hotKeyTitle_editLineAndGraph = "修改line与graph";
+    string hotKeyTitle_changeMaxSearchDepth = "切换搜索深度";
     string hotKeyTitle_chooseClass = "选择class";
     string hotKeyTitle_chooseLine = "选择line";
     string hotKeyTitle_chooseGraph = "选择graph";
@@ -449,6 +453,7 @@ public:
 
     char* getHotKeyTitle_parseSrc() override;
     char* getHotKeyTitle_editLineAndGraph() override;
+    char* getHotKeyTitle_changeMaxSearchDepth() override;
     char* getHotKeyTitle_chooseClass() override;
     char* getHotKeyTitle_chooseLine() override;
     char* getHotKeyTitle_chooseGraph() override;

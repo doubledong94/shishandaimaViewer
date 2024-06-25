@@ -1619,12 +1619,11 @@ int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeat
         currentCharIndex++;
     }
     // no matter if it is a segment, it always has a repeat type
-    outputRegex->repeatString = getRepeatTypeString();
+    outputRegex->repeatType = repeatType;
     return currentCharIndex;
 }
 
-string SimpleView::NodeAndRepeatType::getRepeatTypeString() {
-    int maxRecurDepth = -1;
+string SimpleView::RegexTree::getRepeatTypeString() {
     string repeatString = "";
     switch (repeatType) {
     case LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:
@@ -1714,8 +1713,25 @@ void SimpleView::NodeAndRepeatType::markSplitByRuntimeCount(RegexTree* splitPoin
     }
 }
 
+int SimpleView::RegexTree::maxRecurDepth = -1;
+string SimpleView::RegexTree::maxRecurDepthStr = "*";
+
+void SimpleView::RegexTree::changeMaxRecurDepth() {
+    if (maxRecurDepth == -1) {
+        maxRecurDepth = 10;
+        maxRecurDepthStr = "10";
+    } else if (maxRecurDepth == 10) {
+        maxRecurDepth = 20;
+        maxRecurDepthStr = "20";
+    } else if (maxRecurDepth == 20) {
+        maxRecurDepth = -1;
+        maxRecurDepthStr = "*";
+    }
+}
+
 string SimpleView::RegexTree::getRegex(bool isBackward, int* charCount) {
     string regex;
+    string repeatString = getRepeatTypeString();
     if (encodeChar == 0) {
         if (not repeatString.empty()) {
             regex += "(";
@@ -1746,7 +1762,7 @@ string SimpleView::RegexTree::getRegex(bool isBackward, int* charCount) {
 SimpleView::RegexTree* SimpleView::RegexTree::copy() {
     auto ret = new RegexTree();
     ret->encodeChar = encodeChar;
-    ret->repeatString = repeatString;
+    ret->repeatType = repeatType;
     FOR_EACH_ITEM(subStructure, ret->subStructure.push_back(item->copy()););
     ret->isBackward = isBackward;
     return ret;
@@ -2921,7 +2937,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     outputAddressableKey->returnThisToPool();
     outputKeyType->returnThisToPool();
     expectingNextKeyTerm->returnThisToPool();
-}
+    }
 
 Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth) {
     Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);

@@ -149,6 +149,7 @@ enum HotkeyFunction {
     BOUND_BY_CLASS,
     BOUND_BY_METHOD,
     DIM_CONTROL_EDITOR,
+    CHANGE_MAX_SEARCH_DEPTH,
 };
 
 enum ClickStyle {
