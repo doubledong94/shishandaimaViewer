@@ -395,6 +395,13 @@ string& NodeInfo::getRuntimeClass() {
     return runtimeClass;
 }
 
+string& NodeInfo::getDeclaredInType() {
+    if (declaredInType.empty()) {
+        makeDeclaredInType();
+    }
+    return declaredInType;
+}
+
 void NodeInfo::makeTypeKey() {
     if (keyType == GlobalInfo::KEY_TYPE_FIELD or
         keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
@@ -429,6 +436,40 @@ void NodeInfo::makeRuntimeClass() {
     }
 }
 
+void NodeInfo::makeDeclaredInType() {
+    CompoundTerm* findTypeTerm = NULL;
+    switch (keyType) {
+    case GlobalInfo::KEY_TYPE_FIELD:
+        findTypeTerm = CompoundTerm::getFieldTerm(Term::getVar("T"), Term::getStr(key));
+        declaredInType = PrologWrapper::query(findTypeTerm)->atomOrVar;
+        break;
+    case GlobalInfo::KEY_TYPE_METHOD:
+        findTypeTerm = CompoundTerm::getMethodTerm(Term::getVar("T"), Term::getStr(key));
+        declaredInType = PrologWrapper::query(findTypeTerm)->atomOrVar;
+        break;
+    case GlobalInfo::KEY_TYPE_CONSTRUCTOR:
+        findTypeTerm = CompoundTerm::getConstructorTerm(Term::getVar("T"), Term::getStr(key));
+        declaredInType = PrologWrapper::query(findTypeTerm)->atomOrVar;
+        break;
+    case GlobalInfo::KEY_TYPE_METHOD_PARAMETER:
+    case GlobalInfo::KEY_TYPE_METHOD_RETURN:
+    case GlobalInfo::KEY_TYPE_CALLED_METHOD:
+    case GlobalInfo::KEY_TYPE_CALLED_PARAMETER:
+    case GlobalInfo::KEY_TYPE_CALLED_RETURN:
+        int pos = key.rfind(':');
+        string mk = key.substr(0, pos + 1);
+        findTypeTerm = CompoundTerm::getMethodTerm(Term::getVar("T"), Term::getStr(mk));
+        auto result = PrologWrapper::query(findTypeTerm);
+        if (result) {
+            declaredInType = result->atomOrVar;
+        } else {
+            findTypeTerm = CompoundTerm::getConstructorTerm(Term::getVar("T"), Term::getStr(mk));
+            declaredInType = PrologWrapper::query(findTypeTerm)->atomOrVar;
+        }
+        break;
+    }
+}
+
 void NodeInfo::toFile(ofstream& f) {
     f << positionInRegex.size() << "\n";
     FOR_EACH_ITEM(positionInRegex, item->toFile(f););
@@ -439,6 +480,7 @@ void NodeInfo::toFile(ofstream& f) {
     f << uniKey << "\n";
     f << nodeId << "\n";
     f << typeKey << "\n";
+    f << declaredInType << "\n";
     f << simpleName << "\n";
     f << runtimeClass << "\n";
     f << methodStackSize << "\n";
@@ -458,6 +500,7 @@ void NodeInfo::fromFile(ifstream& f) {
     getline(f, uniKey);
     nodeId = getInt(f);
     getline(f, typeKey);
+    getline(f, declaredInType);
     getline(f, simpleName);
     getline(f, runtimeClass);
     methodStackSize = getInt(f);
@@ -2162,6 +2205,7 @@ void BoundedIncrementalGraph::toFile(ofstream& f) {
         nodeInfo->getSimpleName();
         nodeInfo->getTypeKey();
         nodeInfo->getRuntimeClass();
+        nodeInfo->getDeclaredInType();
     }
     f << searchingGraphName << "\n";
     // dimension
@@ -2470,43 +2514,7 @@ list<pair<string, string>> BoundedIncrementalGraph::getSelectedKey() {
             keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
             keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
-            string type;
-            CompoundTerm* findTypeTerm = NULL;
-            switch (keyType) {
-            case GlobalInfo::KEY_TYPE_FIELD:
-                findTypeTerm = CompoundTerm::getFieldTerm(Term::getVar("T"), Term::getStr(nodeInfo->key));
-                type = PrologWrapper::query(findTypeTerm)->atomOrVar;
-                ret.push_back({ nodeInfo->key, type });
-                break;
-            case GlobalInfo::KEY_TYPE_METHOD:
-                findTypeTerm = CompoundTerm::getMethodTerm(Term::getVar("T"), Term::getStr(nodeInfo->key));
-                type = PrologWrapper::query(findTypeTerm)->atomOrVar;
-                ret.push_back({ nodeInfo->key, type });
-                break;
-            case GlobalInfo::KEY_TYPE_CONSTRUCTOR:
-                findTypeTerm = CompoundTerm::getConstructorTerm(Term::getVar("T"), Term::getStr(nodeInfo->key));
-                type = PrologWrapper::query(findTypeTerm)->atomOrVar;
-                ret.push_back({ nodeInfo->key, type });
-                break;
-            case GlobalInfo::KEY_TYPE_METHOD_PARAMETER:
-            case GlobalInfo::KEY_TYPE_METHOD_RETURN:
-            case GlobalInfo::KEY_TYPE_CALLED_METHOD:
-            case GlobalInfo::KEY_TYPE_CALLED_PARAMETER:
-            case GlobalInfo::KEY_TYPE_CALLED_RETURN:
-                int pos = nodeInfo->key.rfind(':');
-                string mk = nodeInfo->key.substr(0, pos + 1);
-                findTypeTerm = CompoundTerm::getMethodTerm(Term::getVar("T"), Term::getStr(mk));
-                auto result = PrologWrapper::query(findTypeTerm);
-                if (result) {
-                    type = result->atomOrVar;
-                    ret.push_back({ nodeInfo->key, type });
-                } else {
-                    findTypeTerm = CompoundTerm::getConstructorTerm(Term::getVar("T"), Term::getStr(mk));
-                    type = PrologWrapper::query(findTypeTerm)->atomOrVar;
-                    ret.push_back({ nodeInfo->key, type });
-                }
-                break;
-            }
+            ret.push_back({ nodeInfo->key, nodeInfo->getDeclaredInType() });
         }
     }
     return ret;

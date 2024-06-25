@@ -17,6 +17,7 @@ public:
     string runtimeKey;
     string key;
     string typeKey;
+    string declaredInType;
     int keyType;
     string simpleName;
     string uniKey;
@@ -27,9 +28,11 @@ public:
     void makeSimpleName();
     void makeTypeKey();
     void makeRuntimeClass();
+    void makeDeclaredInType();
     string& getSimpleName();
     string& getTypeKey();
     string& getRuntimeClass();
+    string& getDeclaredInType();
     void toFile(ofstream& f);
     void fromFile(ifstream& f);
 };
