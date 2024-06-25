@@ -1481,7 +1481,8 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
         typeKeyForNodeKey.push_back(nodeKey.second.data());
         break;
     case NODE_TYPE_LIST:
-        FOR_EACH_ITEM(nodeList, values.push_back(item.first.data()););
+        FOR_EACH_ITEM(nodeList, values.push_back(item.first.data());
+        typeKeyForNodeKey.push_back(item.second.data()););
         break;
     case NODE_TYPE_FIELD_OF:
     case NODE_TYPE_METHOD_OF:
@@ -2937,7 +2938,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     outputAddressableKey->returnThisToPool();
     outputKeyType->returnThisToPool();
     expectingNextKeyTerm->returnThisToPool();
-    }
+}
 
 Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth) {
     Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
