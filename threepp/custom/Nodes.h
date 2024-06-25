@@ -41,6 +41,8 @@ public:
 
     set<int> positionFixed;
 
+    set<int> styled;
+
     int nodeCount = 0;
     int nodeCapacity = 0;
 

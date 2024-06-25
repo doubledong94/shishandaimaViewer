@@ -744,6 +744,7 @@ void BoundedIncrementalGraph::reCreateLayout(int nodeCount, bool is2D, bool dime
         resetBounds();
     }
     resetLayoutBound(is2D);
+    resetStyledNodes();
 }
 
 void BoundedIncrementalGraph::reCreateLayoutWithNoOldLayoutInfo(int nodeCount, bool is2D, bool dimensionChanged) {
@@ -761,6 +762,7 @@ void BoundedIncrementalGraph::reCreateLayoutWithNoOldLayoutInfo(int nodeCount, b
         igraph_vector_init(layoutBounds[i], nodeCount);
     }
     resetLayoutBound(is2D);
+    resetStyledNodes();
 }
 
 void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
@@ -1327,6 +1329,17 @@ void BoundedIncrementalGraph::onNodeColorChanged() {
     vector<threepp::Color> colors;
     nodesObj->getColors(colors);
     linesObj->setColors(colors, edgePairs);
+}
+
+void BoundedIncrementalGraph::resetStyledNodes() {
+    nodesObj->styled.clear();
+    for (auto nodeInfo : nodesOrderedByNodeId) {
+        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+            nodesObj->styled.insert(nodeInfo->nodeId);
+        }
+    }
 }
 
 void BoundedIncrementalGraph::selectByKeyType(int keyType) {

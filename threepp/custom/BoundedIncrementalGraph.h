@@ -175,6 +175,8 @@ public:
 
     void onNodeColorChanged();
 
+    void resetStyledNodes();
+
     void selectByKeyType(int keyType);
 
     void selectAll();

@@ -126,6 +126,12 @@ void Nodes::applyColor() {
         encodedColor.b = encodeIntoRgb(encodedColor.b, 0.2);
         setColorAt(i, encodedColor);
     }
+    // mark as styled
+    for (int i : styled) {
+        getColorAt(i, encodedColor);
+        encodedColor.r = encodeIntoRgb(encodedColor.r, 0.002);
+        setColorAt(i, encodedColor);
+    }
     instanceColor()->needsUpdate();
 }
 
@@ -242,6 +248,7 @@ std::string Nodes::vertexSource() {
                out float vAlpha;
                out float vHovered;
                out float vFixed;
+               out float vStyled;
                void main() {
                     uv_frag = position.xy;
                     vColor = instanceColor;
@@ -256,6 +263,9 @@ std::string Nodes::vertexSource() {
                     float statePartB = fract(fract(instanceColor.b) * 100);
                     vFixed = statePartB > 0.1 && statePartB < 0.3 ? 1 : 0;
 
+                    float statePartStyle = fract(fract(fract(instanceColor.r) * 100) * 100);
+                    vStyled = statePartStyle > 0.1 && statePartStyle < 0.3 ? 1 : 0;
+
                     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4( position, 1.0 );
                })";
 }
@@ -268,6 +278,7 @@ std::string Nodes::fragmentSource() {
                 in float vAlpha;
                 in float vHovered;
                 in float vFixed;
+                in float vStyled;
                 out vec4 pc_fragColor;
                 void main() {
                     vec3 color = vColor;
@@ -277,7 +288,23 @@ std::string Nodes::fragmentSource() {
                         alpha += 0.2;
                     }
                     if (vFixed < 0.5 || (abs(uv_frag.x) < 0.9 && abs(uv_frag.y) < 0.9)){
-                        alpha *= 1 - smoothstep(0.699,0.7,length(uv_frag));
+                        float l = length(uv_frag);
+                        if (l>0.7){
+                            alpha = 0;
+                        } else {
+                            if (vStyled > 0.5) {
+                                if (l> 0.6) {
+                                } else if (l> 0.5) {
+                                    color -= vec3(0.3);
+                                } else if (l> 0.4) {
+                                } else if (l> 0.3) {
+                                    color -= vec3(0.3);
+                                } else if (l> 0.2) {
+                                } else if (l> 0.1) {
+                                    color -= vec3(0.3);
+                                }
+                            }
+                        }
                     }
                     pc_fragColor = vec4( color, alpha );
                 })";
