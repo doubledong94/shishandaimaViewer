@@ -1605,19 +1605,27 @@ bool SimpleView::NodeAndRepeatType::isParamNode() {
     return node and node->nodeType == Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH;
 }
 
-int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex) {
+int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, bool isRepeatTypeOne, map<Node*, char>& nodeToChar) {
     int currentCharIndex = charIndex;
     if (seg != NULL) {
+        outputRegex->encodeChar = 0;
         for (int i = 0; i < seg->nodeAndRepeatType.size(); ++i) {
             auto* subRegexI = new RegexTree();
             outputRegex->subStructure.push_back(subRegexI);
-            currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI);
+            currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI, isRepeatTypeOne and seg->nodeAndRepeatType[i]->repeatType == LineTemplate::REPEAT_TYPE_ONE, nodeToChar);
         }
     } else {
-        char encodeChar = ALPHABET_FOR_NODE_ENCODING[currentCharIndex];
-        charToNode[encodeChar] = this;
-        outputRegex->encodeChar = encodeChar;
-        currentCharIndex++;
+        if (isRepeatTypeOne or not nodeToChar.count(node)) {
+            char encodeChar = ALPHABET_FOR_NODE_ENCODING[currentCharIndex];
+            charToNode[encodeChar] = this;
+            outputRegex->encodeChar = encodeChar;
+            currentCharIndex++;
+            if (not isRepeatTypeOne) {
+                nodeToChar[node] = encodeChar;
+            }
+        } else {
+            outputRegex->encodeChar = nodeToChar[node];
+        }
     }
     // no matter if it is a segment, it always has a repeat type
     outputRegex->repeatType = repeatType;
@@ -1860,9 +1868,11 @@ string SimpleView::LineTemplate::toString(map<int, string>& voc) {
 void SimpleView::LineTemplate::encode() {
     int charIndex = 0;
     regexTree = new RegexTree();
+    charToNodeTemplate.clear();
+    map<Node*, char> nodeToChar;
     for (int i = 0; i < nodeAndRepeatType.size(); ++i) {
         auto subTree = new RegexTree();
-        charIndex = nodeAndRepeatType[i]->encode(charIndex, charToNodeTemplate, subTree);
+        charIndex = nodeAndRepeatType[i]->encode(charIndex, charToNodeTemplate, subTree, nodeAndRepeatType[i]->repeatType == REPEAT_TYPE_ONE, nodeToChar);
         regexTree->subStructure.push_back(subTree);
     }
 }

@@ -239,7 +239,7 @@ namespace SimpleView {
 
         bool isParamNode();
 
-        int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex);
+        int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, bool isRepeatTypeOne, map<Node*, char>& nodeToChar);
 
         void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName);
     };
