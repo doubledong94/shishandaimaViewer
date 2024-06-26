@@ -1338,7 +1338,7 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP 
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP
             ) {
             nodesObj->styled.insert(nodeInfo->nodeId);
         }
@@ -2611,13 +2611,15 @@ void BoundedIncrementalGraph::scaleByDistance() {
         doneNode.insert(group.begin(), group.end());
     }
     nodesObj->matrixNeedUpdate();
-    for (int i : textAdded) {
-        if (nodesObj->nodeSizes[i] > 0.000001) {
-            float scale = nodesObj->nodeSizes[i] / textSizes[i];
-            textMesh[i]->geometry()->scale(scale, scale, scale);
-            textSizes[i] = nodesObj->nodeSizes[i];
+    textLoaderThreadPool->submit([this]() {
+        for (int i : textAdded) {
+            if (nodesObj->nodeSizes[i] > 0.01) {
+                float scale = nodesObj->nodeSizes[i] / textSizes[i];
+                textMesh[i]->geometry()->scale(scale, scale, scale);
+                textSizes[i] = nodesObj->nodeSizes[i];
+            }
         }
-    }
+        });
 }
 
 void BoundedIncrementalGraph::applyLayoutPosition() {
