@@ -1336,7 +1336,10 @@ void BoundedIncrementalGraph::resetStyledNodes() {
     for (auto nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP 
+            ) {
             nodesObj->styled.insert(nodeInfo->nodeId);
         }
     }
