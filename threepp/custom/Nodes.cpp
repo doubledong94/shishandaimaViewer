@@ -132,6 +132,11 @@ void Nodes::applyColor() {
         encodedColor.r = encodeIntoRgb(encodedColor.r, 0.002);
         setColorAt(i, encodedColor);
     }
+    for (int i : styled2) {
+        getColorAt(i, encodedColor);
+        encodedColor.r = encodeIntoRgb(encodedColor.r, 0.004);
+        setColorAt(i, encodedColor);
+    }
     instanceColor()->needsUpdate();
 }
 
@@ -249,6 +254,7 @@ std::string Nodes::vertexSource() {
                out float vHovered;
                out float vFixed;
                out float vStyled;
+               out float vStyled2;
                void main() {
                     uv_frag = position.xy;
                     vColor = instanceColor;
@@ -265,6 +271,7 @@ std::string Nodes::vertexSource() {
 
                     float statePartStyle = fract(fract(fract(instanceColor.r) * 100) * 100);
                     vStyled = statePartStyle > 0.1 && statePartStyle < 0.3 ? 1 : 0;
+                    vStyled2 = statePartStyle > 0.3 && statePartStyle < 0.5 ? 1 : 0;
 
                     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4( position, 1.0 );
                })";
@@ -279,6 +286,7 @@ std::string Nodes::fragmentSource() {
                 in float vHovered;
                 in float vFixed;
                 in float vStyled;
+                in float vStyled2;
                 out vec4 pc_fragColor;
                 void main() {
                     vec3 color = vColor;
@@ -301,6 +309,41 @@ std::string Nodes::fragmentSource() {
                                     color -= vec3(0.3);
                                 } else if (l> 0.2) {
                                 } else if (l> 0.1) {
+                                    color -= vec3(0.3);
+                                }
+                            }
+                            if (vStyled2 > 0.5) {
+                                if (uv_frag.y> 0.6) {
+                                } else if (uv_frag.y> 0.5) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.y> 0.3) {
+                                } else if (uv_frag.y> 0.2) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.y> 0.0) {
+                                } else if (uv_frag.y> -0.1) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.y> -0.3) {
+                                } else if (uv_frag.y> -0.4) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.y> -0.6) {
+                                } else if (uv_frag.y> -0.7) {
+                                    color -= vec3(0.3);
+                                }
+
+                                if (uv_frag.x> 0.6) {
+                                } else if (uv_frag.x> 0.5) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.x> 0.3) {
+                                } else if (uv_frag.x> 0.2) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.x> 0.0) {
+                                } else if (uv_frag.x> -0.1) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.x> -0.3) {
+                                } else if (uv_frag.x> -0.4) {
+                                    color -= vec3(0.3);
+                                } else if (uv_frag.x> -0.6) {
+                                } else if (uv_frag.x> -0.7) {
                                     color -= vec3(0.3);
                                 }
                             }

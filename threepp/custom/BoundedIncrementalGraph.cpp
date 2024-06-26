@@ -1333,6 +1333,7 @@ void BoundedIncrementalGraph::onNodeColorChanged() {
 
 void BoundedIncrementalGraph::resetStyledNodes() {
     nodesObj->styled.clear();
+    nodesObj->styled2.clear();
     for (auto nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
@@ -1341,6 +1342,11 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP
             ) {
             nodesObj->styled.insert(nodeInfo->nodeId);
+        }
+        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_METHOD or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CONDITION
+            ) {
+            nodesObj->styled2.insert(nodeInfo->nodeId);
         }
     }
 }
