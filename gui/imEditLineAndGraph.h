@@ -123,6 +123,7 @@ namespace shishan {
     static SimpleView::LineInstance* lineNewFinalInstance = NULL;
     static char lineEditingName[1000];
     static int lineEditingTypeIndex = -1;
+    static bool lineIsAlternation = false;
     // todo ,"code order"
     const static char* lineTypes[] = { "segment","line" };
     static vector<const char*> lineEditValues;
@@ -789,7 +790,7 @@ namespace shishan {
                 auto line = changeNameOfNameOrderAndValNameTo<SimpleView::LineTemplate*>(
                     SimpleView::SimpleViewToGraphConverter::lineNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToLine, lineEditingIndex, lineEditingName
                 );
-                if (line->resetValue(lineEditingName, lineEditingTypeIndex, lineEditValues, lineEditRepeatTypes)) {
+                if (line->resetValue(lineEditingName, lineEditingTypeIndex, lineEditValues, lineEditRepeatTypes, lineIsAlternation)) {
                     if (line->editingNew) {
                         line->editingNew = false;
                     }
@@ -843,6 +844,9 @@ namespace shishan {
                 ImGui::SameLine();
                 ImGui::InputTextEx("##addParameterNameInput", "parameter name", paraName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
             }
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            ImGui::Checkbox("Alternation", &(lineIsAlternation));
+            ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Any##specialNodeAny", SimpleView::Node::NODE_ANY);
             ImGui::SameLine();
@@ -1537,6 +1541,7 @@ namespace shishan {
             lineEditingIndex = lineSelectedIndex + 1;
             strcpy(lineEditingName, "unnamed");
             lineEditingTypeIndex = SimpleView::LineTemplate::LINE_TYPE_DATA_FLOW;
+            lineIsAlternation = false;
             lineEditValues.push_back("Click field/method/param/return above");
             lineEditRepeatTypes.push_back(0);
             auto* newLine = new SimpleView::LineTemplate(lineEditingName, lineEditingTypeIndex);
@@ -1591,6 +1596,7 @@ namespace shishan {
             lineEditingIndex = lineSelectedIndex;
             strcpy(lineEditingName, line->name.data());
             lineEditingTypeIndex = line->lineType;
+            lineIsAlternation = line->isAlternation;
             lineEditValues.clear();
             lineEditRepeatTypes.clear();
             line->loadValueToUI(lineEditValues, lineEditRepeatTypes);
@@ -1870,7 +1876,7 @@ namespace shishan {
         for (int pointCount = 0;pointCount < lineTemplate->nodeAndRepeatType.size();pointCount++) {
             auto& pI = pointsInLine->seg[pointCount];
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointCount];
-            bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE);
+            bool disalbedI = disabled or lineTemplate->isAlternation or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE);
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {
             case SimpleView::LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:

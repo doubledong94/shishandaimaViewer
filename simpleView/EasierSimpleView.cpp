@@ -1609,6 +1609,7 @@ int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeat
     int currentCharIndex = charIndex;
     if (seg != NULL) {
         outputRegex->encodeChar = 0;
+        outputRegex->isAlt = seg->isAlternation;
         for (int i = 0; i < seg->nodeAndRepeatType.size(); ++i) {
             auto* subRegexI = new RegexTree();
             outputRegex->subStructure.push_back(subRegexI);
@@ -1742,23 +1743,37 @@ string SimpleView::RegexTree::getRegex(bool isBackward, int* charCount) {
     string regex;
     string repeatString = getRepeatTypeString();
     if (encodeChar == 0) {
-        if (not repeatString.empty()) {
+        if (not repeatString.empty() or isAlt) {
             regex += "(";
         }
         if (isBackward) {
             for (int i = subStructure.size() - 1; i > -1; i--) {
                 if (subStructure[i]->isBackward or subStructure[i]->isSplitPosition) {
-                    regex += subStructure[i]->getRegex(true, charCount);
+                    if (isAlt) {
+                        regex += "(" + subStructure[i]->getRegex(true, charCount) + ")|";
+                    } else {
+                        regex += subStructure[i]->getRegex(true, charCount);
+                    }
                 }
+            }
+            if (isAlt) {
+                regex.pop_back();
             }
         } else {
             for (int i = 0; i < subStructure.size();i++) {
                 if (not subStructure[i]->isBackward or subStructure[i]->isSplitPosition) {
-                    regex += subStructure[i]->getRegex(false, charCount);
+                    if (isAlt) {
+                        regex += "(" + subStructure[i]->getRegex(false, charCount) + ")|";
+                    } else {
+                        regex += subStructure[i]->getRegex(false, charCount);
+                    }
                 }
             }
+            if (isAlt) {
+                regex.pop_back();
+            }
         }
-        if (not repeatString.empty()) {
+        if (not repeatString.empty() or isAlt) {
             regex += ")";
         }
     } else {
@@ -1774,6 +1789,7 @@ SimpleView::RegexTree* SimpleView::RegexTree::copy() {
     ret->repeatType = repeatType;
     FOR_EACH_ITEM(subStructure, ret->subStructure.push_back(item->copy()););
     ret->isBackward = isBackward;
+    ret->isAlt = isAlt;
     return ret;
 }
 
@@ -1858,16 +1874,25 @@ string SimpleView::LineTemplate::toString(map<int, string>& voc) {
             ret.push_back('+');
             break;
         }
-        ret += "->";
+        if (isAlternation) {
+            ret += " || ";
+        } else {
+            ret += "->";
+        }
     }
     ret.pop_back();
     ret.pop_back();
+    if (isAlternation) {
+        ret.pop_back();
+        ret.pop_back();
+    }
     return ret;
 }
 
 void SimpleView::LineTemplate::encode() {
     int charIndex = 0;
     regexTree = new RegexTree();
+    regexTree->isAlt = isAlternation;
     charToNodeTemplate.clear();
     map<Node*, char> nodeToChar;
     for (int i = 0; i < nodeAndRepeatType.size(); ++i) {
@@ -1966,7 +1991,7 @@ bool SimpleView::LineTemplate::checkValidation(vector<const char*>& values, vect
     return foundRepeatTypeOnce;
 }
 
-bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes) {
+bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes, bool isAlt) {
     if (type == LINE_TYPE_DATA_FLOW and not checkValidation(values, repeatTypes)) {
         return false;
     }
@@ -1980,6 +2005,7 @@ bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<con
             }
         }
     }
+    this->isAlternation = isAlt;
     this->name = name;
     this->lineType = type;
     orderedParamName.clear();

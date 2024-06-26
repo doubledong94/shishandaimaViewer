@@ -141,7 +141,8 @@ paramList
     ;
 
 lineExp
-    : lineSegOrNodeExp ('->' lineSegOrNodeExp)+
+    : lineSegOrNodeExp (seq='->' lineSegOrNodeExp)+
+    | lineSegOrNodeExp (alt='||' lineSegOrNodeExp)+
     ;
 
 lineSegOrNodeExp

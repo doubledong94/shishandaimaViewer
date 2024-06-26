@@ -276,14 +276,17 @@ any SimpleView::SimpleViewToGraphConverter::visitLineSegOrNodeExp(SimpleViewPars
 
 any SimpleView::SimpleViewToGraphConverter::visitLineDeclaration(SimpleViewParser::LineDeclarationContext* ctx) {
     int lineType = -1;
+    bool isAlt = false;
     if (ctx->LINE() != NULL) {
         lineType = SimpleView::LineTemplate::LINE_TYPE_DATA_FLOW;
     } else if (ctx->CODE_ORDER() != NULL) {
         lineType = SimpleView::LineTemplate::LINE_TYPE_CODE_ORDER;
     } else if (ctx->SEGMENT() != NULL) {
         lineType = SimpleView::LineTemplate::LINE_TYPE_SEGMENT;
+        isAlt = ctx->lineExp()->alt != NULL;
     }
     LineTemplate* pLine = new LineTemplate(ctx->IDENTIFIER()->getText(), lineType);
+    pLine->isAlternation = isAlt;
     // line param
     vector<string> orderedParamInnerName;
     pLine->orderedParamName.clear();

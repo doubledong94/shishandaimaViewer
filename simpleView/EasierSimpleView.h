@@ -200,6 +200,7 @@ namespace SimpleView {
         string getRegex(bool isBackward, int* charCount);
         bool isBackward = false; // this field is only used in split point
         bool isSplitPosition = false; // this field is only used in split point
+        bool isAlt = false;
         RegexTree* copy();
         string getRepeatTypeString();
     };
@@ -265,6 +266,7 @@ namespace SimpleView {
         LineInstance* getNoneParamInstance();
 
         int lineType = -1;
+        bool isAlternation = false;;
         string name;
         vector<string> orderedParamName;
         // tree structure
@@ -301,7 +303,7 @@ namespace SimpleView {
 
         bool checkValidation(vector<const char*>& values, vector<int>& repeatTypes);
 
-        bool resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes);
+        bool resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes, bool isAlt);
 
         void loadValueToUI(vector<const char*>& values, vector<int>& repeatTypes);
 
