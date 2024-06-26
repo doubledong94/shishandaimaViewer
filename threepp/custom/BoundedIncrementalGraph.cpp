@@ -1344,7 +1344,8 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodesObj->styled.insert(nodeInfo->nodeId);
         }
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_METHOD or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CONDITION
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_CONDITION or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_ELSE
             ) {
             nodesObj->styled2.insert(nodeInfo->nodeId);
         }
