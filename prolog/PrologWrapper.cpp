@@ -27,6 +27,7 @@ bool PrologWrapper::init() {
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2itUseTypeKeys);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2AddressableFilePath);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2UnaddressableFilePath);
+    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2subTypeKeys);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_baseRuleFile);
     return loaded;
 }
