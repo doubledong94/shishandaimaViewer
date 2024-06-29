@@ -128,6 +128,7 @@ void app::Parser::parse(const string& path) {
     memberPhase.run();
     ClassScopeAndEnv::addFieldAndMethodNamesForAllTypes();
     FileScopeAndEnv::addImportedFieldAndMethodNameScopeAndEnvForAllFile();
+    Header::HierarchyPhase::addOverrideInfo();
 
     // runtime round
     for (auto& filePath : debug_parser ? FileManager::allFiles : FileManager::updatedFiles) {

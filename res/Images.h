@@ -14,6 +14,7 @@ public:
     static unsigned int conditionIconId;
     static unsigned int elseIconId;
     static unsigned int stepIconId;
+    static unsigned int overrideIcondId;
     static unsigned int unionIconId;
     static unsigned int intersectionIconId;
     static unsigned int differenceIconId;

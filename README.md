@@ -116,15 +116,17 @@ git submodule update --init --remote --recursive
 4. Else，可搜索时机传递与逻辑控制方向，具体请看[时机传递方向](#时机传递方向) [逻辑控制方向](#逻辑控制方向)
 5. DataStep，可搜索跨函数的数据流动方向，具体请看[数据流动方向](#数据流动方向)
 6. TimingStep，可搜索时机传递方向，具体请看[时机传递方向](#时机传递方向)
-7. Field，匹配任意属性      
-8. Method，匹配任意函数      
-9. Constructor，匹配任意构造函数      
-10. CalledMethod，匹配任意函数对应的CalledMethod      
-11. Parameter，匹配任意函数的参数      
-12. CalledParameter，匹配任意CalledParameter      
-13. Return，匹配任意函数的返回      
-14. CalledReturn，匹配任意CalledReturn      
-15. Index，匹配数组访问
+7. DataOverride，可搜索跨函数的数据流动方向（多态）
+8. TimingOverride，可搜索时机传递方向（多态）
+9. Field，匹配任意属性      
+10. Method，匹配任意函数      
+11. Constructor，匹配任意构造函数      
+12. CalledMethod，匹配任意函数对应的CalledMethod      
+13. Parameter，匹配任意函数的参数      
+14. CalledParameter，匹配任意CalledParameter      
+15. Return，匹配任意函数的返回      
+16. CalledReturn，匹配任意CalledReturn      
+17. Index，匹配数组访问
 
 ### 类范围
 一个项目会有成千上万个类，而矢山在搜索时，需要把所搜索的类加载到内存中。如果为了搜一个类要把上万个类都加载到内存中，是非常不划算的。因此用户需要指定搜索范围，也就是要指定：你搜索的时机传递/数据流动等，发生在哪些类的函数中。

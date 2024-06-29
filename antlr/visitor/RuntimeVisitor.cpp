@@ -5,6 +5,7 @@
 #include "../../addressableInfo/GlobalInfo.h"
 #include "antlr4-runtime.h"
 #include "../../addressableInfo/AddressableInfo.h"
+#include "HeaderEnterVisitor.h"
 #include "../../runtime/codestructure/CodeStructure.h"
 #include "../../runtime/codestructure/Relation.h"
 #include "../../runtime/codestructure/Sentence.h"
@@ -196,6 +197,9 @@ any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMeth
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
         pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
+        if (pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo) {
+            pStatementVisitor->codeBlock->conditionItem->overrideKey = pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo->methodKey;
+        }
         pStatementVisitor->visitBlock(ctx->interfaceCommonBodyDeclaration()->methodBody()->block());
         CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
         StatementVisitor::returnToPool(pStatementVisitor);
@@ -212,6 +216,9 @@ std::any ClassLevelVisitor::visitMethodDeclaration(JavaParser::MethodDeclaration
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
         pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
+        if (pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo) {
+            pStatementVisitor->codeBlock->conditionItem->overrideKey = pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo->methodKey;
+        }
         pStatementVisitor->visitBlock(ctx->methodBody()->block());
         CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
         StatementVisitor::returnToPool(pStatementVisitor);
@@ -816,6 +823,9 @@ std::any StatementVisitor::visitStatementReturn(JavaParser::StatementReturnConte
         auto* ret = ResolvingItem::getInstance2(methodScopeAndEnv->returnFieldInfo->fieldKey, methodScopeAndEnv->returnFieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_RETURN);
         // method return
         new Relation(getSentence(), item, ret);
+        if (methodScopeAndEnv->methodInfo->overrideMethodInfo) {
+            ret->overrideKey = methodScopeAndEnv->methodInfo->overrideMethodInfo->returnInfo->fieldKey;
+        }
         codeBlock->has_return_sentence = true;
     }
     return 0;
@@ -931,6 +941,18 @@ std::any StatementVisitor::visitPrimaryIdentifier(JavaParser::PrimaryIdentifierC
     map<TypeInfo*, TypeInfo*> typeArgs;
     if (methodScopeAndEnv->findIdWithFileScope(ctx->identifier()->getText(), key, typeInfo, keyType, &typeArgs)) {
         auto item = ResolvingItem::getInstance2(key, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), keyType);
+        if (item->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER and methodScopeAndEnv->methodInfo->overrideMethodInfo) {
+            int index = -1;
+            for (auto& param : methodScopeAndEnv->methodInfo->parameterInfos) {
+                index++;
+                if (param->fieldKey == item->variableKey) {
+                    break;
+                }
+            }
+            if (index > -1) {
+                item->overrideKey = methodScopeAndEnv->methodInfo->overrideMethodInfo->parameterInfos[index]->fieldKey;
+            }
+        }
         item->typeArgs = typeArgs;
         return item;
     } else {
@@ -1950,6 +1972,8 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 methodInfo->name = method->name;
                 methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, method->name, methodInfo->getParamPartOfKey());
                 methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
+                methodInfo->overrideMethodInfo = typeInfo->classScopeAndEnv->findOverrideMethod(methodInfo);
+                Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo);
                 if (not classScopeAndEnv->name2method.count(method->name)) {
                     classScopeAndEnv->name2method[method->name] = list<MethodInfo*>();
                 }
@@ -1967,6 +1991,7 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 methodScopeAndEnv->methodCatchKey = AddressableInfo::makeMethodCatchKey(methodInfo->methodKey);
                 methodScopeAndEnv->methodFinallyKey = AddressableInfo::makeMethodFinallyKey(methodInfo->methodKey);
                 methodScopeAndEnv->outerScopeAndEnv = classScopeAndEnv;
+                methodScopeAndEnv->methodInfo = methodInfo;
                 auto* returnInfo = new FieldInfo();
                 returnInfo->dim = method->returnTypeName->dim;
                 methodInfo->returnInfo = returnInfo;
@@ -2034,6 +2059,8 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
     methodInfo->name = superMethodInfo->name;
     methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, methodInfo->name, methodInfo->getParamPartOfKey());
     methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
+    methodInfo->overrideMethodInfo = superMethodInfo;
+    Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo);
     typeInfo->methodInfos.insert(methodInfo);
     auto methodScopeAndEnv = new MethodScopeAndEnv();
     methodScopeAndEnv->methodKey = methodInfo->methodKey;
@@ -2047,6 +2074,7 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
     methodScopeAndEnv->methodCatchKey = AddressableInfo::makeMethodCatchKey(methodInfo->methodKey);
     methodScopeAndEnv->methodFinallyKey = AddressableInfo::makeMethodFinallyKey(methodInfo->methodKey);
     methodScopeAndEnv->outerScopeAndEnv = classScopeAndEnv;
+    methodScopeAndEnv->methodInfo = methodInfo;
     auto* returnInfo = new FieldInfo();
     methodInfo->returnInfo = returnInfo;
     returnInfo->name = "return";

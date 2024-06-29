@@ -86,6 +86,8 @@ class ClassScopeAndEnv : public OuterScopeAndEnv {
 public:
     ClassScopeAndEnv(TypeInfo* typeInfo);
 
+    MethodInfo* findOverrideMethod(MethodInfo* methodInfo);
+
     PackageScopeAndEnv* langPackageScopeAndEnv = nullptr;
 
     PackageScopeAndEnv* packageScopeAndEnv = nullptr;
@@ -157,6 +159,7 @@ public:
     string methodTryKey;
     string methodCatchKey;
     string methodFinallyKey;
+    MethodInfo* methodInfo = NULL;
 
     map<string, FieldInfo*> name2paramInfo;
     FieldInfo* returnFieldInfo;

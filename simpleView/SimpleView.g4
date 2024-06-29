@@ -44,6 +44,8 @@ CONDITION : 'Condition';
 ELSE : 'Else';
 DATA_STEP : 'DataStep';
 TIMING_STEP : 'TimingStep';
+DATA_OVERRIDE: 'DataOverride';
+TIMING_OVERRIDE: 'TimingOverride';
 FIELD: 'Field';
 METHOD: 'Method';
 CONSTRUCTOR: 'Constructor';
@@ -121,6 +123,8 @@ nodeExp
     | ELSE
     | DATA_STEP
     | TIMING_STEP
+    | DATA_OVERRIDE
+    | TIMING_OVERRIDE
     | FIELD
     | METHOD
     | CONSTRUCTOR

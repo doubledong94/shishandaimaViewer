@@ -68,6 +68,10 @@ namespace Header {
         static bool finishUnresolved();
 
         static void resolveHierarchy();
+
+        static void addOverrideInfo();
+
+        static void addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo);
     };
 
     class MemeberPhase :PhaseBaseClass {

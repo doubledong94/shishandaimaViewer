@@ -104,6 +104,7 @@ static Term* HEAD_ADDRESSABLE_FILE = new Term("addressableFile", Term::TERM_TYPE
 static Term* HEAD_UNADDRESSABLE_FILE = new Term("unaddressableFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_PACKAGE = new Term("package", Term::TERM_TYPE_ATOM);
 static Term* HEAD_SUB_TYPE = new Term("subType", Term::TERM_TYPE_ATOM);
+static Term* HEAD_OVERRIDE_TYPE = new Term("overrideType", Term::TERM_TYPE_ATOM);
 static Term* HEAD_RELATED_TYPE = new Term("related_type", Term::TERM_TYPE_ATOM);
 static Term* HEAD_METHOD = new Term("method", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CONSTRUCTOR = new Term("constructor", Term::TERM_TYPE_ATOM);
@@ -122,13 +123,18 @@ static Term* HEAD_CALLED_RETURN_INSTANCE_OF = new Term("calledReturnInstanceOf",
 static Term* HEAD_SIMPLE_NAME = new Term("simpleName", Term::TERM_TYPE_ATOM);
 static Term* HEAD_IS_FINAL = new Term("isFinal", Term::TERM_TYPE_ATOM);
 
-static Term* HEAD_DATA_FLOW = new Term("dataFlow", Term::TERM_TYPE_ATOM);
+static Term* HEAD_DATA_FLOW = new Term("flow", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CODE_ORDER = new Term("codeOrder", Term::TERM_TYPE_ATOM);
 static Term* HEAD_STEP = new Term("step", Term::TERM_TYPE_ATOM);
+static Term* HEAD_OVERRIDE = new Term("override", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_DATA_STEP = new Term("forwardDataStep", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_DATA_STEP = new Term("backwardDataStep", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_TIMING_STEP = new Term("forwardTimingStep", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_TIMING_STEP = new Term("backTimingStep", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_DATA_OVERRIDE = new Term("forwardDataOverride", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_DATA_OVERRIDE = new Term("backwardDataOverride", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_TIMING_OVERRIDE = new Term("forwardTimingOverride", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_TIMING_OVERRIDE = new Term("backTimingOverride", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CALLED_PARAM_TO_CALLED_RETURN = new Term("calledParamToCalledReturn", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CALLED_METHOD_TO_CALLED_RETURN = new Term("calledMethodToCalledReturn", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CALLED_RETURN_TO_CALLED_PARAM = new Term("calledReturnToCalledParam", Term::TERM_TYPE_ATOM);
@@ -266,6 +272,10 @@ public:
 
     static string getSubTypeFact(const string& typeKey, const string& subTypeKey);
 
+    static CompoundTerm* getOverrideTypeTerm(Term* overrideKey, Term* typeKey);
+
+    static string getOverrideTypeFact(const string& overrideKey, const string& typeKey);
+
     static string getRelatedTypeFact(const string& typeKey, const string& typeKeyItUsed);
 
     static CompoundTerm* getRelatedTypeTerm(Term* typeKey, Term* typeKeyUsedByFirstParam);
@@ -302,19 +312,29 @@ public:
 
     static string getCalledReturnFact(const string& returnKey, const string& calledReturnKey);
 
-    static CompoundTerm* getStepTerm(Term* stepType, Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2);
-
     static CompoundTerm* getStepTerm(Term* key, Term* stepKey);
+
+    static CompoundTerm* getOverrideTerm(Term* key, Term* overrideKey);
+
+    static string getOverrideFact(const string& key, const string& overrideKey);
 
     static string getStepFact(const string& key, const string& stepKey);
 
-    static CompoundTerm* getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+    static CompoundTerm* getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
 
-    static CompoundTerm* getBackwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+    static CompoundTerm* getBackwardDataStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
 
-    static CompoundTerm* getForwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+    static CompoundTerm* getForwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
 
-    static CompoundTerm* getBackwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+    static CompoundTerm* getBackwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getForwardDataOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getBackwardDataOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getForwardTimingOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps);
+
+    static CompoundTerm* getBackwardTimingOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps);
 
     static CompoundTerm* getCalledParamToCalledReturnTerm(Term* runtimeMethodKey, Term* calledParam, Term* calledReturn);
 
@@ -601,6 +621,8 @@ namespace PrologConstructor {
     void savePrologPackage(map<string, map<string, set<string>>>& filePath2package2TypeKeys);
 
     void savePrologSubTypes(map<string, map<string, set<string>>>& filePath2typeKey2subTypeKeys);
+
+    void savePrologOverrideMethod(map<string, map<string, set<string>>>& filePath2overrideMethodKey2TypeKey);
 
     void savePrologRelatedType(map<string, map<string, set<string>>>& filePath2TypeKey2itUseTypeKeys);
 

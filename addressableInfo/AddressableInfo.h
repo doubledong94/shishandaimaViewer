@@ -50,6 +50,7 @@ struct MethodInfo {
     string name;
     string methodKey;
     string calledMethodKey;
+    MethodInfo* overrideMethodInfo = NULL;
     FieldInfo* returnInfo = NULL;
     FieldInfo* calledReturnInfo = NULL;
     vector<FieldInfo*> parameterInfos;
@@ -121,7 +122,9 @@ public:
 
     static string makeCalledKey(const string& key);
 
-    static string makeStepKey(const string& calledKey);
+    static string makeStepKey(const string& keyOrCalledKey);
+
+    static string makeOverrideKey(const string& keyOrCalledKey);
 
     static string makeMethodIfKey(const string& methodKey);
 

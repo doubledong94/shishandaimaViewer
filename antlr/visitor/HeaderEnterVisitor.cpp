@@ -54,6 +54,9 @@ void Header::EnterClassPhase::run() {
         if (not GlobalInfo::filePath2typeKey2subTypeKeys.count(currentFilePath)) {
             GlobalInfo::filePath2typeKey2subTypeKeys[currentFilePath] = map<string, set<string>>();
         }
+        if (not GlobalInfo::filePath2overrideMethodKey2TypeKey.count(currentFilePath)) {
+            GlobalInfo::filePath2overrideMethodKey2TypeKey[currentFilePath] = map<string, set<string>>();
+        }
         if (not GlobalInfo::filePath2typeKey2filePath.count(currentFilePath)) {
             GlobalInfo::filePath2typeKey2filePath[currentFilePath] = map<string, string>();
         }
@@ -64,6 +67,7 @@ void Header::EnterClassPhase::run() {
         AddressableInfo::filePath2compilationUnits.erase(filePath);
         GlobalInfo::filePath2package2typeKeys.erase(filePath);
         GlobalInfo::filePath2typeKey2subTypeKeys.erase(filePath);
+        GlobalInfo::filePath2overrideMethodKey2TypeKey.erase(filePath);
         GlobalInfo::filePath2typeKey2filePath.erase(filePath);
     }
 }
@@ -203,6 +207,25 @@ void Header::HierarchyPhase::resolveHierarchy() {
         "HierarchyPhase::resolveHierarchy: did not find super and implement name in total: {}", superRelationUnresolved.size());
 }
 
+void Header::HierarchyPhase::addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo) {
+    if (methodInfo->overrideMethodInfo) {
+        string& overrideKey = methodInfo->overrideMethodInfo->methodKey;
+        if (not GlobalInfo::filePath2overrideMethodKey2TypeKey[typeInfo->filePath].count(overrideKey)) {
+            GlobalInfo::filePath2overrideMethodKey2TypeKey[typeInfo->filePath][overrideKey] = set<string>();
+        }
+        GlobalInfo::filePath2overrideMethodKey2TypeKey[typeInfo->filePath][overrideKey].insert(typeInfo->typeKey);
+    }
+}
+
+void Header::HierarchyPhase::addOverrideInfo() {
+    for (auto& typeKeyAndTypeInfo : AddressableInfo::typeKey2typeInfo) {
+        for (auto& methodInfo : typeKeyAndTypeInfo.second->methodInfos) {
+            methodInfo->overrideMethodInfo = typeKeyAndTypeInfo.second->classScopeAndEnv->findOverrideMethod(methodInfo);
+            addOverMethod2TypeKey(typeKeyAndTypeInfo.second, methodInfo);
+        }
+    }
+}
+
 
 void Header::MemeberPhase::run() {
     for (auto& compileUnit : AddressableInfo::filePath2compilationUnits) {
@@ -303,7 +326,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
         typeParamInfo->boundNameForTypeParam = item->bounds.front();
         typeParamInfo->boundInfoForTypeParam = typeInfo->classScopeAndEnv->getTypeInfoWithFileScope(typeParamInfo->boundNameForTypeParam->typeName);
     }
-    );
+        );
     // type parameter name ends
 
     // return type starts
@@ -370,7 +393,7 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
     item.second->package = package;
     AddressableInfo::typeKey2typeInfo[typeParamKey] = item.second;
     methodInfo->typeParamInfos.push_back(item.second);
-    );
+        );
     // type parameter key ends
     // type info
     typeInfo->methodInfos.insert(methodInfo);

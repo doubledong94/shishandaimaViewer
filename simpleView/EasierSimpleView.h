@@ -119,6 +119,8 @@ namespace SimpleView {
             NODE_TYPE_CONDITION,
             NODE_TYPE_DATA_STEP,
             NODE_TYPE_TIMING_STEP,
+            NODE_TYPE_DATA_OVERRIDE,
+            NODE_TYPE_TIMING_OVERRIDE,
             NODE_TYPE_ELSE,
             NODE_TYPE_FIELD,
             NODE_TYPE_METHOD,
@@ -154,6 +156,8 @@ namespace SimpleView {
         static Node* NODE_RETURN;
         static Node* NODE_CALLED_RETURN;
         static Node* NODE_INDEX;
+        static Node* NODE_DATA_OVERRIDE;
+        static Node* NODE_TIMING_OVERRIDE;
 
         int nodeType = -1;
         string extraStr;
@@ -519,6 +523,7 @@ public:
     static void saveVocabulary(SimpleViewLexer& lexer);
     static void init();
     static void declareStepRules();
+    static void declareOverrideRules();
     static void declareLoadRuntimeByStepKey();
     static void searchClass(char* searchStr, vector<const char*>& searchResult);
     static void searchNode(const char* classKey, vector<const char*>& searchResult);

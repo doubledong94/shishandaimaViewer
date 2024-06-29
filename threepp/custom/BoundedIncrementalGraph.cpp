@@ -362,6 +362,8 @@ void NodeInfo::makeSimpleName() {
         simpleName = "[i]";
     } else if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
         simpleName = "[step]";
+    } else if (keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE) {
+        simpleName = "[override]";
     } else if (keyType == GlobalInfo::KEY_TYPE_ERROR) {
         simpleName = "[error]";
     } else if (keyType == GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS) {
@@ -1339,7 +1341,9 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE
             ) {
             nodesObj->styled.insert(nodeInfo->nodeId);
         }

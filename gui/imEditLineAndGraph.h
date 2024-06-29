@@ -823,10 +823,10 @@ namespace shishan {
         } else {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
             static char paraName[1000] = "";
+            // restriction: cannot add a param node if this line is instantiated
             if (lineEditingTypeIndex != SimpleView::LineTemplate::LINE_TYPE_SEGMENT) {
                 // add parameter node
                 if (ImGui::Button("Parameter##lineParameterNameEditor")) {
-                    // restriction: cannot add a param node if this line is instantiated
                     if (graphDependencyConstraint.dependencyHigher.empty() and lineInstanceDependencyConstraint.dependencyHigher.empty()) {
                         parameterNameIsWrong = not checkValName(paraName, -1, 5);
                         if (not parameterNameIsWrong) {
@@ -843,15 +843,37 @@ namespace shishan {
                 }
                 ImGui::SameLine();
                 ImGui::InputTextEx("##addParameterNameInput", "parameter name", paraName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);ImGui::SameLine();
+            } else {
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+                ImGui::Checkbox("Alternation", &(lineIsAlternation));
+                ImGui::SameLine();
             }
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            ImGui::Checkbox("Alternation", &(lineIsAlternation));
-            ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Any##specialNodeAny", SimpleView::Node::NODE_ANY);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("Reference##specialNodeReference", SimpleView::Node::NODE_REFERENCE);
+            addSpecialKeyButton("Field##specialNodeField", SimpleView::Node::NODE_FIELD);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Parameter##specialNodeParameter", SimpleView::Node::NODE_PARAMETER);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Return##specialNodeReturn", SimpleView::Node::NODE_RETURN);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Method##specialNodeMethod", SimpleView::Node::NODE_METHOD);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Constructor##specialNodeConstructor", SimpleView::Node::NODE_CONSTRUCTOR);
+
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("CalledParameter##specialNodeCalledParameter", SimpleView::Node::NODE_CALLED_PARAMETER);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("CalledReturn##specialNodeCalledReturn", SimpleView::Node::NODE_CALLED_RETURN);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("CalledMethod##specialNodeCalled", SimpleView::Node::NODE_CALLED_METHOD);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Condition##specialNodeConndition", SimpleView::Node::NODE_CONDITION);
@@ -860,37 +882,23 @@ namespace shishan {
             addSpecialKeyButton("Else##specialNodeElse", SimpleView::Node::NODE_ELSE);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("DataStep##specialNodeDataStep", SimpleView::Node::NODE_DATA_STEP);
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("TimingStep##specialNodeTimingStep", SimpleView::Node::NODE_TIMING_STEP);
+            addSpecialKeyButton("Reference##specialNodeReference", SimpleView::Node::NODE_REFERENCE);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Index##specialNodeIndex", SimpleView::Node::NODE_INDEX);
 
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("Field##specialNodeField", SimpleView::Node::NODE_FIELD);
+            addSpecialKeyButton("DataStep##specialNodeDataStep", SimpleView::Node::NODE_DATA_STEP);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("Method##specialNodeMethod", SimpleView::Node::NODE_METHOD);
+            addSpecialKeyButton("DataOverride##specialNodeDataOverride", SimpleView::Node::NODE_DATA_OVERRIDE);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("Constructor##specialNodeConstructor", SimpleView::Node::NODE_CONSTRUCTOR);
+            addSpecialKeyButton("TimingStep##specialNodeTimingStep", SimpleView::Node::NODE_TIMING_STEP);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("CalledMethod##specialNodeCalled", SimpleView::Node::NODE_CALLED_METHOD);
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("Parameter##specialNodeParameter", SimpleView::Node::NODE_PARAMETER);
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("CalledParameter##specialNodeCalledParameter", SimpleView::Node::NODE_CALLED_PARAMETER);
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("Return##specialNodeReturn", SimpleView::Node::NODE_RETURN);
-            ImGui::SameLine();
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-            addSpecialKeyButton("CalledReturn##specialNodeCalledReturn", SimpleView::Node::NODE_CALLED_RETURN);
+            addSpecialKeyButton("TimingOverride##specialNodeTimingOverride", SimpleView::Node::NODE_TIMING_OVERRIDE);
+
             for (int i = 0;i < lineEditValues.size();i++) {
                 if (not nodeInLineIdMap.count(i)) {
                     nodeInLineIdMap[i] = i;

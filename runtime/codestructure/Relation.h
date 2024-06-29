@@ -3,6 +3,8 @@ public:
     thread_local static list<ResolvingItem*> itemsOutOfPool;
     bool hasReturnValue = false;
     string variableKey;
+    // corresponding super key
+    string overrideKey;
     TypeInfo* typeInfo = NULL;
     map<TypeInfo*, TypeInfo*> typeArgs;
     string structureKey;

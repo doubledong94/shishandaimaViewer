@@ -90,6 +90,8 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::RETURN);
     saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN);
     saveVocabulary(lexer, SimpleViewLexer::INDEX);
+    saveVocabulary(lexer, SimpleViewLexer::DATA_OVERRIDE);
+    saveVocabulary(lexer, SimpleViewLexer::TIMING_OVERRIDE);
     // line
     saveVocabulary(lexer, SimpleViewLexer::LINE);
     saveVocabulary(lexer, SimpleViewLexer::CODE_ORDER);
@@ -150,6 +152,8 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_ELSE,Images::elseIconId},
                 {SimpleView::Node::NODE_TYPE_DATA_STEP,Images::stepIconId},
                 {SimpleView::Node::NODE_TYPE_TIMING_STEP,Images::stepIconId},
+                {SimpleView::Node::NODE_TYPE_DATA_OVERRIDE,Images::overrideIcondId},
+                {SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE,Images::overrideIcondId},
                 {SimpleView::Node::NODE_TYPE_FIELD,Images::fieldIconId},
                 {SimpleView::Node::NODE_TYPE_METHOD,Images::methodIconId},
                 {SimpleView::Node::NODE_TYPE_CONSTRUCTOR,Images::creatorIconId},
@@ -170,13 +174,15 @@ void EasierSimpleView::init() {
 
     PrologWrapper::declareFun(HEAD_RUNTIME_KEY->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_DATA_FLOW->atomOrVar, 3);
-    PrologWrapper::declareFun(HEAD_STEP->atomOrVar, 6);
+    PrologWrapper::declareFun(HEAD_STEP->atomOrVar, 2);
+    PrologWrapper::declareFun(HEAD_OVERRIDE->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_RUNTIME_READ->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_RUNTIME_WRITE->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_CODE_ORDER->atomOrVar, 3);
     SimpleView::declareClassResolveRules();
     SimpleView::declareNodeResolveRules();
     declareStepRules();
+    declareOverrideRules();
     declareLoadRuntimeByStepKey();
 
     spdlog::get(ErrorManager::TimerTag)->info("simple init started.");
@@ -190,6 +196,8 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_ELSE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ELSE);
     SimpleView::Node::NODE_DATA_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_STEP);
     SimpleView::Node::NODE_TIMING_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_STEP);
+    SimpleView::Node::NODE_DATA_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_OVERRIDE);
+    SimpleView::Node::NODE_TIMING_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE);
     SimpleView::Node::NODE_FIELD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FIELD);
     SimpleView::Node::NODE_METHOD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_METHOD);
     SimpleView::Node::NODE_CONSTRUCTOR = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONSTRUCTOR);
@@ -210,6 +218,149 @@ void EasierSimpleView::init() {
     spdlog::get(ErrorManager::TimerTag)->info("simple init finished.");
 }
 
+// if it is increase steps: called key -> key
+// if it is decrease steps: key -> called key
+/**
+__________________________________________________________________________________________________________
+__________|  increase steps	          |  decrease steps(has history)    |   decrease steps(no history)
+forward	  |  called method → method   |  return → called return 	    |   return → called return
+__________|  called param  → param	  |                                 |
+backward  |  called return → return	  |  method → called method         |   method → called method
+          |                           |  param  → called param	        |   param  → called param
+__________________________________________________________________________________________________________
+*/
+
+void EasierSimpleView::declareOverrideRules() {
+    Term* runtimeMethod = Term::getVar("RuntimeMethod");
+    Term* calledParam = Term::getVar("CalledParam");
+    Term* calledMethod = Term::getVar("CalledMethod");
+    Term* calledReturn = Term::getVar("CalledReturn");
+    Term* point = Term::getVar("Point");
+    Term* addressablePoint = Term::getVar("AddressablePoint");
+    Term* nextOverrideKey = Term::getVar("NextOverride");
+    Term* currentSteps = Term::getVar("CurrentSteps");
+    Term* nextSteps = Term::getVar("NextSteps");
+    Term* param = Term::getVar("ParamKey");
+    Term* returnKey = Term::getVar("ReturnKey");
+    Term* innerMethod = Term::getVar("InnerMethodKey");
+    Term* subInnerMethod = Term::getVar("SubInnerMethodKey");
+    Term* outerMethod = Term::getVar("OuterMethodKey");
+    Term* overrideKey = Term::getVar("Override");
+    vector<Rule*> rules;
+
+    // forward -----------------------------------------------------------------------------------------------------------------------------------------------
+    // called method -> override -> override -> method (increase steps)
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardTimingOverrideTerm(outerMethod, point, subInnerMethod, nextOverrideKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+        // get addressable (addressablePoint=called method)
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
+        // restore called key to normal key (innerMethod)
+        CompoundTerm::getCalledMethodTerm(innerMethod,addressablePoint),
+        // nomal key to its override key
+        CompoundTerm::getOverrideTerm(innerMethod,overrideKey),
+        // override key to its runtime key (nextOverrideKey)
+        CompoundTerm::getRuntimeTerm(subInnerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE)),
+        // called method to called return
+        CompoundTerm::getCalledMethodToCalledReturnTerm(outerMethod, point, calledReturn),
+        }));
+    // called param -> override -> override -> param (increase steps)
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataOverrideTerm(outerMethod, point, subInnerMethod, nextOverrideKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+        // get addressable key (addressablePoint=called parameter)
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+        // restore called key to normal key (param key), and get its method as inner method
+        CompoundTerm::getCalledParamTerm(param,addressablePoint),CompoundTerm::getParameterTerm(innerMethod,param),
+        // normal key to its override key
+        CompoundTerm::getOverrideTerm(param,overrideKey),
+        // override key to its runtime key
+        CompoundTerm::getRuntimeTerm(subInnerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
+        // called param to called return
+        CompoundTerm::getCalledParamToCalledReturnTerm(outerMethod, point, calledReturn),
+        }));
+    // return -> override -> override -> called return (current steps != [])
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        CompoundTerm::getDataFlowTerm(outerMethod,nextOverrideKey,calledReturn),
+        CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))
+        }));
+    // return -> override -> override -> called return (current steps == [])
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key (addressablePoint=return)
+        CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
+        // return key to called return key
+        CompoundTerm::getCalledReturnTerm(addressablePoint,calledReturn),
+        // called return key to called override key
+        CompoundTerm::getOverrideTerm(calledReturn,overrideKey),
+        // runtime overrideKey
+        CompoundTerm::getRuntimeTerm(outerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
+        }));
+    // backward -----------------------------------------------------------------------------------------------------------------------------------------------
+    // method -> override -> override -> called method (current steps != [])
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        CompoundTerm::getCalledReturnToCalledMethod(outerMethod,calledReturn,calledMethod),
+        CompoundTerm::getDataFlowTerm(outerMethod,calledMethod,nextOverrideKey),
+        CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE))
+        }));
+    // method -> override -> override -> called method (current steps == [])
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key (addressablePoint=method)
+        CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+        // method key to called method key
+        CompoundTerm::getCalledMethodTerm(addressablePoint,calledMethod),
+        // called method key to called override key
+        CompoundTerm::getOverrideTerm(calledMethod,overrideKey),
+        // runtime overrideKey
+        CompoundTerm::getRuntimeTerm(outerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE)),
+        }));
+    // param -> overrideKey -> overrideKey -> called param (current steps != [])
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        CompoundTerm::getCalledReturnToCalledParam(outerMethod,calledReturn,calledParam),
+        CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextOverrideKey),
+        CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))
+        }));
+    // param -> overrideKey -> overrideKey -> called param (current steps == [])
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key (addressablePoint=method)
+        CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
+        // parameter key to called parameter key
+        CompoundTerm::getCalledParamTerm(addressablePoint,calledParam),
+        // called param key to called override key
+        CompoundTerm::getOverrideTerm(calledParam,overrideKey),
+        // runtime overrideKey
+        CompoundTerm::getRuntimeTerm(outerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
+        }));
+    // called return -> overrideKey -> overrideKey -> return (increase steps)
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataOverrideTerm(outerMethod, calledReturn, innerMethod, nextOverrideKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+        // get addressable key (addressablePoint=called return key)
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
+        // restore called key to normal key (return key)
+        CompoundTerm::getCalledReturnTerm(returnKey,addressablePoint),
+        // normal key to its override key
+        CompoundTerm::getOverrideTerm(returnKey,overrideKey),
+        // override key to its runtime key
+        CompoundTerm::getRuntimeTerm(innerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
+        }));
+
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
+    runtimeMethod->returnThisToPool();
+    calledParam->returnThisToPool();
+    calledMethod->returnThisToPool();
+    calledReturn->returnThisToPool();
+    point->returnThisToPool();
+    addressablePoint->returnThisToPool();
+    nextOverrideKey->returnThisToPool();
+    currentSteps->returnThisToPool();
+    nextSteps->returnThisToPool();
+    param->returnThisToPool();
+    returnKey->returnThisToPool();
+    innerMethod->returnThisToPool();
+    outerMethod->returnThisToPool();
+    overrideKey->returnThisToPool();
+    subInnerMethod->returnThisToPool();
+}
+
 void EasierSimpleView::declareStepRules() {
     Term* runtimeMethod = Term::getVar("RuntimeMethod");
     Term* calledParam = Term::getVar("CalledParam");
@@ -217,7 +368,6 @@ void EasierSimpleView::declareStepRules() {
     Term* calledReturn = Term::getVar("CalledReturn");
     Term* point = Term::getVar("Point");
     Term* addressablePoint = Term::getVar("AddressablePoint");
-    Term* midStepKey = Term::getVar("MidStep");
     Term* nextStepKey = Term::getVar("NextStep");
     Term* currentSteps = Term::getVar("CurrentSteps");
     Term* nextSteps = Term::getVar("NextSteps");
@@ -250,7 +400,7 @@ void EasierSimpleView::declareStepRules() {
 
     // forward -----------------------------------------------------------------------------------------------------------------------------------------------
     // called method -> step -> step -> method (increase steps)
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardTimingStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardTimingStepTerm(outerMethod, point, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
         // get addressable (addressablePoint=called method)
         CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
         // restore called key to normal key (innerMethod)
@@ -263,7 +413,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getCalledMethodToCalledReturnTerm(outerMethod, point, calledReturn),
         }));
     // called param -> step -> step -> param (increase steps)
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(outerMethod, point, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(outerMethod, point, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
         // get addressable key (addressablePoint=called parameter)
         CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
         // restore called key to normal key (param key), and get its method as inner method
@@ -272,16 +422,16 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepTerm(param,step),
         // step key to its runtime key
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
-        // called return to called return
+        // called param to called return
         CompoundTerm::getCalledParamToCalledReturnTerm(outerMethod, point, calledReturn),
         }));
     // return -> step -> step -> called return (current steps != [])
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getDataFlowTerm(outerMethod,nextStepKey,calledReturn),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
         }));
     // return -> step -> step -> called return (current steps == [])
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key (addressablePoint=return)
         CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
         // return key to called return key
@@ -293,13 +443,13 @@ void EasierSimpleView::declareStepRules() {
         }));
     // backward -----------------------------------------------------------------------------------------------------------------------------------------------
     // method -> step -> step -> called method (current steps != [])
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getCalledReturnToCalledMethod(outerMethod,calledReturn,calledMethod),
         CompoundTerm::getDataFlowTerm(outerMethod,calledMethod,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
         }));
     // method -> step -> step -> called method (current steps == [])
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key (addressablePoint=method)
         CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
         // method key to called method key
@@ -310,13 +460,13 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
         }));
     // param -> step -> step -> called param (current steps != [])
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getCalledReturnToCalledParam(outerMethod,calledReturn,calledParam),
         CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
         }));
     // param -> step -> step -> called param (current steps == [])
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, midStepKey, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key (addressablePoint=method)
         CompoundTerm::getRuntimeTerm(innerMethod,addressablePoint,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
         // parameter key to called parameter key
@@ -327,11 +477,11 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         }));
     // called return -> step -> step -> return (increase steps)
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(outerMethod, calledReturn, midStepKey, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(outerMethod, calledReturn, innerMethod, nextStepKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
         // get addressable key (addressablePoint=called return key)
-        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
-        // restore called key to normal key (return key), and get its method as inner method
-        CompoundTerm::getCalledReturnTerm(returnKey,calledReturn),CompoundTerm::getReturnTerm(innerMethod,returnKey),
+        CompoundTerm::getRuntimeTerm(outerMethod,addressablePoint,calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
+        // restore called key to normal key (return key)
+        CompoundTerm::getCalledReturnTerm(returnKey,addressablePoint),
         // normal key to its step key
         CompoundTerm::getStepTerm(returnKey,step),
         // step key to its runtime key
@@ -350,7 +500,6 @@ void EasierSimpleView::declareStepRules() {
     calledReturn->returnThisToPool();
     point->returnThisToPool();
     addressablePoint->returnThisToPool();
-    midStepKey->returnThisToPool();
     nextStepKey->returnThisToPool();
     currentSteps->returnThisToPool();
     nextSteps->returnThisToPool();
@@ -376,6 +525,8 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     Term* methodToClassTerm = DisjunctionTerm::getDisjunctionInstance(
         CompoundTerm::getMethodTerm(classKey, methodKey), CompoundTerm::getConstructorTerm(classKey, methodKey)
     );
+    Term* methodToOverrideClassTerm = CompoundTerm::getOverrideTypeTerm(methodKey, classKey);
+
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey), {
         CompoundTerm::getRelatedTypeTerm(classKey,usedClassKey),CompoundTerm::getLoadAddressableTerm(usedClassKey)
         }));
@@ -398,9 +549,29 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
             CompoundTerm::getStepTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToClassTerm
         }));
 
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideTerm(methodKey,stepKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideTerm(calledMethodKey,stepKey),CompoundTerm::getCalledMethodTerm(methodKey,calledMethodKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKey,paramKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideTerm(calledParamKey,stepKey),CompoundTerm::getCalledParamTerm(paramKey,calledParamKey),CompoundTerm::getParameterTerm(methodKey,paramKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKey,returnKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+        }));
+
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepKeyTerm(stepKey), {
         CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
-        NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey))
+        NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey)),
+        Term::getAtom("fail")
         }));
 
     for (auto& rule : rules) {
@@ -1142,6 +1313,8 @@ SimpleView::Node* SimpleView::Node::NODE_CALLED_PARAMETER = NULL;
 SimpleView::Node* SimpleView::Node::NODE_RETURN = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CALLED_RETURN = NULL;
 SimpleView::Node* SimpleView::Node::NODE_INDEX = NULL;
+SimpleView::Node* SimpleView::Node::NODE_DATA_OVERRIDE = NULL;
+SimpleView::Node* SimpleView::Node::NODE_TIMING_OVERRIDE = NULL;
 
 SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     auto* node = new Node();
@@ -1170,6 +1343,14 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_TIMING_STEP:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::TIMING_STEP];
         node->iconId = Images::stepIconId;
+        break;
+    case Node::NODE_TYPE_DATA_OVERRIDE:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::DATA_OVERRIDE];
+        node->iconId = Images::overrideIcondId;
+        break;
+    case Node::NODE_TYPE_TIMING_OVERRIDE:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::TIMING_OVERRIDE];
+        node->iconId = Images::overrideIcondId;
         break;
     case Node::NODE_TYPE_FIELD:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::FIELD];
@@ -1409,6 +1590,10 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::DATA_STEP];
     case NODE_TYPE_TIMING_STEP:
         return voc[SimpleViewLexer::TIMING_STEP];
+    case NODE_TYPE_DATA_OVERRIDE:
+        return voc[SimpleViewLexer::DATA_OVERRIDE];
+    case NODE_TYPE_TIMING_OVERRIDE:
+        return voc[SimpleViewLexer::TIMING_OVERRIDE];
     case NODE_TYPE_FIELD:
         return voc[SimpleViewLexer::FIELD];
     case NODE_TYPE_METHOD:
@@ -1448,6 +1633,8 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_ELSE
         and nodeType != NODE_TYPE_DATA_STEP
         and nodeType != NODE_TYPE_TIMING_STEP
+        and nodeType != NODE_TYPE_DATA_OVERRIDE
+        and nodeType != NODE_TYPE_TIMING_OVERRIDE
         and nodeType != NODE_TYPE_FIELD
         and nodeType != NODE_TYPE_METHOD
         and nodeType != NODE_TYPE_CONSTRUCTOR
@@ -1931,6 +2118,8 @@ bool SimpleView::LineTemplate::hasRepeatOnceNodeExceptFor(const string& exceptio
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_REFERENCE
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_DATA_STEP
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_TIMING_STEP
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_DATA_OVERRIDE
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_TIMING_OVERRIDE
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_FIELD
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_METHOD
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CONSTRUCTOR
@@ -1965,21 +2154,7 @@ bool SimpleView::LineTemplate::checkValidation(vector<const char*>& values, vect
             }
         } else if (SimpleView::SimpleViewToGraphConverter::valNameToNode.count(valueI)) {
             auto& node = SimpleView::SimpleViewToGraphConverter::valNameToNode[valueI];
-            if (repeatTypeIsOnce
-                and node != SimpleView::Node::NODE_ANY
-                and node != SimpleView::Node::NODE_REFERENCE
-                and node != SimpleView::Node::NODE_CONDITION
-                and node != SimpleView::Node::NODE_ELSE
-                and node != SimpleView::Node::NODE_DATA_STEP
-                and node != SimpleView::Node::NODE_FIELD
-                and node != SimpleView::Node::NODE_METHOD
-                and node != SimpleView::Node::NODE_CONSTRUCTOR
-                and node != SimpleView::Node::NODE_CALLED_METHOD
-                and node != SimpleView::Node::NODE_PARAMETER
-                and node != SimpleView::Node::NODE_CALLED_PARAMETER
-                and node != SimpleView::Node::NODE_RETURN
-                and node != SimpleView::Node::NODE_CALLED_RETURN
-                and node != SimpleView::Node::NODE_INDEX) {
+            if (repeatTypeIsOnce and node->isLimitedCount()) {
                 foundRepeatTypeOnce = true;
                 break;
             }
@@ -2005,7 +2180,7 @@ bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<con
             }
         }
     }
-    this->isAlternation = isAlt;
+    this->isAlternation = isAlt and type == LINE_TYPE_SEGMENT;
     this->name = name;
     this->lineType = type;
     orderedParamName.clear();
@@ -2821,7 +2996,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     Term* outputKeyType = Term::getVar("OutputKeyType");
     Term* expectingNextKeyTerm = Term::getVar("ExpectingNextKey");
     int nodeType = node->nodeType;
-    bool isStep = nodeType == Node::NODE_TYPE_DATA_STEP or nodeType == Node::NODE_TYPE_TIMING_STEP;
+    bool isStep = nodeType == Node::NODE_TYPE_DATA_STEP or nodeType == Node::NODE_TYPE_TIMING_STEP
+        or nodeType == Node::NODE_TYPE_DATA_OVERRIDE or nodeType == Node::NODE_TYPE_TIMING_OVERRIDE;
     int specialKeyType = -1;
     switch (nodeType) {
     case Node::NODE_TYPE_REFERENCE:
@@ -2838,6 +3014,12 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         break;
     case Node::NODE_TYPE_TIMING_STEP:
         specialKeyType = GlobalInfo::KEY_TYPE_TIMING_STEP;
+        break;
+    case Node::NODE_TYPE_DATA_OVERRIDE:
+        specialKeyType = GlobalInfo::KEY_TYPE_DATA_OVERRIDE;
+        break;
+    case Node::NODE_TYPE_TIMING_OVERRIDE:
+        specialKeyType = GlobalInfo::KEY_TYPE_TIMING_OVERRIDE;
         break;
     case Node::NODE_TYPE_FIELD:
         specialKeyType = GlobalInfo::KEY_TYPE_FIELD;
@@ -2874,19 +3056,31 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         Term* stepAddressable = Term::getVar("StepAddressable");
         // check type
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, stepAddressable, midStepTermRuntime, Term::getInt(specialKeyType)));
-        ruleBody.push_back(CompoundTerm::getLoadClassByStepKeyTerm(stepAddressable));
+        ruleBody.push_back(NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepKeyTerm(stepAddressable)));
         // generate the next method key and next steps
         if (nodeType == Node::NODE_TYPE_DATA_STEP) {
             if (isBackward) {
-                ruleBody.push_back(CompoundTerm::getBackwardDataStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+                ruleBody.push_back(CompoundTerm::getBackwardDataStepTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
             } else {
-                ruleBody.push_back(CompoundTerm::getForwardDataStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+                ruleBody.push_back(CompoundTerm::getForwardDataStepTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
             }
         } else if (nodeType == Node::NODE_TYPE_TIMING_STEP) {
             if (isBackward) {
-                ruleBody.push_back(CompoundTerm::getBackwardTimingStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+                ruleBody.push_back(CompoundTerm::getBackwardTimingStepTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
             } else {
-                ruleBody.push_back(CompoundTerm::getForwardTimingStepTerm(currentMethodKeyTerm, currentKeyTerm, midStepTermRuntime, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+                ruleBody.push_back(CompoundTerm::getForwardTimingStepTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            }
+        } else if (nodeType == Node::NODE_TYPE_DATA_OVERRIDE) {
+            if (isBackward) {
+                ruleBody.push_back(CompoundTerm::getBackwardDataOverrideTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            } else {
+                ruleBody.push_back(CompoundTerm::getForwardDataOverrideTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            }
+        } else if (nodeType == Node::NODE_TYPE_TIMING_OVERRIDE) {
+            if (isBackward) {
+                ruleBody.push_back(CompoundTerm::getBackwardTimingOverrideTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
+            } else {
+                ruleBody.push_back(CompoundTerm::getForwardTimingOverrideTerm(currentMethodKeyTerm, currentKeyTerm, nextMethodKeyTerm, nextKeyTerm, currentStepsTerm, nextStepsTerm));
             }
         }
 
@@ -2902,6 +3096,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FIELD))));
@@ -2917,6 +3113,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_ELSE:
     case Node::NODE_TYPE_DATA_STEP:
     case Node::NODE_TYPE_TIMING_STEP:
+    case Node::NODE_TYPE_DATA_OVERRIDE:
+    case Node::NODE_TYPE_TIMING_OVERRIDE:
     case Node::NODE_TYPE_FIELD:
     case Node::NODE_TYPE_METHOD:
     case Node::NODE_TYPE_CONSTRUCTOR:

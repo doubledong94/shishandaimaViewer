@@ -241,6 +241,31 @@ ClassScopeAndEnv::ClassScopeAndEnv(TypeInfo* typeInfo) {
     this->typeInfo = typeInfo;
 }
 
+MethodInfo* ClassScopeAndEnv::findOverrideMethod(MethodInfo* methodInfo) {
+    if (methodInfo->isConstructor) {
+        return NULL;
+    }
+    list<MethodInfo*> methodInfos;
+    for (auto* superScopeAndEnv : superScopeAndEnvs) {
+        superScopeAndEnv->getMethodInfoFromSelf(methodInfo->name, methodInfo->parameterInfos.size(), methodInfos);
+    }
+    for (auto& superMethodInfo : methodInfos) {
+        if (not methodInfo->isVariableParameter ^ superMethodInfo->isVariableParameter and methodInfo->parameterInfos.size() == superMethodInfo->parameterInfos.size()) {
+            bool found = true;
+            for (int paramIndex = 0;paramIndex < methodInfo->parameterInfos.size();paramIndex++) {
+                if (methodInfo->parameterInfos[paramIndex]->typeInfo != superMethodInfo->parameterInfos[paramIndex]->typeInfo) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                return superMethodInfo;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void ClassScopeAndEnv::addClassScopeAndEnvForAllTypes() {
     PackageScopeAndEnv* langPackageScopeAndEnv = nullptr;
     if (PackageScopeAndEnv::package2scopeAndEnv.count(PackageScopeAndEnv::langPackage) > 0) {
@@ -567,6 +592,7 @@ MethodScopeAndEnv* MethodScopeAndEnv::createMethodScopeAndEnv(const string& meth
         pMethodScopeAndEnv->name2typeParamInfo[typeParamInfo->simpletypeName] = typeParamInfo;
     }
     pMethodScopeAndEnv->returnFieldInfo = AddressableInfo::fieldKey2fieldInfo[AddressableInfo::makeReturnKey(methodKey)];
+    pMethodScopeAndEnv->methodInfo = methodInfo;
     return pMethodScopeAndEnv;
 }
 

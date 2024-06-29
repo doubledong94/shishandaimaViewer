@@ -8,6 +8,7 @@
 
 map<string, map<string, set<string>>> GlobalInfo::filePath2package2typeKeys;
 map<string, map<string, set<string>>> GlobalInfo::filePath2typeKey2subTypeKeys;
+map<string, map<string, set<string>>> GlobalInfo::filePath2overrideMethodKey2TypeKey;
 
 map<string, map<string, string>> GlobalInfo::filePath2typeKey2filePath;
 map<string, list<TypeInfo*>> GlobalInfo::filePath2typeInfos;
@@ -56,11 +57,13 @@ void GlobalInfo::saveGlobalInfo() {
     PrologConstructor::savePrologFilePath(filePath2typeKey2filePath);
     PrologConstructor::savePrologPackage(filePath2package2typeKeys);
     PrologConstructor::savePrologSubTypes(filePath2typeKey2subTypeKeys);
+    PrologConstructor::savePrologOverrideMethod(filePath2overrideMethodKey2TypeKey);
     PrologConstructor::savePrologRelatedType(filePath2TypeKey2itUseTypeKeys);
     serializeUseRelation();
     serializeFilePath();
     serializePackage2typeKey();
     serializeSubType();
+    serializeOverrideType();
 }
 
 bool GlobalInfo::isOptrKeyType(int keyType) {
@@ -70,6 +73,7 @@ bool GlobalInfo::isOptrKeyType(int keyType) {
 void GlobalInfo::release() {
     filePath2package2typeKeys.clear();
     filePath2typeKey2subTypeKeys.clear();
+    filePath2overrideMethodKey2TypeKey.clear();
     filePath2typeKey2filePath.clear();
     filePath2typeInfos.clear();
     filePath2TypeKey2itUseTypeKeys.clear();
@@ -80,6 +84,7 @@ void GlobalInfo::beforeParseAll() {
     deserializeFilePath();
     deserializePackage2typeKey();
     deserializeSubType();
+    deserializeOverrideType();
 }
 
 void GlobalInfo::serializeUseRelation() {
@@ -258,6 +263,53 @@ void GlobalInfo::deserializeSubType() {
         }
         if (FileManager::shouldRestore(filePath)) {
             filePath2typeKey2subTypeKeys[filePath] = typeAndSubType;
+        }
+    }
+}
+
+void GlobalInfo::serializeOverrideType() {
+    ofstream f;
+    f.open(FileManager::prologGlobalInfo_filePath2overrideMethodKey2TypeKey);
+    f << filePath2overrideMethodKey2TypeKey.size() << "\n";
+    for (auto& overrideMethodKey2TypeKey : filePath2overrideMethodKey2TypeKey) {
+        f << overrideMethodKey2TypeKey.first << "\n";
+        f << overrideMethodKey2TypeKey.second.size() << "\n";
+        for (auto& overrideMethodKeyAndTypeKey : overrideMethodKey2TypeKey.second) {
+            f << overrideMethodKeyAndTypeKey.first << "\n";
+            f << overrideMethodKeyAndTypeKey.second.size() << "\n";
+            for (auto& sub : overrideMethodKeyAndTypeKey.second) {
+                f << sub << "\n";
+            }
+        }
+    }
+}
+
+void GlobalInfo::deserializeOverrideType() {
+    ifstream f;
+    f.open(FileManager::prologGlobalInfo_filePath2overrideMethodKey2TypeKey);
+    if (not f.is_open()) {
+        return;
+    }
+    int fileCount = Serializable::getInt(f);
+    for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
+        string filePath;
+        getline(f, filePath);
+        int typeCount = Serializable::getInt(f);
+        map<string, set<string>> overrideMethodAndTypeKey;
+        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
+            string sup;
+            getline(f, sup);
+            int subCount = Serializable::getInt(f);
+            set<string> subs;
+            for (int subTypeIndex = 0;subTypeIndex < subCount;subTypeIndex++) {
+                string sub;
+                getline(f, sub);
+                subs.insert(sub);
+            }
+            overrideMethodAndTypeKey[sup] = subs;
+        }
+        if (FileManager::shouldRestore(filePath)) {
+            filePath2overrideMethodKey2TypeKey[filePath] = overrideMethodAndTypeKey;
         }
     }
 }

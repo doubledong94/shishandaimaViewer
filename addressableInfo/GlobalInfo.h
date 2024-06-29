@@ -6,6 +6,7 @@ public:
 
     static map<string, map<string, set<string>>> filePath2package2typeKeys;
     static map<string, map<string, set<string>>> filePath2typeKey2subTypeKeys;
+    static map<string, map<string, set<string>>> filePath2overrideMethodKey2TypeKey;
 
     static map<string, map<string, string>> filePath2typeKey2filePath;
     static map<string, list<TypeInfo*>> filePath2typeInfos;
@@ -66,6 +67,8 @@ public:
         KEY_TYPE_REFERENCE,
         KEY_TYPE_DATA_STEP,
         KEY_TYPE_TIMING_STEP,
+        KEY_TYPE_DATA_OVERRIDE,
+        KEY_TYPE_TIMING_OVERRIDE,
         KEY_TYPE_OPTR_INDEX_RETURN,
 
         KEY_TYPE_LOCAL_VARIABLE,
@@ -134,5 +137,9 @@ public:
     static void serializeSubType();
 
     static void deserializeSubType();
+
+    static void serializeOverrideType();
+
+    static void deserializeOverrideType();
 };
 

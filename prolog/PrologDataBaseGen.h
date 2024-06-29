@@ -13,6 +13,7 @@ public:
 class DataFlowVisitor : public GenDataVisitor {
 public:
     thread_local static map<string, list<pair<string, string>>> dataStepRuntimes;
+    thread_local static map<string, list<pair<string, string>>> dataOverrideRuntimes;
 
     void visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) override;
 
@@ -40,6 +41,7 @@ public:
 class TimingFlowVisitor : public GenDataVisitor {
 public:
     thread_local static map<string, list<pair<string, string>>> timingStepRuntimes;
+    thread_local static map<string, list<pair<string, string>>> timingOverrideRuntimes;
 
     void visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) override;
 

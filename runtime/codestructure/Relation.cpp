@@ -8,6 +8,7 @@
 void ResolvingItem::reset() {
     hasReturnValue = false;
     variableKey.clear();
+    overrideKey.clear();
     typeInfo = NULL;
     typeArgs.clear();
     structureKey.clear();

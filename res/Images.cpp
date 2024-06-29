@@ -56,6 +56,7 @@ unsigned int Images::referenceIconId = 0;
 unsigned int Images::conditionIconId = 0;
 unsigned int Images::elseIconId = 0;
 unsigned int Images::stepIconId = 0;
+unsigned int Images::overrideIcondId = 0;
 unsigned int Images::unionIconId = 0;
 unsigned int Images::intersectionIconId = 0;
 unsigned int Images::differenceIconId = 0;
@@ -176,6 +177,7 @@ void Images::init() {
     conditionIconId = C;
     elseIconId = E;
     stepIconId = S;
+    overrideIcondId = O;
     listIconId = L;
     creatorIconId = C;
     instanceOfIconId = I;

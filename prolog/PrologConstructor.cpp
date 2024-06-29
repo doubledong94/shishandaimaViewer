@@ -28,6 +28,7 @@ void PrologConstructor::beforeParseAll() {
     addressableMultiFileFunctorName2ArgCount[HEAD_CALLED_RETURN] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_FIELD] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_STEP] = 2;
+    addressableMultiFileFunctorName2ArgCount[HEAD_OVERRIDE] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_INSTANCE_OF] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_SIMPLE_NAME] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_IS_FINAL] = 1;
@@ -77,6 +78,16 @@ void PrologConstructor::savePrologSubTypes(map<string, map<string, set<string>>>
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2subTypeKeys, lines);
 }
 
+void PrologConstructor::savePrologOverrideMethod(map<string, map<string, set<string>>>& filePath2overrideMethodKey2TypeKey) {
+    list<string> lines;
+    for (auto& overrideMethod2TypeKey : filePath2overrideMethodKey2TypeKey) {
+        for (auto& overrideMethodAndTypeKey : overrideMethod2TypeKey.second) {
+            FOR_EACH_ITEM(overrideMethodAndTypeKey.second, lines.push_back(CompoundTerm::getOverrideTypeFact(overrideMethodAndTypeKey.first, item)););
+        }
+    }
+    writeToPrologFile(FileManager::prologGlobalInfo_overrideMethodKey2TypeKey, lines);
+}
+
 void PrologConstructor::savePrologRelatedType(map<string, map<string, set<string>>>& filePath2TypeKey2itUseTypeKeys) {
     list<string> lines;
     for (auto& fileAndItem : filePath2TypeKey2itUseTypeKeys) {
@@ -120,6 +131,10 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
             lines.push_back(CompoundTerm::getStepFact(methodInfo->calledMethodKey, AddressableInfo::makeStepKey(methodInfo->calledMethodKey)));
             lines.push_back(CompoundTerm::getStepFact(returnKey, AddressableInfo::makeStepKey(returnKey)));
             lines.push_back(CompoundTerm::getStepFact(calledReturnKey, AddressableInfo::makeStepKey(calledReturnKey)));
+            lines.push_back(CompoundTerm::getOverrideFact(methodKey, AddressableInfo::makeOverrideKey(methodKey)));
+            lines.push_back(CompoundTerm::getOverrideFact(methodInfo->calledMethodKey, AddressableInfo::makeOverrideKey(methodInfo->calledMethodKey)));
+            lines.push_back(CompoundTerm::getOverrideFact(returnKey, AddressableInfo::makeOverrideKey(returnKey)));
+            lines.push_back(CompoundTerm::getOverrideFact(calledReturnKey, AddressableInfo::makeOverrideKey(calledReturnKey)));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodKey, methodSimpleName));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodInfo->calledMethodKey, AddressableInfo::makeCalledKey(methodSimpleName)));
             lines.push_back(CompoundTerm::getSimpleNameFact(returnKey, methodInfo->returnInfo->name));
@@ -133,6 +148,8 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
                 lines.push_back(CompoundTerm::getCalledParamFact(paramKey, calledParamKey));
                 lines.push_back(CompoundTerm::getStepFact(paramKey, AddressableInfo::makeStepKey(paramKey)));
                 lines.push_back(CompoundTerm::getStepFact(calledParamKey, AddressableInfo::makeStepKey(calledParamKey)));
+                lines.push_back(CompoundTerm::getOverrideFact(paramKey, AddressableInfo::makeOverrideKey(paramKey)));
+                lines.push_back(CompoundTerm::getOverrideFact(calledParamKey, AddressableInfo::makeOverrideKey(calledParamKey)));
                 lines.push_back(CompoundTerm::getSimpleNameFact(paramKey, paramInfo->name));
                 lines.push_back(CompoundTerm::getSimpleNameFact(calledParamKey, calledParamInfo->name));
                 lines.push_back(CompoundTerm::getInstanceOfFact(paramKey, paramInfo->typeInfo->typeKey));
@@ -424,6 +441,16 @@ string CompoundTerm::getSubTypeFact(const string& typeKey, const string& subType
     return ret;
 }
 
+CompoundTerm* CompoundTerm::getOverrideTypeTerm(Term* overrideKey, Term* typeKey) {
+    return makeTerm(HEAD_OVERRIDE_TYPE, overrideKey, typeKey);
+}
+
+string CompoundTerm::getOverrideTypeFact(const string& overrideKey, const string& typeKey) {
+    string ret = getOverrideTypeTerm(Term::getStr(overrideKey), Term::getStr(typeKey))->toString(true);
+    ret.push_back('.');
+    return ret;
+}
+
 string CompoundTerm::getRelatedTypeFact(const string& typeKey, const string& typeKeyItUsed) {
     string ret = getRelatedTypeTerm(Term::getStr(typeKey), Term::getStr(typeKeyItUsed))->toString(true);
     ret.push_back('.');
@@ -512,23 +539,25 @@ string CompoundTerm::getCalledReturnFact(const string& returnKey, const string& 
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getStepTerm(Term* stepType, Term* point1, Term* step, Term* point2, Term* setps1, Term* setps2) {
-    auto* ret = PooledItem<CompoundTerm>::getInstance();
-    ret->head = HEAD_STEP;
-    ret->addArg(stepType);
-    ret->addArg(point1);
-    ret->addArg(step);
-    ret->addArg(point2);
-    ret->addArg(setps1);
-    ret->addArg(setps2);
-    return ret;
-}
-
 CompoundTerm* CompoundTerm::getStepTerm(Term* key, Term* stepKey) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = HEAD_STEP;
     ret->addArg(key);
     ret->addArg(stepKey);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getOverrideTerm(Term* key, Term* overrideKey) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_OVERRIDE;
+    ret->addArg(key);
+    ret->addArg(overrideKey);
+    return ret;
+}
+
+string CompoundTerm::getOverrideFact(const string& key, const string& overrideKey) {
+    string ret = getOverrideTerm(Term::getStr(key), Term::getStr(overrideKey))->toString(true);
+    ret.push_back('.');
     return ret;
 }
 
@@ -1186,12 +1215,11 @@ string AssertTerm::toString(bool returnToPool) {
     return HEAD_ASSERTZ->toString() + "((" + term->toString() + "))";
 }
 
-CompoundTerm* CompoundTerm::getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+CompoundTerm* CompoundTerm::getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = HEAD_FORWARD_DATA_STEP;
     ret->addArg(runtimeMethod);
     ret->addArg(point);
-    ret->addArg(midStepKey);
     ret->addArg(nextRuntimeMethod);
     ret->addArg(nextStepKey);
     ret->addArg(currentSetps);
@@ -1199,12 +1227,11 @@ CompoundTerm* CompoundTerm::getForwardDataStepTerm(Term* runtimeMethod, Term* po
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getBackwardDataStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+CompoundTerm* CompoundTerm::getBackwardDataStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = HEAD_BACKWARD_DATA_STEP;
     ret->addArg(runtimeMethod);
     ret->addArg(point);
-    ret->addArg(midStepKey);
     ret->addArg(nextRuntimeMethod);
     ret->addArg(nextStepKey);
     ret->addArg(currentSetps);
@@ -1212,12 +1239,11 @@ CompoundTerm* CompoundTerm::getBackwardDataStepTerm(Term* runtimeMethod, Term* p
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getForwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+CompoundTerm* CompoundTerm::getForwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = HEAD_FORWARD_TIMING_STEP;
     ret->addArg(runtimeMethod);
     ret->addArg(point);
-    ret->addArg(midStepKey);
     ret->addArg(nextRuntimeMethod);
     ret->addArg(nextStepKey);
     ret->addArg(currentSetps);
@@ -1225,14 +1251,61 @@ CompoundTerm* CompoundTerm::getForwardTimingStepTerm(Term* runtimeMethod, Term* 
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getBackwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* midStepKey, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
+CompoundTerm* CompoundTerm::getBackwardTimingStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = HEAD_BACKWARD_TIMING_STEP;
     ret->addArg(runtimeMethod);
     ret->addArg(point);
-    ret->addArg(midStepKey);
     ret->addArg(nextRuntimeMethod);
     ret->addArg(nextStepKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getForwardDataOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_FORWARD_DATA_OVERRIDE;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextOverrideKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getBackwardDataOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_BACKWARD_DATA_OVERRIDE;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextOverrideKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getForwardTimingOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_FORWARD_TIMING_OVERRIDE;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextOverrideKey);
+    ret->addArg(currentSetps);
+    ret->addArg(nextSetps);
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getBackwardTimingOverrideTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextOverrideKey, Term* currentSetps, Term* nextSetps) {
+    auto* ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = HEAD_BACKWARD_TIMING_OVERRIDE;
+    ret->addArg(runtimeMethod);
+    ret->addArg(point);
+    ret->addArg(nextRuntimeMethod);
+    ret->addArg(nextOverrideKey);
     ret->addArg(currentSetps);
     ret->addArg(nextSetps);
     return ret;

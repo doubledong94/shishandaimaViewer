@@ -37,8 +37,12 @@ string AddressableInfo::makeCalledKey(const string& key) {
     return key + "#";
 }
 
-string AddressableInfo::makeStepKey(const string& calledKey) {
-    return calledKey + "-step";
+string AddressableInfo::makeStepKey(const string& keyOrCalledKey) {
+    return keyOrCalledKey + "-step";
+}
+
+string AddressableInfo::makeOverrideKey(const string& keyOrCalledKey) {
+    return keyOrCalledKey + "-override";
 }
 
 string AddressableInfo::makeMethodIfKey(const string& methodKey) {
