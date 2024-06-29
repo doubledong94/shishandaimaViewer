@@ -64,6 +64,8 @@ static set<int> AllKeyTypes = {
         GlobalInfo::KEY_TYPE_REFERENCE,
         GlobalInfo::KEY_TYPE_DATA_STEP,
         GlobalInfo::KEY_TYPE_TIMING_STEP,
+        GlobalInfo::KEY_TYPE_DATA_OVERRIDE,
+        GlobalInfo::KEY_TYPE_TIMING_OVERRIDE,
         GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN,
         GlobalInfo::KEY_TYPE_LOCAL_VARIABLE,
         GlobalInfo::KEY_TYPE_FINAL,
@@ -327,7 +329,8 @@ PositionInRegex* NodeInfo::getExistingPositionInRegex(const string& graphName, c
 }
 
 string NodeInfo::makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey) {
-    if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
+    if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
+        keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE) {
         return runtimeKey;
     } else {
         return runtimeKey + " <---> " + methodOfRuntime;
@@ -571,7 +574,8 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
     string& runtimeKey = tail->headElements[3]->atomOrVar;
     string& key = tail->headElements[4]->atomOrVar;
     int keyType = tail->headElements[5]->integer;
-    if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
+    if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
+        keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE) {
         runtimeKey = key;
     }
     string uniKey = NodeInfo::makeUniKey(keyType, methodOfRuntime, runtimeKey);

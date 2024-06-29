@@ -104,8 +104,9 @@ static Term* HEAD_ADDRESSABLE_FILE = new Term("addressableFile", Term::TERM_TYPE
 static Term* HEAD_UNADDRESSABLE_FILE = new Term("unaddressableFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_PACKAGE = new Term("package", Term::TERM_TYPE_ATOM);
 static Term* HEAD_SUB_TYPE = new Term("subType", Term::TERM_TYPE_ATOM);
-static Term* HEAD_OVERRIDE_TYPE = new Term("overrideType", Term::TERM_TYPE_ATOM);
+static Term* HEAD_OVERRIDE = new Term("override", Term::TERM_TYPE_ATOM);
 static Term* HEAD_RELATED_TYPE = new Term("related_type", Term::TERM_TYPE_ATOM);
+static Term* HEAD_RELATED_TYPE_AND_METHOD = new Term("relatedTypeAndMethod", Term::TERM_TYPE_ATOM);
 static Term* HEAD_METHOD = new Term("method", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CONSTRUCTOR = new Term("constructor", Term::TERM_TYPE_ATOM);
 static Term* HEAD_PARAMETER = new Term("parameter", Term::TERM_TYPE_ATOM);
@@ -125,8 +126,8 @@ static Term* HEAD_IS_FINAL = new Term("isFinal", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_DATA_FLOW = new Term("flow", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CODE_ORDER = new Term("codeOrder", Term::TERM_TYPE_ATOM);
-static Term* HEAD_STEP = new Term("step", Term::TERM_TYPE_ATOM);
-static Term* HEAD_OVERRIDE = new Term("override", Term::TERM_TYPE_ATOM);
+static Term* HEAD_STEP_KEY = new Term("stepKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_OVERRIDE_KEY = new Term("overrideKey", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_DATA_STEP = new Term("forwardDataStep", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_DATA_STEP = new Term("backwardDataStep", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_TIMING_STEP = new Term("forwardTimingStep", Term::TERM_TYPE_ATOM);
@@ -198,8 +199,10 @@ static Term* HEAD_MEMBER = new Term("member", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LENGTH = new Term("length", Term::TERM_TYPE_ATOM);
 static Term* HEAD_COUNT = new Term("count", Term::TERM_TYPE_ATOM);
 
-static Term* HEAD_STEP_KEY_TO_CLASS_KEY = new Term("stepKeyToClassKey", Term::TERM_TYPE_ATOM);
-static Term* HEAD_LOAD_CLASS_BY_STEP_KEY = new Term("loadAddressableAndRuntimeByStepKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_STEP_IN_KEY_TO_CLASS_KEY = new Term("stepInKeyToClassKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_STEP_OUT_KEY_TO_CLASS_KEY = new Term("stepOutKeyToClassKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_LOAD_CLASS_BY_STEP_IN_KEY = new Term("loadAddressableAndRuntimeByStepInKey", Term::TERM_TYPE_ATOM);
+static Term* HEAD_LOAD_CLASS_BY_STEP_OUT_KEY = new Term("loadAddressableAndRuntimeByStepOutKey", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LOAD_RUNTIME = new Term("load_unaddressable", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LOAD_ADDRESSABLE = new Term("load_addressable", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LOAD_ADDRESSABLE_FOR_RUNTIME = new Term("loadAaddressableForRuntime", Term::TERM_TYPE_ATOM);
@@ -230,9 +233,13 @@ public:
 
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5, Term* arg6);
 
-    static CompoundTerm* getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey);
+    static CompoundTerm* getStepInKeyToClassKeyTerm(Term* stepKey, Term* classKey);
 
-    static CompoundTerm* getLoadClassByStepKeyTerm(Term* stepKey);
+    static CompoundTerm* getStepOutKeyToClassKeyTerm(Term* stepKey, Term* classKey);
+
+    static CompoundTerm* getLoadClassByStepInKeyTerm(Term* stepKey);
+
+    static CompoundTerm* getLoadClassByStepOutKeyTerm(Term* stepKey);
 
     static CompoundTerm* getLoadRuntimeTerm(Term* classKey);
 
@@ -272,13 +279,17 @@ public:
 
     static string getSubTypeFact(const string& typeKey, const string& subTypeKey);
 
-    static CompoundTerm* getOverrideTypeTerm(Term* overrideKey, Term* typeKey);
+    static CompoundTerm* getOverrideTerm(Term* overrideKey, Term* typeKey);
 
-    static string getOverrideTypeFact(const string& overrideKey, const string& typeKey);
+    static string getOverrideFact(const string& overrideKey, const string& typeKey);
 
     static string getRelatedTypeFact(const string& typeKey, const string& typeKeyItUsed);
 
     static CompoundTerm* getRelatedTypeTerm(Term* typeKey, Term* typeKeyUsedByFirstParam);
+
+    static string getRelatedTypeAndMethodFact(const string& typeKey, const string& methodKeyItUsed);
+
+    static CompoundTerm* getRelatedTypeAndMethodTerm(Term* typeKey, Term* methodKeyUsedByFirstParam);
 
     static string getMethodFact(const string& typeKey, const string& methodKey);
 
@@ -312,13 +323,13 @@ public:
 
     static string getCalledReturnFact(const string& returnKey, const string& calledReturnKey);
 
-    static CompoundTerm* getStepTerm(Term* key, Term* stepKey);
+    static CompoundTerm* getStepKeyTerm(Term* key, Term* stepKey);
 
-    static CompoundTerm* getOverrideTerm(Term* key, Term* overrideKey);
+    static string getStepKeyFact(const string& key, const string& stepKey);
 
-    static string getOverrideFact(const string& key, const string& overrideKey);
+    static CompoundTerm* getOverrideKeyTerm(Term* key, Term* overrideKey);
 
-    static string getStepFact(const string& key, const string& stepKey);
+    static string getOverrideKeyFact(const string& key, const string& overrideKey);
 
     static CompoundTerm* getForwardDataStepTerm(Term* runtimeMethod, Term* point, Term* nextRuntimeMethod, Term* nextStepKey, Term* currentSetps, Term* nextSetps);
 
@@ -622,9 +633,11 @@ namespace PrologConstructor {
 
     void savePrologSubTypes(map<string, map<string, set<string>>>& filePath2typeKey2subTypeKeys);
 
-    void savePrologOverrideMethod(map<string, map<string, set<string>>>& filePath2overrideMethodKey2TypeKey);
+    void savePrologOverrideMethod(map<string, map<string, set<string>>>& filePath2override);
 
     void savePrologRelatedType(map<string, map<string, set<string>>>& filePath2TypeKey2itUseTypeKeys);
+
+    void savePrologRelatedTypeAndMethod(map<string, map<string, set<string>>>& filePath2TypeKey2itUseMethods);
 
     void saveAddressableInfo(const string& filePath, const list<TypeInfo*>& typeInfos);
 };

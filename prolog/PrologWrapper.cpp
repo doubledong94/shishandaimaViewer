@@ -25,10 +25,11 @@ bool PrologWrapper::init() {
     bool loaded = true;
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_package2typeKey);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2itUseTypeKeys);
+    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2itUseMethods);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2AddressableFilePath);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2UnaddressableFilePath);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2subTypeKeys);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_overrideMethodKey2TypeKey);
+    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_override);
     loaded &= loadFileIfExist(FileManager::prologGlobalInfo_baseRuleFile);
     return loaded;
 }

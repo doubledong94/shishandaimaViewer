@@ -186,6 +186,8 @@ int app::Application::ApplicationMain() {
     "Reference",
     "DataStep",
     "TimingStep",
+    "DataOverride",
+    "TimingOverride",
     "Index",
     "Local Variable",
     "Final Value",
@@ -965,7 +967,7 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByKeyTypePopupOpen")) {
             ImGui::SeparatorText("select by key type");
-            for (int i = 0;i < 18;i++) {
+            for (int i = 0;i < 20;i++) {
                 if (ImGui::Selectable(nodeType[i])) {
                     boundedGraph->selectByKeyType(i);
                 }
@@ -1345,7 +1347,9 @@ void shishan::DimControlSetting::toFile(ofstream& f) {
     f << (chosen_else ? 1 : 0) << "\n";
     f << (chosen_reference ? 1 : 0) << "\n";
     f << (chosen_dataStep ? 1 : 0) << "\n";
+    f << (chosen_dataOverride ? 1 : 0) << "\n";
     f << (chosen_timingStep ? 1 : 0) << "\n";
+    f << (chosen_timingOverride ? 1 : 0) << "\n";
     f << (chosen_index ? 1 : 0) << "\n";
 }
 
@@ -1362,7 +1366,9 @@ void shishan::DimControlSetting::fromFile(ifstream& f) {
     chosen_else = getInt(f);
     chosen_reference = getInt(f);
     chosen_dataStep = getInt(f);
+    chosen_dataOverride = getInt(f);
     chosen_timingStep = getInt(f);
+    chosen_timingOverride = getInt(f);
     chosen_index = getInt(f);
 }
 

@@ -54,8 +54,8 @@ void Header::EnterClassPhase::run() {
         if (not GlobalInfo::filePath2typeKey2subTypeKeys.count(currentFilePath)) {
             GlobalInfo::filePath2typeKey2subTypeKeys[currentFilePath] = map<string, set<string>>();
         }
-        if (not GlobalInfo::filePath2overrideMethodKey2TypeKey.count(currentFilePath)) {
-            GlobalInfo::filePath2overrideMethodKey2TypeKey[currentFilePath] = map<string, set<string>>();
+        if (not GlobalInfo::filePath2override.count(currentFilePath)) {
+            GlobalInfo::filePath2override[currentFilePath] = map<string, set<string>>();
         }
         if (not GlobalInfo::filePath2typeKey2filePath.count(currentFilePath)) {
             GlobalInfo::filePath2typeKey2filePath[currentFilePath] = map<string, string>();
@@ -67,7 +67,7 @@ void Header::EnterClassPhase::run() {
         AddressableInfo::filePath2compilationUnits.erase(filePath);
         GlobalInfo::filePath2package2typeKeys.erase(filePath);
         GlobalInfo::filePath2typeKey2subTypeKeys.erase(filePath);
-        GlobalInfo::filePath2overrideMethodKey2TypeKey.erase(filePath);
+        GlobalInfo::filePath2override.erase(filePath);
         GlobalInfo::filePath2typeKey2filePath.erase(filePath);
     }
 }
@@ -209,11 +209,18 @@ void Header::HierarchyPhase::resolveHierarchy() {
 
 void Header::HierarchyPhase::addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo) {
     if (methodInfo->overrideMethodInfo) {
-        string& overrideKey = methodInfo->overrideMethodInfo->methodKey;
-        if (not GlobalInfo::filePath2overrideMethodKey2TypeKey[typeInfo->filePath].count(overrideKey)) {
-            GlobalInfo::filePath2overrideMethodKey2TypeKey[typeInfo->filePath][overrideKey] = set<string>();
+        string& overrideMethodKey = methodInfo->overrideMethodInfo->methodKey;
+        if (not GlobalInfo::filePath2override[typeInfo->filePath].count(overrideMethodKey)) {
+            GlobalInfo::filePath2override[typeInfo->filePath][overrideMethodKey] = set<string>();
         }
-        GlobalInfo::filePath2overrideMethodKey2TypeKey[typeInfo->filePath][overrideKey].insert(typeInfo->typeKey);
+        GlobalInfo::filePath2override[typeInfo->filePath][overrideMethodKey].insert(methodInfo->methodKey);
+        for (int i = 0;i < methodInfo->parameterInfos.size();i++) {
+            string& overrideParamKey = methodInfo->overrideMethodInfo->parameterInfos[i]->fieldKey;
+            if (not GlobalInfo::filePath2override[typeInfo->filePath].count(overrideParamKey)) {
+                GlobalInfo::filePath2override[typeInfo->filePath][overrideParamKey] = set<string>();
+            }
+            GlobalInfo::filePath2override[typeInfo->filePath][overrideParamKey].insert(methodInfo->parameterInfos[i]->fieldKey);
+        }
     }
 }
 

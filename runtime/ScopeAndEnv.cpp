@@ -74,6 +74,14 @@ void FileScopeAndEnv::addImportedTypeNameScopeAndEnvForAllFile() {
                 GlobalInfo::filePath2TypeKey2itUseTypeKeys[item.first][typeInfo->typeKey] = set<string>();
             }
         }
+        if (not GlobalInfo::filePath2TypeKey2itUseMethods.count(item.first)) {
+            GlobalInfo::filePath2TypeKey2itUseMethods[item.first] = map<string, set<string>>();
+        }
+        for (auto& typeInfo : item.second) {
+            if (not GlobalInfo::filePath2TypeKey2itUseMethods[item.first].count(typeInfo->typeKey)) {
+                GlobalInfo::filePath2TypeKey2itUseMethods[item.first][typeInfo->typeKey] = set<string>();
+            }
+        }
     }
     for (auto& file : AddressableInfo::filePath2compilationUnits) {
         auto& pFileScopeAndEnv = filePath2scopeAndEnv[file.first];
@@ -562,6 +570,12 @@ void ClassScopeAndEnv::addUsage(TypeInfo* usedTypeInfo) {
             addUsage(interfaceType);
         }
     }
+}
+
+void ClassScopeAndEnv::addUsage(MethodInfo* usedMethodInfo) {
+    GlobalInfo::addUsageLock.lock();
+    GlobalInfo::filePath2TypeKey2itUseMethods[typeInfo->filePath][typeInfo->typeKey].insert(usedMethodInfo->methodKey);
+    GlobalInfo::addUsageLock.unlock();
 }
 
 void ClassScopeAndEnv::release(ClassScopeAndEnv* toBeReleased) {

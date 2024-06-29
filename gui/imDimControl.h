@@ -17,7 +17,9 @@ namespace shishan {
         bool chosen_else = true;
         bool chosen_reference = true;
         bool chosen_dataStep = true;
+        bool chosen_dataOverride = true;
         bool chosen_timingStep = true;
+        bool chosen_timingOverride = true;
         bool chosen_index = true;
         DimControlSetting(const string& name);
         void toFile(ofstream& f);
@@ -84,14 +86,16 @@ namespace shishan {
         ImGui::Checkbox("Return", &(setting->chosen_return));ImGui::SameLine();
         ImGui::Checkbox("CalledParameter", &(setting->chosen_calledParameter));ImGui::SameLine();
         ImGui::Checkbox("CalledReturn", &(setting->chosen_calledReturn));ImGui::SameLine();
-        ImGui::Checkbox("DataStep", &(setting->chosen_dataStep));
+        ImGui::Checkbox("DataStep", &(setting->chosen_dataStep));ImGui::SameLine();
+        ImGui::Checkbox("DataOverride", &(setting->chosen_dataOverride));
         // -------------------------------------------------
         ImGui::SeparatorText("Timing Flow");
         ImGui::Checkbox("Constructor", &(setting->chosen_constructor));ImGui::SameLine();
         ImGui::Checkbox("Method", &(setting->chosen_method));ImGui::SameLine();
         ImGui::Checkbox("CalledMethod", &(setting->chosen_calledMethod));ImGui::SameLine();
         ImGui::Checkbox("Condition", &(setting->chosen_condition));ImGui::SameLine();
-        ImGui::Checkbox("TimingStep", &(setting->chosen_timingStep));
+        ImGui::Checkbox("TimingStep", &(setting->chosen_timingStep));ImGui::SameLine();
+        ImGui::Checkbox("TimingOverride", &(setting->chosen_timingOverride));
         // -------------------------------------------------
         ImGui::SeparatorText("Scope Flow");
         ImGui::Checkbox("Reference", &(setting->chosen_reference));ImGui::SameLine();
@@ -227,6 +231,12 @@ namespace shishan {
         }
         if (not setting->chosen_timingStep) {
             allKeyType.erase(GlobalInfo::KEY_TYPE_TIMING_STEP);
+        }
+        if (not setting->chosen_dataOverride) {
+            allKeyType.erase(GlobalInfo::KEY_TYPE_DATA_OVERRIDE);
+        }
+        if (not setting->chosen_timingOverride) {
+            allKeyType.erase(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE);
         }
         if (not setting->chosen_index) {
             allKeyType.erase(GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN);

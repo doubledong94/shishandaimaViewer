@@ -135,6 +135,8 @@ public:
 
     void addUsage(TypeInfo* usedTypeInfo);
 
+    void addUsage(MethodInfo* usedMethodInfo);
+
     static void release(ClassScopeAndEnv* toBeReleased);
 };
 

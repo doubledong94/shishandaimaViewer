@@ -27,8 +27,8 @@ void PrologConstructor::beforeParseAll() {
     addressableMultiFileFunctorName2ArgCount[HEAD_CALLED_PARAMETER] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_CALLED_RETURN] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_FIELD] = 2;
-    addressableMultiFileFunctorName2ArgCount[HEAD_STEP] = 2;
-    addressableMultiFileFunctorName2ArgCount[HEAD_OVERRIDE] = 2;
+    addressableMultiFileFunctorName2ArgCount[HEAD_STEP_KEY] = 2;
+    addressableMultiFileFunctorName2ArgCount[HEAD_OVERRIDE_KEY] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_INSTANCE_OF] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_SIMPLE_NAME] = 2;
     addressableMultiFileFunctorName2ArgCount[HEAD_IS_FINAL] = 1;
@@ -78,14 +78,14 @@ void PrologConstructor::savePrologSubTypes(map<string, map<string, set<string>>>
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2subTypeKeys, lines);
 }
 
-void PrologConstructor::savePrologOverrideMethod(map<string, map<string, set<string>>>& filePath2overrideMethodKey2TypeKey) {
+void PrologConstructor::savePrologOverrideMethod(map<string, map<string, set<string>>>& filePath2override) {
     list<string> lines;
-    for (auto& overrideMethod2TypeKey : filePath2overrideMethodKey2TypeKey) {
+    for (auto& overrideMethod2TypeKey : filePath2override) {
         for (auto& overrideMethodAndTypeKey : overrideMethod2TypeKey.second) {
-            FOR_EACH_ITEM(overrideMethodAndTypeKey.second, lines.push_back(CompoundTerm::getOverrideTypeFact(overrideMethodAndTypeKey.first, item)););
+            FOR_EACH_ITEM(overrideMethodAndTypeKey.second, lines.push_back(CompoundTerm::getOverrideFact(overrideMethodAndTypeKey.first, item)););
         }
     }
-    writeToPrologFile(FileManager::prologGlobalInfo_overrideMethodKey2TypeKey, lines);
+    writeToPrologFile(FileManager::prologGlobalInfo_override, lines);
 }
 
 void PrologConstructor::savePrologRelatedType(map<string, map<string, set<string>>>& filePath2TypeKey2itUseTypeKeys) {
@@ -98,6 +98,18 @@ void PrologConstructor::savePrologRelatedType(map<string, map<string, set<string
         }
     }
     writeToPrologFile(FileManager::prologGlobalInfo_typeKey2itUseTypeKeys, lines);
+}
+
+void PrologConstructor::savePrologRelatedTypeAndMethod(map<string, map<string, set<string>>>& filePath2TypeKey2itUseMethods) {
+    list<string> lines;
+    for (auto& fileAndItem : filePath2TypeKey2itUseMethods) {
+        for (auto& item : fileAndItem.second) {
+            for (auto& typeKeyItUsed : item.second) {
+                lines.push_back(CompoundTerm::getRelatedTypeAndMethodFact(item.first, typeKeyItUsed));
+            }
+        }
+    }
+    writeToPrologFile(FileManager::prologGlobalInfo_typeKey2itUseMethods, lines);
 }
 
 void PrologConstructor::saveAddressableInfo(const string& filePath, const list<TypeInfo*>& typeInfos) {
@@ -127,14 +139,14 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
             lines.push_back(CompoundTerm::getReturnFact(methodKey, returnKey));
             lines.push_back(CompoundTerm::getCalledReturnFact(returnKey, calledReturnKey));
             lines.push_back(CompoundTerm::getInstanceOfFact(returnKey, methodInfo->returnInfo->typeInfo->typeKey));
-            lines.push_back(CompoundTerm::getStepFact(methodKey, AddressableInfo::makeStepKey(methodKey)));
-            lines.push_back(CompoundTerm::getStepFact(methodInfo->calledMethodKey, AddressableInfo::makeStepKey(methodInfo->calledMethodKey)));
-            lines.push_back(CompoundTerm::getStepFact(returnKey, AddressableInfo::makeStepKey(returnKey)));
-            lines.push_back(CompoundTerm::getStepFact(calledReturnKey, AddressableInfo::makeStepKey(calledReturnKey)));
-            lines.push_back(CompoundTerm::getOverrideFact(methodKey, AddressableInfo::makeOverrideKey(methodKey)));
-            lines.push_back(CompoundTerm::getOverrideFact(methodInfo->calledMethodKey, AddressableInfo::makeOverrideKey(methodInfo->calledMethodKey)));
-            lines.push_back(CompoundTerm::getOverrideFact(returnKey, AddressableInfo::makeOverrideKey(returnKey)));
-            lines.push_back(CompoundTerm::getOverrideFact(calledReturnKey, AddressableInfo::makeOverrideKey(calledReturnKey)));
+            lines.push_back(CompoundTerm::getStepKeyFact(methodKey, AddressableInfo::makeStepKey(methodKey)));
+            lines.push_back(CompoundTerm::getStepKeyFact(methodInfo->calledMethodKey, AddressableInfo::makeStepKey(methodInfo->calledMethodKey)));
+            lines.push_back(CompoundTerm::getStepKeyFact(returnKey, AddressableInfo::makeStepKey(returnKey)));
+            lines.push_back(CompoundTerm::getStepKeyFact(calledReturnKey, AddressableInfo::makeStepKey(calledReturnKey)));
+            lines.push_back(CompoundTerm::getOverrideKeyFact(methodKey, AddressableInfo::makeOverrideKey(methodKey)));
+            lines.push_back(CompoundTerm::getOverrideKeyFact(methodInfo->calledMethodKey, AddressableInfo::makeOverrideKey(methodInfo->calledMethodKey)));
+            lines.push_back(CompoundTerm::getOverrideKeyFact(returnKey, AddressableInfo::makeOverrideKey(returnKey)));
+            lines.push_back(CompoundTerm::getOverrideKeyFact(calledReturnKey, AddressableInfo::makeOverrideKey(calledReturnKey)));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodKey, methodSimpleName));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodInfo->calledMethodKey, AddressableInfo::makeCalledKey(methodSimpleName)));
             lines.push_back(CompoundTerm::getSimpleNameFact(returnKey, methodInfo->returnInfo->name));
@@ -146,10 +158,10 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
                 string& calledParamKey = calledParamInfo->fieldKey;
                 lines.push_back(CompoundTerm::getParameterFact(methodKey, paramKey));
                 lines.push_back(CompoundTerm::getCalledParamFact(paramKey, calledParamKey));
-                lines.push_back(CompoundTerm::getStepFact(paramKey, AddressableInfo::makeStepKey(paramKey)));
-                lines.push_back(CompoundTerm::getStepFact(calledParamKey, AddressableInfo::makeStepKey(calledParamKey)));
-                lines.push_back(CompoundTerm::getOverrideFact(paramKey, AddressableInfo::makeOverrideKey(paramKey)));
-                lines.push_back(CompoundTerm::getOverrideFact(calledParamKey, AddressableInfo::makeOverrideKey(calledParamKey)));
+                lines.push_back(CompoundTerm::getStepKeyFact(paramKey, AddressableInfo::makeStepKey(paramKey)));
+                lines.push_back(CompoundTerm::getStepKeyFact(calledParamKey, AddressableInfo::makeStepKey(calledParamKey)));
+                lines.push_back(CompoundTerm::getOverrideKeyFact(paramKey, AddressableInfo::makeOverrideKey(paramKey)));
+                lines.push_back(CompoundTerm::getOverrideKeyFact(calledParamKey, AddressableInfo::makeOverrideKey(calledParamKey)));
                 lines.push_back(CompoundTerm::getSimpleNameFact(paramKey, paramInfo->name));
                 lines.push_back(CompoundTerm::getSimpleNameFact(calledParamKey, calledParamInfo->name));
                 lines.push_back(CompoundTerm::getInstanceOfFact(paramKey, paramInfo->typeInfo->typeKey));
@@ -341,12 +353,20 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getStepKeyToClassKeyTerm(Term* stepKey, Term* classKey) {
-    return makeTerm(HEAD_STEP_KEY_TO_CLASS_KEY, stepKey, classKey);
+CompoundTerm* CompoundTerm::getStepInKeyToClassKeyTerm(Term* stepKey, Term* classKey) {
+    return makeTerm(HEAD_STEP_IN_KEY_TO_CLASS_KEY, stepKey, classKey);
 }
 
-CompoundTerm* CompoundTerm::getLoadClassByStepKeyTerm(Term* stepKey) {
-    return makeTerm(HEAD_LOAD_CLASS_BY_STEP_KEY, stepKey);
+CompoundTerm* CompoundTerm::getStepOutKeyToClassKeyTerm(Term* stepKey, Term* classKey) {
+    return makeTerm(HEAD_STEP_OUT_KEY_TO_CLASS_KEY, stepKey, classKey);
+}
+
+CompoundTerm* CompoundTerm::getLoadClassByStepInKeyTerm(Term* stepKey) {
+    return makeTerm(HEAD_LOAD_CLASS_BY_STEP_IN_KEY, stepKey);
+}
+
+CompoundTerm* CompoundTerm::getLoadClassByStepOutKeyTerm(Term* stepKey) {
+    return makeTerm(HEAD_LOAD_CLASS_BY_STEP_OUT_KEY, stepKey);
 }
 
 CompoundTerm* CompoundTerm::getLoadRuntimeTerm(Term* classKey) {
@@ -441,12 +461,12 @@ string CompoundTerm::getSubTypeFact(const string& typeKey, const string& subType
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getOverrideTypeTerm(Term* overrideKey, Term* typeKey) {
-    return makeTerm(HEAD_OVERRIDE_TYPE, overrideKey, typeKey);
+CompoundTerm* CompoundTerm::getOverrideTerm(Term* overrideKey, Term* typeKey) {
+    return makeTerm(HEAD_OVERRIDE, overrideKey, typeKey);
 }
 
-string CompoundTerm::getOverrideTypeFact(const string& overrideKey, const string& typeKey) {
-    string ret = getOverrideTypeTerm(Term::getStr(overrideKey), Term::getStr(typeKey))->toString(true);
+string CompoundTerm::getOverrideFact(const string& overrideKey, const string& typeKey) {
+    string ret = getOverrideTerm(Term::getStr(overrideKey), Term::getStr(typeKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
@@ -459,6 +479,16 @@ string CompoundTerm::getRelatedTypeFact(const string& typeKey, const string& typ
 
 CompoundTerm* CompoundTerm::getRelatedTypeTerm(Term* typeKey, Term* typeKeyUsedByFirstParam) {
     return makeTerm(HEAD_RELATED_TYPE, typeKey, typeKeyUsedByFirstParam);
+}
+
+string CompoundTerm::getRelatedTypeAndMethodFact(const string& typeKey, const string& methodKeyItUsed) {
+    string ret = getRelatedTypeAndMethodTerm(Term::getStr(typeKey), Term::getStr(methodKeyItUsed))->toString(true);
+    ret.push_back('.');
+    return ret;
+}
+
+CompoundTerm* CompoundTerm::getRelatedTypeAndMethodTerm(Term* typeKey, Term* methodKeyUsedByFirstParam) {
+    return makeTerm(HEAD_RELATED_TYPE_AND_METHOD, typeKey, methodKeyUsedByFirstParam);
 }
 
 string CompoundTerm::getMethodFact(const string& typeKey, const string& methodKey) {
@@ -539,30 +569,30 @@ string CompoundTerm::getCalledReturnFact(const string& returnKey, const string& 
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getStepTerm(Term* key, Term* stepKey) {
+CompoundTerm* CompoundTerm::getStepKeyTerm(Term* key, Term* stepKey) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
-    ret->head = HEAD_STEP;
+    ret->head = HEAD_STEP_KEY;
     ret->addArg(key);
     ret->addArg(stepKey);
     return ret;
 }
 
-CompoundTerm* CompoundTerm::getOverrideTerm(Term* key, Term* overrideKey) {
+CompoundTerm* CompoundTerm::getOverrideKeyTerm(Term* key, Term* overrideKey) {
     auto* ret = PooledItem<CompoundTerm>::getInstance();
-    ret->head = HEAD_OVERRIDE;
+    ret->head = HEAD_OVERRIDE_KEY;
     ret->addArg(key);
     ret->addArg(overrideKey);
     return ret;
 }
 
-string CompoundTerm::getOverrideFact(const string& key, const string& overrideKey) {
-    string ret = getOverrideTerm(Term::getStr(key), Term::getStr(overrideKey))->toString(true);
+string CompoundTerm::getOverrideKeyFact(const string& key, const string& overrideKey) {
+    string ret = getOverrideKeyTerm(Term::getStr(key), Term::getStr(overrideKey))->toString(true);
     ret.push_back('.');
     return ret;
 }
 
-string CompoundTerm::getStepFact(const string& key, const string& stepKey) {
-    string ret = getStepTerm(Term::getStr(key), Term::getStr(stepKey))->toString(true);
+string CompoundTerm::getStepKeyFact(const string& key, const string& stepKey) {
+    string ret = getStepKeyTerm(Term::getStr(key), Term::getStr(stepKey))->toString(true);
     ret.push_back('.');
     return ret;
 }

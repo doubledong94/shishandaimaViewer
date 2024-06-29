@@ -42,13 +42,15 @@ public:
     static string prologGlobalInfo_typeKey2UnaddressableFilePath;
     static string prologGlobalInfo_package2typeKey;
     static string prologGlobalInfo_typeKey2subTypeKeys;
-    static string prologGlobalInfo_overrideMethodKey2TypeKey;
+    static string prologGlobalInfo_override;
     static string prologGlobalInfo_typeKey2itUseTypeKeys;
     static string prologGlobalInfo_filePath2typeKey2FilePath;
     static string prologGlobalInfo_filePath2package2typeKey;
     static string prologGlobalInfo_filePath2typeKey2subTypeKeys;
-    static string prologGlobalInfo_filePath2overrideMethodKey2TypeKey;
+    static string prologGlobalInfo_filePath2override;
     static string prologGlobalInfo_filePath2TypeKey2itUseTypeKeys;
+    static string prologGlobalInfo_typeKey2itUseMethods;
+    static string prologGlobalInfo_filePath2TypeKey2itUseMethods;
     static string prologGlobalInfo_baseRuleFile;
 
     static string fontBaseDir;

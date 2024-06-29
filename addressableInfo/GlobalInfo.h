@@ -6,12 +6,13 @@ public:
 
     static map<string, map<string, set<string>>> filePath2package2typeKeys;
     static map<string, map<string, set<string>>> filePath2typeKey2subTypeKeys;
-    static map<string, map<string, set<string>>> filePath2overrideMethodKey2TypeKey;
+    static map<string, map<string, set<string>>> filePath2override;
 
     static map<string, map<string, string>> filePath2typeKey2filePath;
     static map<string, list<TypeInfo*>> filePath2typeInfos;
 
     static map<string, map<string, set<string>>> filePath2TypeKey2itUseTypeKeys;
+    static map<string, map<string, set<string>>> filePath2TypeKey2itUseMethods;
 
     static std::mutex addUsageLock;
 
@@ -125,6 +126,10 @@ public:
     static void serializeUseRelation();
 
     static void deserializeUseRelation();
+
+    static void serializeUseMethod();
+
+    static void deserializeUseMethod();
 
     static void serializeFilePath();
 

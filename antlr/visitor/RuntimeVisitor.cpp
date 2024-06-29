@@ -1669,6 +1669,7 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
 }
 
 void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
+    classScopeAndEnv->addUsage(methodInfo);
     string indexInsideExpForMethod = getIncreasedIndexInsideExp();
     string& returnKey = methodInfo->returnInfo->fieldKey;
     string& calledReturnKey = methodInfo->calledReturnInfo->fieldKey;

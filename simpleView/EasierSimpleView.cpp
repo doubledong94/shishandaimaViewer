@@ -174,8 +174,8 @@ void EasierSimpleView::init() {
 
     PrologWrapper::declareFun(HEAD_RUNTIME_KEY->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_DATA_FLOW->atomOrVar, 3);
-    PrologWrapper::declareFun(HEAD_STEP->atomOrVar, 2);
-    PrologWrapper::declareFun(HEAD_OVERRIDE->atomOrVar, 2);
+    PrologWrapper::declareFun(HEAD_STEP_KEY->atomOrVar, 2);
+    PrologWrapper::declareFun(HEAD_OVERRIDE_KEY->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_RUNTIME_READ->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_RUNTIME_WRITE->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_CODE_ORDER->atomOrVar, 3);
@@ -246,6 +246,14 @@ void EasierSimpleView::declareOverrideRules() {
     Term* subInnerMethod = Term::getVar("SubInnerMethodKey");
     Term* outerMethod = Term::getVar("OuterMethodKey");
     Term* overrideKey = Term::getVar("Override");
+    Term* overrideKeyTemp = Term::getVar("OverrideTemp");
+    Term* method = Term::getVar("Method");
+    Term* methodOverride = Term::getVar("MethodOverride");
+    Term* calledMethodOverride = Term::getVar("CalledMethodOverride");
+    Term* returnOverride = Term::getVar("ReturnOverride");
+    Term* calledReturnOverride = Term::getVar("CalledReturnOverride");
+    Term* paramOverride = Term::getVar("ParamOverride");
+    Term* calledParamOverride = Term::getVar("CalledParamOverride");
     vector<Rule*> rules;
 
     // forward -----------------------------------------------------------------------------------------------------------------------------------------------
@@ -256,7 +264,9 @@ void EasierSimpleView::declareOverrideRules() {
         // restore called key to normal key (innerMethod)
         CompoundTerm::getCalledMethodTerm(innerMethod,addressablePoint),
         // nomal key to its override key
-        CompoundTerm::getOverrideTerm(innerMethod,overrideKey),
+        CompoundTerm::getOverrideKeyTerm(innerMethod,overrideKey),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepInKeyTerm(overrideKey)),
         // override key to its runtime key (nextOverrideKey)
         CompoundTerm::getRuntimeTerm(subInnerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE)),
         // called method to called return
@@ -269,7 +279,9 @@ void EasierSimpleView::declareOverrideRules() {
         // restore called key to normal key (param key), and get its method as inner method
         CompoundTerm::getCalledParamTerm(param,addressablePoint),CompoundTerm::getParameterTerm(innerMethod,param),
         // normal key to its override key
-        CompoundTerm::getOverrideTerm(param,overrideKey),
+        CompoundTerm::getOverrideKeyTerm(param,overrideKey),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepInKeyTerm(overrideKey)),
         // override key to its runtime key
         CompoundTerm::getRuntimeTerm(subInnerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
         // called param to called return
@@ -287,7 +299,15 @@ void EasierSimpleView::declareOverrideRules() {
         // return key to called return key
         CompoundTerm::getCalledReturnTerm(addressablePoint,calledReturn),
         // called return key to called override key
-        CompoundTerm::getOverrideTerm(calledReturn,overrideKey),
+        CompoundTerm::getOverrideKeyTerm(calledReturn,overrideKeyTemp),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(overrideKeyTemp)),
+        // override out key
+        CompoundTerm::getReturnTerm(method,addressablePoint),
+        CompoundTerm::getOverrideTerm(methodOverride,method),
+        CompoundTerm::getReturnTerm(methodOverride,returnOverride),
+        CompoundTerm::getCalledReturnTerm(returnOverride,calledReturnOverride),
+        CompoundTerm::getOverrideKeyTerm(calledReturnOverride,overrideKey),
         // runtime overrideKey
         CompoundTerm::getRuntimeTerm(outerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
         }));
@@ -305,7 +325,13 @@ void EasierSimpleView::declareOverrideRules() {
         // method key to called method key
         CompoundTerm::getCalledMethodTerm(addressablePoint,calledMethod),
         // called method key to called override key
-        CompoundTerm::getOverrideTerm(calledMethod,overrideKey),
+        CompoundTerm::getOverrideKeyTerm(calledMethod,overrideKeyTemp),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(overrideKeyTemp)),
+        // override out key
+        CompoundTerm::getOverrideTerm(methodOverride,addressablePoint),
+        CompoundTerm::getCalledMethodTerm(methodOverride,calledMethodOverride),
+        CompoundTerm::getOverrideKeyTerm(calledMethodOverride,overrideKey),
         // runtime overrideKey
         CompoundTerm::getRuntimeTerm(outerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE)),
         }));
@@ -322,7 +348,13 @@ void EasierSimpleView::declareOverrideRules() {
         // parameter key to called parameter key
         CompoundTerm::getCalledParamTerm(addressablePoint,calledParam),
         // called param key to called override key
-        CompoundTerm::getOverrideTerm(calledParam,overrideKey),
+        CompoundTerm::getOverrideKeyTerm(calledParam,overrideKeyTemp),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(overrideKeyTemp)),
+        // override out key
+        CompoundTerm::getOverrideTerm(paramOverride,addressablePoint),
+        CompoundTerm::getCalledParamTerm(paramOverride,calledParamOverride),
+        CompoundTerm::getOverrideKeyTerm(calledParamOverride,overrideKey),
         // runtime overrideKey
         CompoundTerm::getRuntimeTerm(outerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
         }));
@@ -333,7 +365,9 @@ void EasierSimpleView::declareOverrideRules() {
         // restore called key to normal key (return key)
         CompoundTerm::getCalledReturnTerm(returnKey,addressablePoint),
         // normal key to its override key
-        CompoundTerm::getOverrideTerm(returnKey,overrideKey),
+        CompoundTerm::getOverrideKeyTerm(returnKey,overrideKey),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepInKeyTerm(overrideKey)),
         // override key to its runtime key
         CompoundTerm::getRuntimeTerm(innerMethod,overrideKey,nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
         }));
@@ -359,6 +393,7 @@ void EasierSimpleView::declareOverrideRules() {
     outerMethod->returnThisToPool();
     overrideKey->returnThisToPool();
     subInnerMethod->returnThisToPool();
+    overrideKeyTemp->returnThisToPool();
 }
 
 void EasierSimpleView::declareStepRules() {
@@ -406,7 +441,9 @@ void EasierSimpleView::declareStepRules() {
         // restore called key to normal key (innerMethod)
         CompoundTerm::getCalledMethodTerm(innerMethod,addressablePoint),
         // nomal key to its step key
-        CompoundTerm::getStepTerm(innerMethod,step),
+        CompoundTerm::getStepKeyTerm(innerMethod,step),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepInKeyTerm(step)),
         // step key to its runtime key (nextStepKey)
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
         // called method to called return
@@ -419,7 +456,9 @@ void EasierSimpleView::declareStepRules() {
         // restore called key to normal key (param key), and get its method as inner method
         CompoundTerm::getCalledParamTerm(param,addressablePoint),CompoundTerm::getParameterTerm(innerMethod,param),
         // normal key to its step key
-        CompoundTerm::getStepTerm(param,step),
+        CompoundTerm::getStepKeyTerm(param,step),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepInKeyTerm(step)),
         // step key to its runtime key
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         // called param to called return
@@ -437,7 +476,9 @@ void EasierSimpleView::declareStepRules() {
         // return key to called return key
         CompoundTerm::getCalledReturnTerm(addressablePoint,calledReturn),
         // called return key to called step
-        CompoundTerm::getStepTerm(calledReturn,step),
+        CompoundTerm::getStepKeyTerm(calledReturn,step),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(step)),
         // runtime step
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         }));
@@ -455,7 +496,9 @@ void EasierSimpleView::declareStepRules() {
         // method key to called method key
         CompoundTerm::getCalledMethodTerm(addressablePoint,calledMethod),
         // called method key to called step key
-        CompoundTerm::getStepTerm(calledMethod,step),
+        CompoundTerm::getStepKeyTerm(calledMethod,step),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(step)),
         // runtime step
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
         }));
@@ -472,7 +515,9 @@ void EasierSimpleView::declareStepRules() {
         // parameter key to called parameter key
         CompoundTerm::getCalledParamTerm(addressablePoint,calledParam),
         // called param key to called step key
-        CompoundTerm::getStepTerm(calledParam,step),
+        CompoundTerm::getStepKeyTerm(calledParam,step),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(step)),
         // runtime step
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         }));
@@ -483,7 +528,9 @@ void EasierSimpleView::declareStepRules() {
         // restore called key to normal key (return key)
         CompoundTerm::getCalledReturnTerm(returnKey,addressablePoint),
         // normal key to its step key
-        CompoundTerm::getStepTerm(returnKey,step),
+        CompoundTerm::getStepKeyTerm(returnKey,step),
+        // load
+        NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepInKeyTerm(step)),
         // step key to its runtime key
         CompoundTerm::getRuntimeTerm(innerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         }));
@@ -515,61 +562,82 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     vector<Rule*> rules;
     Term* stepKey = Term::getVar("StepKey");
     Term* classKey = Term::getVar("ClassKey");
+    Term* classKeyTemp = Term::getVar("ClassKeyTemp");
     Term* usedClassKey = Term::getVar("UsedClassKey");
     Term* methodKey = Term::getVar("MethodKey");
+    Term* methodKeyTemp = Term::getVar("MethodKeyTemp");
     Term* calledMethodKey = Term::getVar("CalledMethodKey");
+    Term* calledMethodKeyTemp = Term::getVar("CalledMethodKeyTemp");
     Term* paramKey = Term::getVar("ParamKey");
     Term* calledParamKey = Term::getVar("CalledParamKey");
+    Term* paramKeyTemp = Term::getVar("ParamKeyTemp");
+    Term* calledParamKeyTemp = Term::getVar("CalledParamKeyTemp");
     Term* returnKey = Term::getVar("ReturnKey");
     Term* calledReturnKey = Term::getVar("CalledReturnKey");
-    Term* methodToClassTerm = DisjunctionTerm::getDisjunctionInstance(
+    Term* returnKeyTemp = Term::getVar("ReturnKeyTemp");
+    Term* calledReturnKeyTemp = Term::getVar("CalledReturnKeyTemp");
+    Term* methodToItsClassTerm = DisjunctionTerm::getDisjunctionInstance(
         CompoundTerm::getMethodTerm(classKey, methodKey), CompoundTerm::getConstructorTerm(classKey, methodKey)
     );
-    Term* methodToOverrideClassTerm = CompoundTerm::getOverrideTypeTerm(methodKey, classKey);
+    Term* methodToOverrideInClassTerm = ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getOverrideTerm(methodKeyTemp,methodKey),CompoundTerm::getMethodTerm(classKey, methodKey) });
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey), {
         CompoundTerm::getRelatedTypeTerm(classKey,usedClassKey),CompoundTerm::getLoadAddressableTerm(usedClassKey)
         }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getStepTerm(methodKey,stepKey),methodToClassTerm
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepKeyTerm(methodKey,stepKey),methodToItsClassTerm
         }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getStepTerm(calledMethodKey,stepKey),CompoundTerm::getCalledMethodTerm(methodKey,calledMethodKey),methodToClassTerm
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepKeyTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKey,paramKey),methodToItsClassTerm
         }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getStepTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKey,paramKey),methodToClassTerm
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getStepTerm(calledParamKey,stepKey),CompoundTerm::getCalledParamTerm(paramKey,calledParamKey),CompoundTerm::getParameterTerm(methodKey,paramKey),methodToClassTerm
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getStepTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToClassTerm
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getStepTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToClassTerm
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepKeyTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKey,returnKey),methodToItsClassTerm
         }));
 
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideTerm(methodKey,stepKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideKeyTerm(methodKeyTemp,stepKey),methodToOverrideInClassTerm
         }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideTerm(calledMethodKey,stepKey),CompoundTerm::getCalledMethodTerm(methodKey,calledMethodKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideKeyTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKeyTemp,paramKey),methodToOverrideInClassTerm
         }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKey,paramKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideTerm(calledParamKey,stepKey),CompoundTerm::getCalledParamTerm(paramKey,calledParamKey),CompoundTerm::getParameterTerm(methodKey,paramKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKey,returnKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),DisjunctionTerm::getDisjunctionInstance(methodToClassTerm,methodToOverrideClassTerm)
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideKeyTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKeyTemp,returnKey),methodToOverrideInClassTerm
         }));
 
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepKeyTerm(stepKey), {
-        CompoundTerm::getStepKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepKeyTerm(calledMethodKey,stepKey),CompoundTerm::getCalledMethodTerm(methodKey,calledMethodKey),CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepKeyTerm(calledParamKey,stepKey),CompoundTerm::getCalledParamTerm(paramKey,calledParamKey),CompoundTerm::getParameterTerm(methodKey,paramKey),CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getStepKeyTerm(calledReturnKey,stepKey),CompoundTerm::getCalledReturnTerm(returnKey,calledReturnKey),CompoundTerm::getReturnTerm(methodKey,returnKey),CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
+        }));
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideKeyTerm(calledMethodKeyTemp,stepKey),CompoundTerm::getCalledMethodTerm(methodKeyTemp,calledMethodKeyTemp),
+            CompoundTerm::getOverrideTerm(methodKey,methodKeyTemp),
+            CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideKeyTerm(calledParamKeyTemp,stepKey),CompoundTerm::getCalledParamTerm(paramKeyTemp,calledParamKeyTemp),CompoundTerm::getParameterTerm(methodKeyTemp,paramKeyTemp),
+            CompoundTerm::getOverrideTerm(methodKey,methodKeyTemp),
+            CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
+            CompoundTerm::getOverrideKeyTerm(calledReturnKeyTemp,stepKey),CompoundTerm::getCalledReturnTerm(returnKeyTemp,calledReturnKeyTemp),CompoundTerm::getReturnTerm(methodKeyTemp,returnKeyTemp),
+            CompoundTerm::getOverrideTerm(methodKey,methodKeyTemp),
+            CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
+        }));
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepInKeyTerm(stepKey), {
+        CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
+        NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey)),
+        Term::getAtom("fail")
+        }));
+
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(stepKey), {
+        CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
         NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey)),
         Term::getAtom("fail")
         }));
@@ -582,12 +650,19 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     }
     stepKey->returnThisToPool();
     classKey->returnThisToPool();
+    classKeyTemp->returnThisToPool();
     methodKey->returnThisToPool();
+    methodKeyTemp->returnThisToPool();
     calledMethodKey->returnThisToPool();
+    calledMethodKeyTemp->returnThisToPool();
     paramKey->returnThisToPool();
     calledParamKey->returnThisToPool();
+    paramKeyTemp->returnThisToPool();
+    calledParamKeyTemp->returnThisToPool();
     returnKey->returnThisToPool();
     calledReturnKey->returnThisToPool();
+    returnKeyTemp->returnThisToPool();
+    calledReturnKeyTemp->returnThisToPool();
 }
 
 void EasierSimpleView::searchClass(char* searchStr, vector<const char*>& searchResult) {
@@ -3056,7 +3131,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         Term* stepAddressable = Term::getVar("StepAddressable");
         // check type
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, stepAddressable, midStepTermRuntime, Term::getInt(specialKeyType)));
-        ruleBody.push_back(NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepKeyTerm(stepAddressable)));
         // generate the next method key and next steps
         if (nodeType == Node::NODE_TYPE_DATA_STEP) {
             if (isBackward) {
