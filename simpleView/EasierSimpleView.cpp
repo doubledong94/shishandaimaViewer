@@ -589,10 +589,30 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     Term* calledReturnKey = Term::getVar("CalledReturnKey");
     Term* returnKeyTemp = Term::getVar("ReturnKeyTemp");
     Term* calledReturnKeyTemp = Term::getVar("CalledReturnKeyTemp");
+
+    Term* failTerm = Term::getAtom("fail");
+    Term* typeKey = Term::getVar("TypeKey");
+    Term* typeKeyTemp = Term::getVar("TypeKeyTemp");
+    Term* subTypeKey = Term::getVar("SubTypeKey");
+    Term* subTypeKeyTemp = Term::getVar("SubTypeKeyTemp");
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getSubTypeDownRecurTerm(typeKey, subTypeKey), {
+        CompoundTerm::getSubTypeTerm(typeKey,subTypeKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getSubTypeDownRecurTerm(typeKey, subTypeKey), {
+        CompoundTerm::getSubTypeTerm(typeKey,subTypeKeyTemp),CompoundTerm::getSubTypeDownRecurTerm(subTypeKeyTemp,subTypeKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getSubTypeUpRecurTerm(typeKey, subTypeKey), {
+        CompoundTerm::getSubTypeTerm(typeKey,subTypeKey)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getSubTypeUpRecurTerm(typeKey, subTypeKey), {
+        CompoundTerm::getSubTypeTerm(typeKeyTemp,subTypeKey),CompoundTerm::getSubTypeUpRecurTerm(typeKey,typeKeyTemp)
+        }));
     Term* methodToItsClassTerm = DisjunctionTerm::getDisjunctionInstance(
         CompoundTerm::getMethodTerm(classKey, methodKey), CompoundTerm::getConstructorTerm(classKey, methodKey)
     );
-    Term* methodToOverrideInClassTerm = ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getOverrideTerm(methodKeyTemp,methodKey),CompoundTerm::getMethodTerm(classKey, methodKey) });
+    Term* loadSubTypeTerm = NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getMethodTerm(typeKey,methodKeyTemp),CompoundTerm::getSubTypeDownRecurTerm(typeKey,subTypeKey),CompoundTerm::getLoadAddressableTerm(subTypeKey), failTerm }));
+
+    Term* methodToOverrideInClassTerm = ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getOverrideInRecurTerm(methodKeyTemp,methodKey),CompoundTerm::getMethodTerm(classKey, methodKey) });
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey), {
         CompoundTerm::getRelatedTypeTerm(classKey,usedClassKey),CompoundTerm::getLoadAddressableTerm(usedClassKey)
@@ -608,13 +628,13 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
         }));
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideKeyTerm(methodKeyTemp,stepKey),methodToOverrideInClassTerm
+            CompoundTerm::getOverrideKeyTerm(methodKeyTemp,stepKey),loadSubTypeTerm,methodToOverrideInClassTerm
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideKeyTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKeyTemp,paramKey),methodToOverrideInClassTerm
+            CompoundTerm::getOverrideKeyTerm(paramKey,stepKey),CompoundTerm::getParameterTerm(methodKeyTemp,paramKey),loadSubTypeTerm,methodToOverrideInClassTerm
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey), {
-            CompoundTerm::getOverrideKeyTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKeyTemp,returnKey),methodToOverrideInClassTerm
+            CompoundTerm::getOverrideKeyTerm(returnKey,stepKey),CompoundTerm::getReturnTerm(methodKeyTemp,returnKey),loadSubTypeTerm,methodToOverrideInClassTerm
         }));
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
@@ -646,13 +666,13 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepInKeyTerm(stepKey), {
         CompoundTerm::getStepInKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
         NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey)),
-        Term::getAtom("fail")
+        failTerm
         }));
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(stepKey), {
         CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey),NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableForRuntimeTerm(classKey)),
         NegationTerm::getNegInstance(CompoundTerm::getLoadAddressableTerm(classKey)), NegationTerm::getNegInstance(CompoundTerm::getLoadRuntimeTerm(classKey)),
-        Term::getAtom("fail")
+        failTerm
         }));
 
     for (auto& rule : rules) {
@@ -676,6 +696,11 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
     calledReturnKey->returnThisToPool();
     returnKeyTemp->returnThisToPool();
     calledReturnKeyTemp->returnThisToPool();
+    failTerm->returnThisToPool();
+    typeKey->returnThisToPool();
+    typeKeyTemp->returnThisToPool();
+    subTypeKey->returnThisToPool();
+    subTypeKeyTemp->returnThisToPool();
 }
 
 void EasierSimpleView::searchClass(char* searchStr, vector<const char*>& searchResult) {

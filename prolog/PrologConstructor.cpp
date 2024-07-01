@@ -202,7 +202,7 @@ void NegationTerm::reset() {
 }
 
 string NegationTerm::toString(bool returnToPool) {
-    return "\\+" + term->toString();
+    return "\\+(" + term->toString()+")";
 }
 
 Term::Term() {
@@ -453,6 +453,14 @@ CompoundTerm* CompoundTerm::getPackageTerm(Term* package, Term* typeKey) {
 
 CompoundTerm* CompoundTerm::getSubTypeTerm(Term* typeKey, Term* subTypeKey) {
     return makeTerm(HEAD_SUB_TYPE, typeKey, subTypeKey);
+}
+
+CompoundTerm* CompoundTerm::getSubTypeDownRecurTerm(Term* typeKey, Term* subTypeKey) {
+    return makeTerm(HEAD_SUB_TYPE_DOWN_RECUR, typeKey, subTypeKey);
+}
+
+CompoundTerm* CompoundTerm::getSubTypeUpRecurTerm(Term* typeKey, Term* subTypeKey) {
+    return makeTerm(HEAD_SUB_TYPE_UP_RECUR, typeKey, subTypeKey);
 }
 
 string CompoundTerm::getSubTypeFact(const string& typeKey, const string& subTypeKey) {

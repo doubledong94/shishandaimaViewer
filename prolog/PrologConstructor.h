@@ -104,6 +104,8 @@ static Term* HEAD_ADDRESSABLE_FILE = new Term("addressableFile", Term::TERM_TYPE
 static Term* HEAD_UNADDRESSABLE_FILE = new Term("unaddressableFile", Term::TERM_TYPE_ATOM);
 static Term* HEAD_PACKAGE = new Term("package", Term::TERM_TYPE_ATOM);
 static Term* HEAD_SUB_TYPE = new Term("subType", Term::TERM_TYPE_ATOM);
+static Term* HEAD_SUB_TYPE_DOWN_RECUR = new Term("subTypeDownRecur", Term::TERM_TYPE_ATOM);
+static Term* HEAD_SUB_TYPE_UP_RECUR = new Term("subTypeUpRecur", Term::TERM_TYPE_ATOM);
 static Term* HEAD_OVERRIDE = new Term("override", Term::TERM_TYPE_ATOM);
 static Term* HEAD_OVERRIDE_IN_RECUR = new Term("overrideInRecur", Term::TERM_TYPE_ATOM);
 static Term* HEAD_OVERRIDE_OUT_RECUR = new Term("overrideOutRecur", Term::TERM_TYPE_ATOM);
@@ -278,6 +280,10 @@ public:
     static CompoundTerm* getPackageTerm(Term* package, Term* typeKey);
 
     static CompoundTerm* getSubTypeTerm(Term* typeKey, Term* subTypeKey);
+
+    static CompoundTerm* getSubTypeDownRecurTerm(Term* typeKey, Term* subTypeKey);
+
+    static CompoundTerm* getSubTypeUpRecurTerm(Term* typeKey, Term* subTypeKey);
 
     static string getSubTypeFact(const string& typeKey, const string& subTypeKey);
 
