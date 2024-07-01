@@ -1930,9 +1930,9 @@ void BoundedIncrementalGraph::removeSelectedNodesImpl() {
     // when node count is over 4000, delete all nodes will crash this app
     // malloc_consolidate(): unaligned fastbin chunk detected
     // I can not solve this problem, so I'm not allowing delete all nodes
-    if (tobeRemoved.size() == points.size()) {
-        tobeRemoved.erase(1);
-    }
+    // if (tobeRemoved.size() == points.size()) {
+    //     tobeRemoved.erase(1);
+    // }
     int c = 0;
     for (int i : tobeRemoved) {
         VECTOR(vertices_)[c] = i;
