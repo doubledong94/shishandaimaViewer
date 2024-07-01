@@ -465,6 +465,14 @@ CompoundTerm* CompoundTerm::getOverrideTerm(Term* overrideKey, Term* typeKey) {
     return makeTerm(HEAD_OVERRIDE, overrideKey, typeKey);
 }
 
+CompoundTerm* CompoundTerm::getOverrideInRecurTerm(Term* overrideKey, Term* typeKey) {
+    return makeTerm(HEAD_OVERRIDE_IN_RECUR, overrideKey, typeKey);
+}
+
+CompoundTerm* CompoundTerm::getOverrideOutRecurTerm(Term* overrideKey, Term* typeKey) {
+    return makeTerm(HEAD_OVERRIDE_OUT_RECUR, overrideKey, typeKey);
+}
+
 string CompoundTerm::getOverrideFact(const string& overrideKey, const string& typeKey) {
     string ret = getOverrideTerm(Term::getStr(overrideKey), Term::getStr(typeKey))->toString(true);
     ret.push_back('.');

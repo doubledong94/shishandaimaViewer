@@ -256,6 +256,19 @@ void EasierSimpleView::declareOverrideRules() {
     Term* calledParamOverride = Term::getVar("CalledParamOverride");
     vector<Rule*> rules;
 
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getOverrideInRecurTerm(overrideKey, method), {
+        CompoundTerm::getOverrideTerm(overrideKey,method)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getOverrideInRecurTerm(overrideKey, method), {
+        CompoundTerm::getOverrideTerm(overrideKey,overrideKeyTemp),CompoundTerm::getOverrideInRecurTerm(overrideKeyTemp,method)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getOverrideOutRecurTerm(overrideKey, method), {
+        CompoundTerm::getOverrideTerm(overrideKey,method)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getOverrideOutRecurTerm(overrideKey, method), {
+        CompoundTerm::getOverrideTerm(overrideKeyTemp,method),CompoundTerm::getOverrideOutRecurTerm(overrideKey,overrideKeyTemp)
+        }));
+
     // forward -----------------------------------------------------------------------------------------------------------------------------------------------
     // called method -> override -> override -> method (increase steps)
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardTimingOverrideTerm(outerMethod, point, subInnerMethod, nextOverrideKey, currentSteps, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), currentSteps)), {
@@ -304,7 +317,7 @@ void EasierSimpleView::declareOverrideRules() {
         NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(overrideKeyTemp)),
         // override out key
         CompoundTerm::getReturnTerm(method,addressablePoint),
-        CompoundTerm::getOverrideTerm(methodOverride,method),
+        CompoundTerm::getOverrideOutRecurTerm(methodOverride,method),
         CompoundTerm::getReturnTerm(methodOverride,returnOverride),
         CompoundTerm::getCalledReturnTerm(returnOverride,calledReturnOverride),
         CompoundTerm::getOverrideKeyTerm(calledReturnOverride,overrideKey),
@@ -329,7 +342,7 @@ void EasierSimpleView::declareOverrideRules() {
         // load
         NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(overrideKeyTemp)),
         // override out key
-        CompoundTerm::getOverrideTerm(methodOverride,addressablePoint),
+        CompoundTerm::getOverrideOutRecurTerm(methodOverride,addressablePoint),
         CompoundTerm::getCalledMethodTerm(methodOverride,calledMethodOverride),
         CompoundTerm::getOverrideKeyTerm(calledMethodOverride,overrideKey),
         // runtime overrideKey
@@ -352,7 +365,7 @@ void EasierSimpleView::declareOverrideRules() {
         // load
         NegationTerm::getNegInstance(CompoundTerm::getLoadClassByStepOutKeyTerm(overrideKeyTemp)),
         // override out key
-        CompoundTerm::getOverrideTerm(paramOverride,addressablePoint),
+        CompoundTerm::getOverrideOutRecurTerm(paramOverride,addressablePoint),
         CompoundTerm::getCalledParamTerm(paramOverride,calledParamOverride),
         CompoundTerm::getOverrideKeyTerm(calledParamOverride,overrideKey),
         // runtime overrideKey
@@ -616,17 +629,17 @@ void EasierSimpleView::declareLoadRuntimeByStepKey() {
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
             CompoundTerm::getOverrideKeyTerm(calledMethodKeyTemp,stepKey),CompoundTerm::getCalledMethodTerm(methodKeyTemp,calledMethodKeyTemp),
-            CompoundTerm::getOverrideTerm(methodKey,methodKeyTemp),
+            CompoundTerm::getOverrideOutRecurTerm(methodKey,methodKeyTemp),
             CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
             CompoundTerm::getOverrideKeyTerm(calledParamKeyTemp,stepKey),CompoundTerm::getCalledParamTerm(paramKeyTemp,calledParamKeyTemp),CompoundTerm::getParameterTerm(methodKeyTemp,paramKeyTemp),
-            CompoundTerm::getOverrideTerm(methodKey,methodKeyTemp),
+            CompoundTerm::getOverrideOutRecurTerm(methodKey,methodKeyTemp),
             CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getStepOutKeyToClassKeyTerm(stepKey, classKey), {
             CompoundTerm::getOverrideKeyTerm(calledReturnKeyTemp,stepKey),CompoundTerm::getCalledReturnTerm(returnKeyTemp,calledReturnKeyTemp),CompoundTerm::getReturnTerm(methodKeyTemp,returnKeyTemp),
-            CompoundTerm::getOverrideTerm(methodKey,methodKeyTemp),
+            CompoundTerm::getOverrideOutRecurTerm(methodKey,methodKeyTemp),
             CompoundTerm::getRelatedTypeAndMethodTerm(classKey,methodKey)
         }));
 
@@ -3223,7 +3236,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (not isStep) {
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
-}
+    }
     Term* depth = Term::getVar("Depth");
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));
     // debug purpose
