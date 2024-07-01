@@ -42,6 +42,7 @@ BoundFrame::BoundFrame() {
     add(resizeIcon);
 
     auto lineMat = LineBasicMaterial::create({ {"color", Color::white} });
+    lineMat->side = threepp::Side::Double;
     frameGeo = BufferGeometry::create();
     frameGeo->setAttribute("position", threepp::FloatBufferAttribute::create(std::vector<float>(12 * 12), 3));
     frameGeo->getAttribute<float>("position")->setUsage(threepp::DrawUsage::Dynamic);
