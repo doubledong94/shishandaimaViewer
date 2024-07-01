@@ -109,6 +109,8 @@ void BoundFrame::applyPosAndSize() {
         positionAttr->setXYZ(23, end.x, start.y, end.z);
     }
     positionAttr->needsUpdate();
+    frameGeo->computeBoundingBox();
+    frameGeo->computeBoundingSphere();
 }
 
 void BoundFrame::onDrag(float deltaX, float deltaY, float deltaZ) {
