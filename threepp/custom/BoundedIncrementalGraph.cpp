@@ -1750,6 +1750,12 @@ float BoundedIncrementalGraph::getNodeRelativePosition(int nodeId) {
     prepareDistanceToBottom();
     float distanceFromTop = maxDistanceFromTop(nodeId);
     float distanceToBottom = maxDistanceToBottom(nodeId);
+    if (distanceFromTop < 0) {
+        return 0.f;
+    }
+    if (distanceToBottom < 0) {
+        return 1.0f;
+    }
     float length = distanceFromTop + distanceToBottom;
     if (length == 0.f) {
         return 0.f;
