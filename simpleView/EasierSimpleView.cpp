@@ -3133,7 +3133,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         break;
     }
     // generate nextKeyTerm by dataflow term
-    if (isStep and not lastTransition) {
+    if (isStep) {
         Term* midStepTermRuntime = Term::getVar("MidStepRuntime");
         ruleBody.push_back(Unification::getUnificationInstance(midStepTermRuntime, expectingNextKeyTerm));
         Term* stepAddressable = Term::getVar("StepAddressable");
@@ -3220,7 +3220,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
     }
     // generate the next method key and next steps
-    if (not isStep or lastTransition) {
+    if (not isStep) {
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
 }
