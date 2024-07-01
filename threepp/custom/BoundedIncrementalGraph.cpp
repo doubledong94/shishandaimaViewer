@@ -1818,23 +1818,33 @@ void BoundedIncrementalGraph::prepareDistanceFromTop() {
         return;
     }
     distanceFromTop.needUpdate = false;
+    set<int> topNodes;
     if (inDegreeToNodes.data.count(0)) {
-        set<int>& topNodes = inDegreeToNodes.data[0];
-        igraph_vs_t from;
-        igraph_vector_int_t from_;
-        igraph_vector_int_init(&from_, topNodes.size());
-        int c = 0;
-        for (int t : topNodes) {
-            VECTOR(from_)[c] = t;
-            c++;
-        }
-        igraph_vs_vector(&from, &from_);
-        igraph_distances(theOriginalGraph, &(distanceFromTop.data), from, igraph_vss_all(), IGRAPH_OUT);
-        igraph_vector_int_destroy(&from_);
-        igraph_vs_destroy(&from);
+        topNodes.insert(inDegreeToNodes.data[0].begin(), inDegreeToNodes.data[0].end());
     } else {
-        spdlog::get(ErrorManager::DebugTag)->warn("the whole graph is a circle! no distance from top!");
+        // the graph contains circle
+        igraph_vector_int_t feedbackArcs;
+        igraph_vector_int_init(&feedbackArcs, 0);
+        igraph_feedback_arc_set(theOriginalGraph, &feedbackArcs, NULL, IGRAPH_FAS_APPROX_EADES);
+        for (int edgeIndex = 0;edgeIndex < igraph_vector_int_size(&feedbackArcs);edgeIndex++) {
+            int from = IGRAPH_FROM(theOriginalGraph, VECTOR(feedbackArcs)[edgeIndex]);
+            int to = IGRAPH_TO(theOriginalGraph, VECTOR(feedbackArcs)[edgeIndex]);
+            topNodes.insert(from);
+            topNodes.insert(to);
+        }
     }
+    igraph_vs_t from;
+    igraph_vector_int_t from_;
+    igraph_vector_int_init(&from_, topNodes.size());
+    int c = 0;
+    for (int t : topNodes) {
+        VECTOR(from_)[c] = t;
+        c++;
+    }
+    igraph_vs_vector(&from, &from_);
+    igraph_distances(theOriginalGraph, &(distanceFromTop.data), from, igraph_vss_all(), IGRAPH_OUT);
+    igraph_vector_int_destroy(&from_);
+    igraph_vs_destroy(&from);
 }
 
 void BoundedIncrementalGraph::prepareDistanceToBottom() {
@@ -1842,23 +1852,33 @@ void BoundedIncrementalGraph::prepareDistanceToBottom() {
         return;
     }
     distanceToBottom.needUpdate = false;
+    set<int> bottomNode;
     if (outDegreeToNodes.data.count(0)) {
-        set<int>& bottomNode = outDegreeToNodes.data[0];
-        igraph_vs_t to;
-        igraph_vector_int_t to_;
-        igraph_vector_int_init(&to_, bottomNode.size());
-        int c = 0;
-        for (int t : bottomNode) {
-            VECTOR(to_)[c] = t;
-            c++;
-        }
-        igraph_vs_vector(&to, &to_);
-        igraph_distances(theOriginalGraph, &(distanceToBottom.data), igraph_vss_all(), to, IGRAPH_OUT);
-        igraph_vector_int_destroy(&to_);
-        igraph_vs_destroy(&to);
+        bottomNode.insert(outDegreeToNodes.data[0].begin(), outDegreeToNodes.data[0].end());
     } else {
-        spdlog::get(ErrorManager::DebugTag)->warn("the whole graph is a circle! no distance from bottom!");
+        // the graph contains circle
+        igraph_vector_int_t feedbackArcs;
+        igraph_vector_int_init(&feedbackArcs, 0);
+        igraph_feedback_arc_set(theOriginalGraph, &feedbackArcs, NULL, IGRAPH_FAS_APPROX_EADES);
+        for (int edgeIndex = 0;edgeIndex < igraph_vector_int_size(&feedbackArcs);edgeIndex++) {
+            int from = IGRAPH_FROM(theOriginalGraph, VECTOR(feedbackArcs)[edgeIndex]);
+            int to = IGRAPH_TO(theOriginalGraph, VECTOR(feedbackArcs)[edgeIndex]);
+            bottomNode.insert(from);
+            bottomNode.insert(to);
+        }
     }
+    igraph_vs_t to;
+    igraph_vector_int_t to_;
+    igraph_vector_int_init(&to_, bottomNode.size());
+    int c = 0;
+    for (int t : bottomNode) {
+        VECTOR(to_)[c] = t;
+        c++;
+    }
+    igraph_vs_vector(&to, &to_);
+    igraph_distances(theOriginalGraph, &(distanceToBottom.data), igraph_vss_all(), to, IGRAPH_OUT);
+    igraph_vector_int_destroy(&to_);
+    igraph_vs_destroy(&to);
 }
 
 void BoundedIncrementalGraph::prepareDistance() {
