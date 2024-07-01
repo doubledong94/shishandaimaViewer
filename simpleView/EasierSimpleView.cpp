@@ -2769,15 +2769,23 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         CompoundTerm::getLengthTerm(history,Term::getVar("L")),
         CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
         #endif
-            NegationTerm::getNegInstance(CompoundTerm::getMemberTerm(nextPoint,history)),
-            CompoundTerm::getFaTerm(
-                lineInstanceValNameTerm, classScopeTerm,
-                nextStateTerm,
-                nextPoint,
-                nextStepsTerm,
-                intersection,
-                outputTailTerm,
-                Tail::getTailInstance(nextPoint, history), isBackward),
+            DisjunctionTerm::getDisjunctionInstance(
+                ConjunctionTerm::getConjunctionInstance({
+                    CompoundTerm::getMemberTerm(nextPoint,history),
+                    Unification::getUnificationInstance(outputTailTerm,Tail::getInstanceByElements({}))
+                }),
+                ConjunctionTerm::getConjunctionInstance({
+                    NegationTerm::getNegInstance(CompoundTerm::getMemberTerm(nextPoint,history)),
+                    CompoundTerm::getFaTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        nextStateTerm,
+                        nextPoint,
+                        nextStepsTerm,
+                        intersection,
+                        outputTailTerm,
+                        Tail::getTailInstance(nextPoint, history), isBackward),
+                        })
+            )
         }));
 
     // // make cache
@@ -3215,7 +3223,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (not isStep or lastTransition) {
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
-    }
+}
     Term* depth = Term::getVar("Depth");
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));
     // debug purpose
