@@ -71,9 +71,6 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::METHOD_OF);
     saveVocabulary(lexer, SimpleViewLexer::PARAMETER_OF);
     saveVocabulary(lexer, SimpleViewLexer::RETURN_OF);
-    saveVocabulary(lexer, SimpleViewLexer::CALLED_METHOD_OF);
-    saveVocabulary(lexer, SimpleViewLexer::CALLED_PARAM_OF);
-    saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN_OF);
     saveVocabulary(lexer, SimpleViewLexer::READ);
     saveVocabulary(lexer, SimpleViewLexer::WRITE);
     saveVocabulary(lexer, SimpleViewLexer::REFERENCE);
@@ -138,9 +135,6 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_PARAMETER_OF,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_RETURN_OF,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INSTANCE_OF,Images::instanceOfIconId},
-                {SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF,Images::methodIconId},
-                {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
-                {SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INTERSECTION,Images::anyIconId},
                 {SimpleView::Node::NODE_TYPE_UNION,Images::unionIconId},
                 {SimpleView::Node::NODE_TYPE_DIFFERENCE,Images::differenceIconId},
@@ -159,7 +153,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_CONSTRUCTOR,Images::creatorIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_METHOD,Images::methodIconId},
                 {SimpleView::Node::NODE_TYPE_PARAMETER,Images::parameterIconId},
-                {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_RETURN,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_RETURN,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INDEX,Images::indexIcon},
@@ -1553,18 +1547,6 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         referenceNode->resolve(update);
         PrologWrapper::queryList(CompoundTerm::getNodeReturnOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
         break;
-    case NODE_TYPE_CALLED_METHOD_OF:
-        referenceNode->resolve(update);
-        PrologWrapper::queryList(CompoundTerm::getNodeCalledMethodOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
-        break;
-    case NODE_TYPE_CALLED_PARAMETER_OF:
-        referenceNode->resolve(update);
-        PrologWrapper::queryList(CompoundTerm::getNodeCalledParameterOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
-        break;
-    case NODE_TYPE_CALLED_RETURN_OF:
-        referenceNode->resolve(update);
-        PrologWrapper::queryList(CompoundTerm::getNodeCalledReturnOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
-        break;
     case NODE_TYPE_READ:
     case NODE_TYPE_WRITE:
         // read and write key word can only be the outermost layer
@@ -1683,12 +1665,6 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::PARAMETER_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_RETURN_OF:
         return voc[SimpleViewLexer::RETURN_OF] + " ( " + referenceNode->displayName + " )";
-    case NODE_TYPE_CALLED_METHOD_OF:
-        return voc[SimpleViewLexer::CALLED_METHOD_OF] + " ( " + referenceNode->displayName + " )";
-    case NODE_TYPE_CALLED_PARAMETER_OF:
-        return voc[SimpleViewLexer::CALLED_PARAM_OF] + " ( " + referenceNode->displayName + " )";
-    case NODE_TYPE_CALLED_RETURN_OF:
-        return voc[SimpleViewLexer::CALLED_RETURN_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_READ:
         return voc[SimpleViewLexer::READ] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_WRITE:
@@ -1791,9 +1767,6 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
-    case NODE_TYPE_CALLED_METHOD_OF:
-    case NODE_TYPE_CALLED_PARAMETER_OF:
-    case NODE_TYPE_CALLED_RETURN_OF:
         values.push_back(referenceNode->displayName.data());
         break;
     case NODE_TYPE_INSTANCE_OF:
@@ -1837,9 +1810,6 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
-    case NODE_TYPE_CALLED_METHOD_OF:
-    case NODE_TYPE_CALLED_PARAMETER_OF:
-    case NODE_TYPE_CALLED_RETURN_OF:
         this->referenceNode = SimpleViewToGraphConverter::valNameToNode[values[0]];
         break;
     case NODE_TYPE_INSTANCE_OF:
