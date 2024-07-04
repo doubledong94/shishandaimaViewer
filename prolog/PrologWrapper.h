@@ -12,8 +12,6 @@ public:
 
     static int queryCount(CompoundTerm *term);
 
-    static void queryLoadedTypeKeys(list<string> &loadedTypeKeys);
-
     static void declareFun(const string &functorName, int arity);
 
     static void addFact(const string &factStr);

@@ -66,7 +66,7 @@ static set<int> AllKeyTypes = {
         GlobalInfo::KEY_TYPE_TIMING_STEP,
         GlobalInfo::KEY_TYPE_DATA_OVERRIDE,
         GlobalInfo::KEY_TYPE_TIMING_OVERRIDE,
-        GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN,
+        GlobalInfo::KEY_TYPE_INDEX,
         GlobalInfo::KEY_TYPE_LOCAL_VARIABLE,
         GlobalInfo::KEY_TYPE_FINAL,
         GlobalInfo::KEY_TYPE_DEFAULT_VALUE,
@@ -361,7 +361,7 @@ void NodeInfo::makeSimpleName() {
         simpleName = key;
     } else if (keyType == GlobalInfo::KEY_TYPE_REFERENCE) {
         simpleName = "[reference]";
-    } else if (keyType == GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN) {
+    } else if (keyType == GlobalInfo::KEY_TYPE_INDEX) {
         simpleName = "[i]";
     } else if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
         simpleName = "[step]";
@@ -2446,7 +2446,7 @@ map<string, string> BoundedIncrementalGraph::classKeyToFilePath;
 
 void BoundedIncrementalGraph::deserializeFilePath() {
     ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2typeKey2FilePath);
+    f.open(FileManager::NAME_SERIALIZE(typeKey2filePath));
     if (not f.is_open()) {
         return;
     }

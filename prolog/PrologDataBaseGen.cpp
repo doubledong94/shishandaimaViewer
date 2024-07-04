@@ -160,12 +160,11 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         string stepRuntime = ResolvingItem::makeRuntimeKey(stepKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
         prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, stepRuntime));
         dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntime });
-        if (not writen->overrideKey.empty()) {
-            string overrideKey = AddressableInfo::makeOverrideKey(writen->overrideKey);
-            string overrideRuntime = ResolvingItem::makeRuntimeKey(overrideKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
-            prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, overrideRuntime));
-            dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
-        }
+
+        string overrideKey = AddressableInfo::makeOverrideKey(writen->variableKey);
+        string overrideRuntime = ResolvingItem::makeRuntimeKey(overrideKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
+        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, overrideRuntime));
+        dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // mark local variable
     if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
@@ -225,12 +224,10 @@ void DataFlowVisitor::addStepToParam(const string& methodKey, ResolvingItem* par
     prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepRuntimeKey, paramItem->runtimeKey));
     dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntimeKey });
 
-    if (not paramItem->overrideKey.empty()) {
-        string overrideKey = AddressableInfo::makeOverrideKey(paramItem->overrideKey);
-        string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, paramItem->structureKey, paramItem->sentenceIndex, paramItem->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntimeKey, paramItem->runtimeKey));
-        dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
-    }
+    string overrideKey = AddressableInfo::makeOverrideKey(paramItem->variableKey);
+    string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, paramItem->structureKey, paramItem->sentenceIndex, paramItem->indexInsideStatement);
+    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntimeKey, paramItem->runtimeKey));
+    dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
 }
 
 void LogicFlowVisitor::genToCondition(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
@@ -265,12 +262,10 @@ void TimingFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBo
 
     timingOverrideRuntimes[methodKey] = list<pair<string, string>>();
     // override -> method
-    if (not methodBody->conditionItem->overrideKey.empty()) {
-        string overrideKey = AddressableInfo::makeOverrideKey(methodBody->conditionItem->overrideKey);
-        string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, methodBody->conditionItem->structureKey, "-1", "-1");
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntimeKey, methodBody->conditionItem->runtimeKey));
-        timingOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
-    }
+    string overrideKey = AddressableInfo::makeOverrideKey(methodBody->conditionItem->variableKey);
+    string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, methodBody->conditionItem->structureKey, "-1", "-1");
+    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntimeKey, methodBody->conditionItem->runtimeKey));
+    timingOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
 
     GenDataVisitor::visitMethod(methodKey, methodBody, prologLines);
 }

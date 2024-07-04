@@ -106,8 +106,19 @@ void AddressableInfo::serializeHeader() {
     f.close();
 }
 
-// will not restore if it is in updated file, or it is not in all file 
-// this method will also add file to updated file list if it is not in the filePath2compilationUnits
+/**
+    oldData	    allFiles	updatedFiles				                restore	    parse
+    1	        1	        1		        updated		                0	        1
+    1	        1	        0		        unchanged		            1	        0
+    1	        0	        1		        impossible                              
+    1	        0	        0		        delete file                 0 	        0
+                                            parse dir changed           1           0
+    0	        1	        1		        new file from same dir      0	        1
+                                            different dir               0           1
+    0	        1	        0		        impossible
+    0	        0	        1		        impossible
+    0	        0	        0		        not issue
+*/
 void AddressableInfo::deserializeHeader() {
     ifstream f;
     f.open(FileManager::headerSerializationFile);
@@ -125,11 +136,6 @@ void AddressableInfo::deserializeHeader() {
         }
     }
     f.close();
-    for (auto& filePath : FileManager::allFiles) {
-        if (not filePath2compilationUnits.count(filePath)) {
-            FileManager::updatedFiles.insert(filePath);
-        }
-    }
 }
 
 TypeInfo* AddressableInfo::voidTypeInfo = NULL;
@@ -195,8 +201,6 @@ void AddressableInfo::beforeParseAll() {
     enumTypeName->typeName = { "Enum" };
     objectTypeName = new TypeName();
     objectTypeName->typeName = { "Object" };
-
-    deserializeHeader();
 }
 
 void AddressableInfo::afterFirstRound() {

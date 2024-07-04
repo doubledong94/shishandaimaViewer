@@ -50,7 +50,6 @@ struct MethodInfo {
     string name;
     string methodKey;
     string calledMethodKey;
-    MethodInfo* overrideMethodInfo = NULL;
     FieldInfo* returnInfo = NULL;
     FieldInfo* calledReturnInfo = NULL;
     vector<FieldInfo*> parameterInfos;

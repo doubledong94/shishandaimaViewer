@@ -6,14 +6,16 @@
 #include "SWI-cpp2.h"
 #include "../prolog/PrologConstructor.h"
 
-map<string, map<string, set<string>>> GlobalInfo::filePath2package2typeKeys;
-map<string, map<string, set<string>>> GlobalInfo::filePath2typeKey2subTypeKeys;
-map<string, map<string, set<string>>> GlobalInfo::filePath2override;
-
-map<string, map<string, string>> GlobalInfo::filePath2typeKey2filePath;
 map<string, list<TypeInfo*>> GlobalInfo::filePath2typeInfos;
-map<string, map<string, set<string>>> GlobalInfo::filePath2TypeKey2itUseTypeKeys;
-map<string, map<string, set<string>>> GlobalInfo::filePath2TypeKey2itUseMethods;
+
+TYPE_MAP_MAP(string) GlobalInfo::NAME_FILE_TO(typeKey2filePath);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(package2typeKeys);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(override);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(TypeKey2itUseTypeKeys);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(TypeKey2itUseMethods);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(MethodUseMethods);
+TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(MethodUseFields);
 
 std::mutex GlobalInfo::addUsageLock;
 
@@ -55,18 +57,69 @@ const string GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN = GlobalInfo::indexOptr + 
 
 
 void GlobalInfo::saveGlobalInfo() {
-    PrologConstructor::savePrologFilePath(filePath2typeKey2filePath);
-    PrologConstructor::savePrologPackage(filePath2package2typeKeys);
-    PrologConstructor::savePrologSubTypes(filePath2typeKey2subTypeKeys);
-    PrologConstructor::savePrologOverrideMethod(filePath2override);
-    PrologConstructor::savePrologRelatedType(filePath2TypeKey2itUseTypeKeys);
-    PrologConstructor::savePrologRelatedTypeAndMethod(filePath2TypeKey2itUseMethods);
-    serializeUseRelation();
-    serializeUseMethod();
-    serializeFilePath();
-    serializePackage2typeKey();
-    serializeSubType();
-    serializeOverrideType();
+    SAVE_GLOBAL_PROLOG(typeKey2filePath,
+        lines.push_back(CompoundTerm::getTypeToPLFileFact(item2.first, FileManager::convertFilePath2PrologFile(item2.second)));
+        );
+    SAVE_GLOBAL_PROLOG(package2typeKeys,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getPackageFact(item2.first, item3));
+        }
+            );
+    SAVE_GLOBAL_PROLOG(typeKey2subTypeKeys,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getSubTypeFact(item2.first, item3));
+        }
+            );
+    SAVE_GLOBAL_PROLOG(override,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getOverrideFact(item2.first, item3));
+        }
+            );
+    SAVE_GLOBAL_PROLOG(TypeKey2itUseTypeKeys,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getRelatedTypeFact(item2.first, item3));
+        }
+            );
+    SAVE_GLOBAL_PROLOG(TypeKey2itUseMethods,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getRelatedTypeAndMethodFact(item2.first, item3));
+        }
+            );
+    SAVE_GLOBAL_PROLOG(MethodUseMethods,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getMethodUseMethodFact(item2.first, item3));
+        }
+            );
+    SAVE_GLOBAL_PROLOG(MethodUseFields,
+        for (auto& item3 : item2.second) {
+            lines.push_back(CompoundTerm::getMethodUseFieldFact(item2.first, item3));
+        }
+            );
+    list<string> lines;
+    for (auto& typeInfo : AddressableInfo::typeKey2typeInfo) {
+        for (auto& methodInfo : typeInfo.second->methodInfos) {
+            lines.push_back(CompoundTerm::getMethodFact(typeInfo.first,methodInfo->methodKey));
+        }
+    }
+    PrologConstructor::writeToPrologFile(FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Methods), lines);
+    lines.clear();
+    for (auto& typeInfo : AddressableInfo::typeKey2typeInfo) {
+        for (auto& fieldInfo : typeInfo.second->fieldInfos) {
+            lines.push_back(CompoundTerm::getFieldFact(typeInfo.first,fieldInfo->fieldKey));
+        }
+    }
+    PrologConstructor::writeToPrologFile(FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Fields), lines);
+}
+
+void GlobalInfo::serializeGlobalInfo() {
+    serialize(NAME_FILE_TO(typeKey2filePath), FileManager::NAME_SERIALIZE(typeKey2filePath));
+    serialize(NAME_FILE_TO(package2typeKeys), FileManager::NAME_SERIALIZE(package2typeKeys));
+    serialize(NAME_FILE_TO(typeKey2subTypeKeys), FileManager::NAME_SERIALIZE(typeKey2subTypeKeys));
+    serialize(NAME_FILE_TO(override), FileManager::NAME_SERIALIZE(override));
+    serialize(NAME_FILE_TO(TypeKey2itUseTypeKeys), FileManager::NAME_SERIALIZE(TypeKey2itUseTypeKeys));
+    serialize(NAME_FILE_TO(TypeKey2itUseMethods), FileManager::NAME_SERIALIZE(TypeKey2itUseMethods));
+    serialize(NAME_FILE_TO(MethodUseMethods), FileManager::NAME_SERIALIZE(MethodUseMethods));
+    serialize(NAME_FILE_TO(MethodUseFields), FileManager::NAME_SERIALIZE(MethodUseFields));
 }
 
 bool GlobalInfo::isOptrKeyType(int keyType) {
@@ -74,44 +127,64 @@ bool GlobalInfo::isOptrKeyType(int keyType) {
 }
 
 void GlobalInfo::release() {
-    filePath2package2typeKeys.clear();
-    filePath2typeKey2subTypeKeys.clear();
-    filePath2override.clear();
-    filePath2typeKey2filePath.clear();
     filePath2typeInfos.clear();
-    filePath2TypeKey2itUseTypeKeys.clear();
-    filePath2TypeKey2itUseMethods.clear();
+    NAME_FILE_TO(package2typeKeys).clear();
+    NAME_FILE_TO(typeKey2subTypeKeys).clear();
+    NAME_FILE_TO(override).clear();
+    NAME_FILE_TO(typeKey2filePath).clear();
+    NAME_FILE_TO(TypeKey2itUseTypeKeys).clear();
+    NAME_FILE_TO(TypeKey2itUseMethods).clear();
+    NAME_FILE_TO(MethodUseMethods).clear();
+    NAME_FILE_TO(MethodUseFields).clear();
 }
 
-void GlobalInfo::beforeParseAll() {
-    deserializeUseRelation();
-    deserializeUseMethod();
-    deserializeFilePath();
-    deserializePackage2typeKey();
-    deserializeSubType();
-    deserializeOverrideType();
-}
-
-void GlobalInfo::serializeUseRelation() {
+void GlobalInfo::serialize(TYPE_MAP_MAP(string)& data, string& filePath) {
     ofstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2TypeKey2itUseTypeKeys);
-    f << filePath2TypeKey2itUseTypeKeys.size() << "\n";
-    for (auto& fileAndType : filePath2TypeKey2itUseTypeKeys) {
-        f << fileAndType.first << "\n";
-        f << fileAndType.second.size() << "\n";
-        for (auto& typeAndItUseTypes : fileAndType.second) {
-            f << typeAndItUseTypes.first << "\n";
-            f << typeAndItUseTypes.second.size() << "\n";
-            for (auto& type : typeAndItUseTypes.second) {
-                f << type << "\n";
+    f.open(filePath);
+    f << data.size() << "\n";
+    for (auto& item1 : data) {
+        f << item1.first << "\n";
+        f << item1.second.size() << "\n";
+        for (auto& item2 : item1.second) {
+            f << item2.first << "\n";
+            f << item2.second << "\n";
+        }
+    }
+    f.close();
+}
+
+void GlobalInfo::serialize(TYPE_MAP_MAP(set<string>)& data, string& filePath) {
+    ofstream f;
+    f.open(filePath);
+    f << data.size() << "\n";
+    for (auto& item1 : data) {
+        f << item1.first << "\n";
+        f << item1.second.size() << "\n";
+        for (auto& item2 : item1.second) {
+            f << item2.first << "\n";
+            f << item2.second.size() << "\n";
+            for (auto& item3 : item2.second) {
+                f << item3 << "\n";
             }
         }
     }
+    f.close();
 }
 
-void GlobalInfo::deserializeUseRelation() {
+void GlobalInfo::deserialize() {
+    deserialize(NAME_FILE_TO(typeKey2filePath), FileManager::NAME_SERIALIZE(typeKey2filePath));
+    deserialize(NAME_FILE_TO(package2typeKeys), FileManager::NAME_SERIALIZE(package2typeKeys));
+    deserialize(NAME_FILE_TO(typeKey2subTypeKeys), FileManager::NAME_SERIALIZE(typeKey2subTypeKeys));
+    deserialize(NAME_FILE_TO(override), FileManager::NAME_SERIALIZE(override));
+    deserialize(NAME_FILE_TO(TypeKey2itUseTypeKeys), FileManager::NAME_SERIALIZE(TypeKey2itUseTypeKeys));
+    deserialize(NAME_FILE_TO(TypeKey2itUseMethods), FileManager::NAME_SERIALIZE(TypeKey2itUseMethods));
+    deserialize(NAME_FILE_TO(MethodUseMethods), FileManager::NAME_SERIALIZE(MethodUseMethods));
+    deserialize(NAME_FILE_TO(MethodUseFields), FileManager::NAME_SERIALIZE(MethodUseFields));
+}
+
+void GlobalInfo::deserialize(TYPE_MAP_MAP(string)& data, string& filePath) {
     ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2TypeKey2itUseTypeKeys);
+    f.open(filePath);
     if (not f.is_open()) {
         return;
     }
@@ -119,46 +192,38 @@ void GlobalInfo::deserializeUseRelation() {
     for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
         string filePath;
         getline(f, filePath);
-        int typeCount = Serializable::getInt(f);
-        map<string, set<string>> typeKey2itUseTypeKeys;
-        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
-            string typeKey;
-            getline(f, typeKey);
-            int usedTypeCount = Serializable::getInt(f);
-            set<string> usedTypeKeys;
-            for (int typeIndex = 0;typeIndex < usedTypeCount;typeIndex++) {
-                string usedTypeKey;
-                getline(f, usedTypeKey);
-                usedTypeKeys.insert(usedTypeKey);
-            }
-            typeKey2itUseTypeKeys[typeKey] = usedTypeKeys;
+        int count = Serializable::getInt(f);
+        map<string, string> m;
+        for (int i = 0;i < count;i++) {
+            string key;
+            getline(f, key);
+            string s;
+            getline(f, s);
+            m[key] = s;
         }
         if (FileManager::shouldRestore(filePath)) {
-            filePath2TypeKey2itUseTypeKeys[filePath] = typeKey2itUseTypeKeys;
+            data[filePath] = m;
         }
     }
+    f.close();
 }
 
-void GlobalInfo::serializeUseMethod() {
-    ofstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2TypeKey2itUseMethods);
-    f << filePath2TypeKey2itUseMethods.size() << "\n";
-    for (auto& fileAndType : filePath2TypeKey2itUseMethods) {
-        f << fileAndType.first << "\n";
-        f << fileAndType.second.size() << "\n";
-        for (auto& typeAndItUseTypes : fileAndType.second) {
-            f << typeAndItUseTypes.first << "\n";
-            f << typeAndItUseTypes.second.size() << "\n";
-            for (auto& type : typeAndItUseTypes.second) {
-                f << type << "\n";
-            }
-        }
-    }
-}
-
-void GlobalInfo::deserializeUseMethod() {
+/**
+    oldData	    allFiles	updatedFiles				                restore	    parse
+    1	        1	        1		        updated		                0	        1
+    1	        1	        0		        unchanged		            1	        0
+    1	        0	        1		        impossible
+    1	        0	        0		        delete file                 0 	        0
+                                            parse dir changed           1           0
+    0	        1	        1		        new file from same dir      0	        1
+                                            different dir               0           1
+    0	        1	        0		        impossible
+    0	        0	        1		        impossible
+    0	        0	        0		        not issue
+*/
+void GlobalInfo::deserialize(TYPE_MAP_MAP(set<string>)& data, string& filePath) {
     ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2TypeKey2itUseMethods);
+    f.open(filePath);
     if (not f.is_open()) {
         return;
     }
@@ -166,202 +231,37 @@ void GlobalInfo::deserializeUseMethod() {
     for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
         string filePath;
         getline(f, filePath);
-        int typeCount = Serializable::getInt(f);
-        map<string, set<string>> typeKey2itUseMethods;
-        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
-            string typeKey;
-            getline(f, typeKey);
-            int usedTypeCount = Serializable::getInt(f);
-            set<string> usedTypeKeys;
-            for (int typeIndex = 0;typeIndex < usedTypeCount;typeIndex++) {
-                string usedTypeKey;
-                getline(f, usedTypeKey);
-                usedTypeKeys.insert(usedTypeKey);
-            }
-            typeKey2itUseMethods[typeKey] = usedTypeKeys;
-        }
-        if (FileManager::shouldRestore(filePath)) {
-            filePath2TypeKey2itUseMethods[filePath] = typeKey2itUseMethods;
-        }
-    }
-}
-
-void GlobalInfo::serializeFilePath() {
-    ofstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2typeKey2FilePath);
-    f << filePath2typeKey2filePath.size() << "\n";
-    for (auto& typeKey2filePath : filePath2typeKey2filePath) {
-        f << typeKey2filePath.first << "\n";
-        f << typeKey2filePath.second.size() << "\n";
-        for (auto& typeKeyAndfilePath : typeKey2filePath.second) {
-            f << typeKeyAndfilePath.first << "\n";
-            f << typeKeyAndfilePath.second << "\n";
-        }
-    }
-}
-
-void GlobalInfo::deserializeFilePath() {
-    ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2typeKey2FilePath);
-    if (not f.is_open()) {
-        return;
-    }
-    int fileCount = Serializable::getInt(f);
-    for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
-        string filePath;
-        getline(f, filePath);
-        int typeCount = Serializable::getInt(f);
-        map<string, string> typeKey2filePath;
-        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
-            string typeKey;
-            getline(f, typeKey);
-            string filePath;
-            getline(f, filePath);
-            typeKey2filePath[typeKey] = filePath;
-        }
-        if (FileManager::shouldRestore(filePath)) {
-            filePath2typeKey2filePath[filePath] = typeKey2filePath;
-        }
-    }
-}
-
-void GlobalInfo::serializePackage2typeKey() {
-    ofstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2package2typeKey);
-    f << filePath2package2typeKeys.size() << "\n";
-    for (auto& fileAndPackage : filePath2package2typeKeys) {
-        f << fileAndPackage.first << "\n";
-        f << fileAndPackage.second.size() << "\n";
-        for (auto& packageAndTypeKeys : fileAndPackage.second) {
-            f << packageAndTypeKeys.first << "\n";
-            f << packageAndTypeKeys.second.size() << "\n";
-            for (auto& typeKey : packageAndTypeKeys.second) {
-                f << typeKey << "\n";
-            }
-        }
-    }
-}
-
-void GlobalInfo::deserializePackage2typeKey() {
-    ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2package2typeKey);
-    if (not f.is_open()) {
-        return;
-    }
-    int fileCount = Serializable::getInt(f);
-    for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
-        string filePath;
-        getline(f, filePath);
-        int packageCount = Serializable::getInt(f);
-        map<string, set<string>> package2typeKeys;
-        for (int packageIndex = 0;packageIndex < packageCount;packageIndex++) {
-            string p;
-            getline(f, p);
-            int typeCount = Serializable::getInt(f);
-            set<string> typeKeys;
-            for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
+        int count1 = Serializable::getInt(f);
+        map<string, set<string>> m;
+        for (int i = 0;i < count1;i++) {
+            string key;
+            getline(f, key);
+            int count2 = Serializable::getInt(f);
+            set<string> item;
+            for (int j = 0;j < count2;j++) {
                 string s;
                 getline(f, s);
-                typeKeys.insert(s);
+                item.insert(s);
             }
-            package2typeKeys[p] = typeKeys;
+            m[key] = item;
         }
         if (FileManager::shouldRestore(filePath)) {
-            filePath2package2typeKeys[filePath] = package2typeKeys;
+            data[filePath] = m;
         }
+    }
+    f.close();
+}
+
+void GlobalInfo::initGlobalInfoWhichIsUpdatedAndNotRestored() {
+    for (auto& updatedFile : FileManager::updatedFiles) {
+        NAME_FILE_TO(typeKey2filePath)[updatedFile] = map<string, string>();
+        NAME_FILE_TO(package2typeKeys)[updatedFile] = map<string, set<string>>();
+        NAME_FILE_TO(typeKey2subTypeKeys)[updatedFile] = map<string, set<string>>();
+        NAME_FILE_TO(override)[updatedFile] = map<string, set<string>>();
+        NAME_FILE_TO(TypeKey2itUseTypeKeys)[updatedFile] = map<string, set<string>>();
+        NAME_FILE_TO(TypeKey2itUseMethods)[updatedFile] = map<string, set<string>>();
+        NAME_FILE_TO(MethodUseMethods)[updatedFile] = map<string, set<string>>();
+        NAME_FILE_TO(MethodUseFields)[updatedFile] = map<string, set<string>>();
     }
 }
 
-void GlobalInfo::serializeSubType() {
-    ofstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2typeKey2subTypeKeys);
-    f << filePath2typeKey2subTypeKeys.size() << "\n";
-    for (auto& typeKey2subTypeKyes : filePath2typeKey2subTypeKeys) {
-        f << typeKey2subTypeKyes.first << "\n";
-        f << typeKey2subTypeKyes.second.size() << "\n";
-        for (auto& typeKeyAndsubTypeKey : typeKey2subTypeKyes.second) {
-            f << typeKeyAndsubTypeKey.first << "\n";
-            f << typeKeyAndsubTypeKey.second.size() << "\n";
-            for (auto& sub : typeKeyAndsubTypeKey.second) {
-                f << sub << "\n";
-            }
-        }
-    }
-}
-
-void GlobalInfo::deserializeSubType() {
-    ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2typeKey2subTypeKeys);
-    if (not f.is_open()) {
-        return;
-    }
-    int fileCount = Serializable::getInt(f);
-    for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
-        string filePath;
-        getline(f, filePath);
-        int typeCount = Serializable::getInt(f);
-        map<string, set<string>> typeAndSubType;
-        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
-            string sup;
-            getline(f, sup);
-            int subCount = Serializable::getInt(f);
-            set<string> subs;
-            for (int subTypeIndex = 0;subTypeIndex < subCount;subTypeIndex++) {
-                string sub;
-                getline(f, sub);
-                subs.insert(sub);
-            }
-            typeAndSubType[sup] = subs;
-        }
-        if (FileManager::shouldRestore(filePath)) {
-            filePath2typeKey2subTypeKeys[filePath] = typeAndSubType;
-        }
-    }
-}
-
-void GlobalInfo::serializeOverrideType() {
-    ofstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2override);
-    f << filePath2override.size() << "\n";
-    for (auto& override : filePath2override) {
-        f << override.first << "\n";
-        f << override.second.size() << "\n";
-        for (auto& overrideAndOverriden : override.second) {
-            f << overrideAndOverriden.first << "\n";
-            f << overrideAndOverriden.second.size() << "\n";
-            for (auto& sub : overrideAndOverriden.second) {
-                f << sub << "\n";
-            }
-        }
-    }
-}
-
-void GlobalInfo::deserializeOverrideType() {
-    ifstream f;
-    f.open(FileManager::prologGlobalInfo_filePath2override);
-    if (not f.is_open()) {
-        return;
-    }
-    int fileCount = Serializable::getInt(f);
-    for (int fileIndex = 0;fileIndex < fileCount;fileIndex++) {
-        string filePath;
-        getline(f, filePath);
-        int typeCount = Serializable::getInt(f);
-        map<string, set<string>> overrideMethodAndTypeKey;
-        for (int typeIndex = 0;typeIndex < typeCount;typeIndex++) {
-            string sup;
-            getline(f, sup);
-            int subCount = Serializable::getInt(f);
-            set<string> subs;
-            for (int subTypeIndex = 0;subTypeIndex < subCount;subTypeIndex++) {
-                string sub;
-                getline(f, sub);
-                subs.insert(sub);
-            }
-            overrideMethodAndTypeKey[sup] = subs;
-        }
-        if (FileManager::shouldRestore(filePath)) {
-            filePath2override[filePath] = overrideMethodAndTypeKey;
-        }
-    }
-}

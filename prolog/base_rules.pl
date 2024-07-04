@@ -1,6 +1,4 @@
 :- multifile simpleName/2.
-:- dynamic addressableLoaded/1.
-:- dynamic unaddressableLoaded/1.
 :- dynamic forwardFaCache/6.
 :- dynamic backwardFaCache/6.
 :- dynamic forwardFaDone/5.
@@ -13,18 +11,6 @@ toFile(Str,FilePath):-
     open(FilePath,append,S),write(S,Str),nl(S),close(S).
 
 retractRules(R):- clause(R, B),B \== true,retract(:-(R, B)),fail.
-
-load_addressable(ClassKey):-
-    \+addressableLoaded(ClassKey),
-    addressableFile(ClassKey,AddressableFile),ensure_loaded([AddressableFile]),
-    addressableFile(AllClassKey,AddressableFile),
-    assertz(addressableLoaded(AllClassKey)),fail.
-
-load_unaddressable(ClassKey):-
-    \+unaddressableLoaded(ClassKey),
-    unaddressableFile(ClassKey,UnaddressableFile),ensure_loaded([UnaddressableFile]),
-    unaddressableFile(AllClassKey,UnaddressableFile),
-    assertz(unaddressableLoaded(AllClassKey)),fail.
 
 parameterOfClass(ClassKey,ParameterKey):-
     (method(ClassKey,Method);constructor(ClassKey,Method)),parameter(Method,ParameterKey).

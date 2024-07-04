@@ -80,6 +80,19 @@ void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, Class
     ErrorManager::mk2errorInfo.clear();
 }
 
+/**
+    oldData	    allFiles	updatedFiles				                restore	    parse
+    1	        1	        1		        updated		                0	        1
+    1	        1	        0		        unchanged		            1	        0
+    1	        0	        1		        impossible                              
+    1	        0	        0		        delete file                 0 	        0
+                                            parse dir changed           1           0
+    0	        1	        1		        new file from same dir      0	        1
+                                            different dir               0           1
+    0	        1	        0		        impossible
+    0	        0	        1		        impossible
+    0	        0	        0		        not issue
+*/
 void app::Parser::parse(const string& path) {
     parsing = true;
     PrologDataBaseGen::init();
@@ -90,11 +103,9 @@ void app::Parser::parse(const string& path) {
     spdlog::get(ErrorManager::DebugTag)->info("all file count: {}", FileManager::allFiles.size());
     spdlog::get(ErrorManager::DebugTag)->info("updated file count: {}", FileManager::updatedFiles.size());
 
-    PrologConstructor::beforeParseAll();
     AddressableInfo::beforeParseAll();
-    GlobalInfo::beforeParseAll();
-
-    spdlog::get(ErrorManager::DebugTag)->info("updated file count: {}", FileManager::updatedFiles.size());
+    AddressableInfo::deserializeHeader();
+    GlobalInfo::deserialize();
 
     totalCountPass = FileManager::allFiles.size();
     currentCountPass1 = 0;
@@ -110,6 +121,7 @@ void app::Parser::parse(const string& path) {
     threadPool.wait();
 
     AddressableInfo::serializeHeader();
+    GlobalInfo::initGlobalInfoWhichIsUpdatedAndNotRestored();
 
     Header::EnterClassPhase enterClassPhase;
     enterClassPhase.run();
@@ -139,6 +151,7 @@ void app::Parser::parse(const string& path) {
     }
     threadPool.wait();
     GlobalInfo::saveGlobalInfo();
+    GlobalInfo::serializeGlobalInfo();
     AddressableInfo::saveAddressableInfo();
     PL_thread_destroy_engine();
     release();

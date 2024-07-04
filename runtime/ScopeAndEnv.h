@@ -51,6 +51,7 @@ public:
     static void release();
 };
 
+class MethodScopeAndEnv;
 
 class OuterScopeAndEnv {
 public:
@@ -65,7 +66,7 @@ public:
 
     virtual void getMethodInfoFromSelf(const string& name, int paramCount, list<MethodInfo*>& methodInfos) {};
 
-    virtual bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL) { return false; };
+    virtual bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL, MethodScopeAndEnv* runtimeMethod = NULL) { return false; };
 
     TypeInfo* getTypeInfoRecurOuterScope(const string& typeName);
 
@@ -119,7 +120,7 @@ public:
 
     void getMethodInfoWithFileScope(const list<string>& names, int paramCount, list<MethodInfo*>& methodInfos, bool creator = false);
 
-    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL) override;
+    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL, MethodScopeAndEnv* runtimeMethod = NULL) override;
 
     TypeInfo* getTypeInfoFromSelf(const string& typeName) override;
 
@@ -132,10 +133,6 @@ public:
     FieldInfo* getFieldInfoFromImports(const string& fieldName);
 
     void getMethodInfoFromImports(const string& name, int paramCount, list<MethodInfo*>& methodInfos);
-
-    void addUsage(TypeInfo* usedTypeInfo);
-
-    void addUsage(MethodInfo* usedMethodInfo);
 
     static void release(ClassScopeAndEnv* toBeReleased);
 };
@@ -182,11 +179,15 @@ public:
 
     bool findIdWithFileScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL);
 
-    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL) override;
+    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL, MethodScopeAndEnv* runtimeMethod = NULL) override;
 
     TypeInfo* getTypeInfoWithFileScope(const list<string>& typeNames);
 
     string putLocalVariable(const string& name, TypeInfo* typeInfo, const string& structureKey);
+
+    void addUsage(MethodInfo* usedMethodInfo);
+
+    void addUsage(FieldInfo* usedFieldInfo);
 
     const static string rootStructureKey;
     const static char structureKeySeparator;

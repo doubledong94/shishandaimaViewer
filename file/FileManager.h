@@ -38,20 +38,28 @@ public:
     static string prologBaseDir;
     static string prologAddressableFileDir;
     static string prologUnaddressableFileDir;
-    static string prologGlobalInfo_typeKey2AddressableFilePath;
-    static string prologGlobalInfo_typeKey2UnaddressableFilePath;
-    static string prologGlobalInfo_package2typeKey;
-    static string prologGlobalInfo_typeKey2subTypeKeys;
-    static string prologGlobalInfo_override;
-    static string prologGlobalInfo_typeKey2itUseTypeKeys;
-    static string prologGlobalInfo_filePath2typeKey2FilePath;
-    static string prologGlobalInfo_filePath2package2typeKey;
-    static string prologGlobalInfo_filePath2typeKey2subTypeKeys;
-    static string prologGlobalInfo_filePath2override;
-    static string prologGlobalInfo_filePath2TypeKey2itUseTypeKeys;
-    static string prologGlobalInfo_typeKey2itUseMethods;
-    static string prologGlobalInfo_filePath2TypeKey2itUseMethods;
-    static string prologGlobalInfo_baseRuleFile;
+
+    static string GLOBAL_PL_FILE_PATH(baseRuleFile);
+
+    static string GLOBAL_PL_FILE_PATH(typeKey2filePath);
+    static string GLOBAL_PL_FILE_PATH(package2typeKeys);
+    static string GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys);
+    static string GLOBAL_PL_FILE_PATH(override);
+    static string GLOBAL_PL_FILE_PATH(TypeKey2itUseTypeKeys);
+    static string GLOBAL_PL_FILE_PATH(TypeKey2itUseMethods);
+    static string GLOBAL_PL_FILE_PATH(MethodUseMethods);
+    static string GLOBAL_PL_FILE_PATH(MethodUseFields);
+    static string GLOBAL_PL_FILE_PATH(TypeKey2Methods);
+    static string GLOBAL_PL_FILE_PATH(TypeKey2Fields);
+
+    static string NAME_SERIALIZE(typeKey2filePath);
+    static string NAME_SERIALIZE(package2typeKeys);
+    static string NAME_SERIALIZE(typeKey2subTypeKeys);
+    static string NAME_SERIALIZE(override);
+    static string NAME_SERIALIZE(TypeKey2itUseTypeKeys);
+    static string NAME_SERIALIZE(TypeKey2itUseMethods);
+    static string NAME_SERIALIZE(MethodUseMethods);
+    static string NAME_SERIALIZE(MethodUseFields);
 
     static string fontBaseDir;
     static string fontFilePath;

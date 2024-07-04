@@ -35,6 +35,26 @@ struct src_loc {
 #define SWAP_ELEMENT(L,I,J) {auto itemI = L[I]; L[I] = L[J]; L[J] = itemI;}
 #define REPLACE_QUOTATION_MARKS(S) replace_all_distinct(S, "\"", "'")
 
+#define TYPE_MAP_MAP(VALUE_TYPE) map<string,map<string,VALUE_TYPE>>
+#define NAME_FILE_TO(DATA_NAME) filePath2 ## DATA_NAME
+#define NAME_SAVE_GLOBAL_PROLOG(FUN_NAME) saveProlog ## FUN_NAME
+#define GLOBAL_PL_FILE_PATH(DATA_NAME) prologGlobalInfo_ ## DATA_NAME
+#define SAVE_GLOBAL_PROLOG(DATA_NAME,ACTION) { \
+    list<string> lines;\
+    for (auto& item1 : NAME_FILE_TO(DATA_NAME)) {\
+        for (auto& item2 : item1.second) {\
+            ACTION\
+        }\
+    }\
+    PrologConstructor::writeToPrologFile(FileManager::GLOBAL_PL_FILE_PATH(DATA_NAME), lines);\
+}
+
+#define NAME_SERIALIZE(DATA_NAME) prologGlobalInfo_filePath2 ## DATA_NAME
+
+#define INIT_IF_NOT_EXISTS(DATA,KEY1,KEY2,TYPE) if (not DATA[KEY1].count(KEY2)){\
+    DATA[KEY1][KEY2] = TYPE();\
+}
+
 string joinVector(const vector<string> &, const string &);
 
 template<typename ItemType>

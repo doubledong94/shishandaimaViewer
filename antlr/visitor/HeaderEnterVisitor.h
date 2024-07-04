@@ -71,7 +71,7 @@ namespace Header {
 
         static void addOverrideInfo();
 
-        static void addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo);
+        static void addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo, MethodInfo* superMethodInfo);
     };
 
     class MemeberPhase :PhaseBaseClass {

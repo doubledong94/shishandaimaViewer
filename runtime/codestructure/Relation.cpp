@@ -8,7 +8,6 @@
 void ResolvingItem::reset() {
     hasReturnValue = false;
     variableKey.clear();
-    overrideKey.clear();
     typeInfo = NULL;
     typeArgs.clear();
     structureKey.clear();
@@ -87,7 +86,7 @@ void ResolvingItem::addRuntimeProlog(string(*act)(const string& methodKey, const
         referencedBy->addRuntimeProlog(act, methodKey, prologLines);
     }
     if (indexedBy != nullptr) {
-        prologLines.emplace_back(act(methodKey, GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, makeRuntimeKey(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, structureKey, sentenceIndex, indexInsideStatement), GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN));
+        prologLines.emplace_back(act(methodKey, GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, makeRuntimeKey(GlobalInfo::GLOBAL_KEY_OPTR_INDEX_RETURN, structureKey, sentenceIndex, indexInsideStatement), GlobalInfo::KEY_TYPE_INDEX));
         indexedBy->addRuntimeProlog(act, methodKey, prologLines);
     }
     runtimeAdded = true;

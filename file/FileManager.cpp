@@ -77,24 +77,32 @@ void FileManager::deleteFile(const string& filePath) {
 string FileManager::baseFolder = "";
 string baseDataFolder = "";
 
-string FileManager::prologBaseDir = baseDataFolder + "prolog/";
-string FileManager::prologAddressableFileDir = prologBaseDir + "addressable/";
-string FileManager::prologUnaddressableFileDir = prologBaseDir + "unaddressable/";
+string FileManager::prologBaseDir = "";
+string FileManager::prologAddressableFileDir = "";
+string FileManager::prologUnaddressableFileDir = "";
 
-string FileManager::prologGlobalInfo_typeKey2AddressableFilePath = prologBaseDir + "typeKey2addressableFilePath.pl";
-string FileManager::prologGlobalInfo_typeKey2UnaddressableFilePath = prologBaseDir + "typeKey2unaddressableFilePath.pl";
-string FileManager::prologGlobalInfo_package2typeKey = prologBaseDir + "package2typeKey.pl";
-string FileManager::prologGlobalInfo_typeKey2subTypeKeys = prologBaseDir + "typeKey2subTypeKeys.pl";
-string FileManager::prologGlobalInfo_override = prologBaseDir + "override.pl";
-string FileManager::prologGlobalInfo_typeKey2itUseTypeKeys = prologBaseDir + "typeKey2itUseTypeKeys.pl";
-string FileManager::prologGlobalInfo_filePath2TypeKey2itUseTypeKeys = baseDataFolder + "filePath2TypeKey2itUseTypeKeys.txt";
-string FileManager::prologGlobalInfo_typeKey2itUseMethods = prologBaseDir + "typeKey2itUseMethods.pl";
-string FileManager::prologGlobalInfo_filePath2TypeKey2itUseMethods = baseDataFolder + "filePath2TypeKey2itUseMethods.txt";
-string FileManager::prologGlobalInfo_filePath2typeKey2FilePath = baseDataFolder + "filePath2typeKey2FilePath.txt";
-string FileManager::prologGlobalInfo_filePath2package2typeKey = baseDataFolder + "filePath2package2typeKey.txt";
-string FileManager::prologGlobalInfo_filePath2typeKey2subTypeKeys = baseDataFolder + "filePath2typeKey2subTypeKeys.txt";
-string FileManager::prologGlobalInfo_filePath2override = baseDataFolder + "filePath2override.txt";
-string FileManager::prologGlobalInfo_baseRuleFile = "";
+string FileManager::GLOBAL_PL_FILE_PATH(baseRuleFile) = "";
+
+string FileManager::GLOBAL_PL_FILE_PATH(typeKey2filePath) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(package2typeKeys) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(override) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2itUseTypeKeys) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2itUseMethods) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(MethodUseMethods) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(MethodUseFields) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Methods) = "";
+string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Fields) = "";
+
+string FileManager::NAME_SERIALIZE(typeKey2filePath) = "";
+string FileManager::NAME_SERIALIZE(package2typeKeys) = "";
+string FileManager::NAME_SERIALIZE(typeKey2subTypeKeys) = "";
+string FileManager::NAME_SERIALIZE(override) = "";
+string FileManager::NAME_SERIALIZE(TypeKey2itUseTypeKeys) = "";
+string FileManager::NAME_SERIALIZE(TypeKey2itUseMethods) = "";
+string FileManager::NAME_SERIALIZE(MethodUseMethods) = "";
+string FileManager::NAME_SERIALIZE(MethodUseFields) = "";
+
 string FileManager::configBaseDir = "";
 string FileManager::imguiIniFile = "";
 string FileManager::hotkeyConfig = "";
@@ -134,29 +142,37 @@ void FileManager::initCurrentDir() {
     baseFolder = string(result, (count > 0) ? count - 22 : 0);
     baseDataFolder = baseFolder + "data/";
     srcjsonBaseDir = baseDataFolder + "srcjson/";
+    configBaseDir = baseFolder + "config/";
     headerSerializationFile = baseDataFolder + "header.txt";
     prologBaseDir = baseDataFolder + "prolog/";
     prologAddressableFileDir = prologBaseDir + "addressable/";
     prologUnaddressableFileDir = prologBaseDir + "unaddressable/";
-    prologGlobalInfo_typeKey2AddressableFilePath = prologBaseDir + "typeKey2addressableFilePath.pl";
-    prologGlobalInfo_typeKey2UnaddressableFilePath = prologBaseDir + "typeKey2unaddressableFilePath.pl";
-    prologGlobalInfo_package2typeKey = prologBaseDir + "package2typeKey.pl";
-    prologGlobalInfo_typeKey2subTypeKeys = prologBaseDir + "typeKey2subTypeKeys.pl";
-    prologGlobalInfo_override = prologBaseDir + "override.pl";
-    prologGlobalInfo_typeKey2itUseTypeKeys = prologBaseDir + "typeKey2itUseTypeKeys.pl";
-    prologGlobalInfo_filePath2TypeKey2itUseTypeKeys = baseDataFolder + "filePath2TypeKey2itUseTypeKeys.txt";
-    prologGlobalInfo_typeKey2itUseMethods = prologBaseDir + "typeKey2itUseMethods.pl";
-    prologGlobalInfo_filePath2TypeKey2itUseMethods = baseDataFolder + "filePath2TypeKey2itUseMethods.txt";
-    prologGlobalInfo_filePath2typeKey2FilePath = baseDataFolder + "filePath2typeKey2FilePath.txt";
-    prologGlobalInfo_filePath2package2typeKey = baseDataFolder + "filePath2package2typeKey.txt";
-    prologGlobalInfo_filePath2typeKey2subTypeKeys = baseDataFolder + "filePath2typeKey2subTypeKeys.txt";
-    prologGlobalInfo_filePath2override = baseDataFolder + "filePath2override.txt";
+
+    GLOBAL_PL_FILE_PATH(baseRuleFile) = configBaseDir + "base_rules.pl";
+
+    GLOBAL_PL_FILE_PATH(typeKey2filePath) = prologBaseDir + "typeKey2PLFilePath.pl";
+    GLOBAL_PL_FILE_PATH(package2typeKeys) = prologBaseDir + "package2typeKey.pl";
+    GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys) = prologBaseDir + "typeKey2subTypeKeys.pl";
+    GLOBAL_PL_FILE_PATH(override) = prologBaseDir + "override.pl";
+    GLOBAL_PL_FILE_PATH(TypeKey2itUseTypeKeys) = prologBaseDir + "typeKey2itUseTypeKeys.pl";
+    GLOBAL_PL_FILE_PATH(TypeKey2itUseMethods) = prologBaseDir + "typeKey2itUseMethods.pl";
+    GLOBAL_PL_FILE_PATH(MethodUseMethods) = prologBaseDir + "MethodUseMethods.pl";
+    GLOBAL_PL_FILE_PATH(MethodUseFields) = prologBaseDir + "MethodUseFields.pl";
+    GLOBAL_PL_FILE_PATH(TypeKey2Methods) = prologBaseDir + "TypeKey2Methods.pl";
+    GLOBAL_PL_FILE_PATH(TypeKey2Fields) = prologBaseDir + "TypeKey2Fields.pl";
+
+    NAME_SERIALIZE(typeKey2filePath) = baseDataFolder + "filePath2typeKey2FilePath.txt";
+    NAME_SERIALIZE(package2typeKeys) = baseDataFolder + "filePath2package2typeKey.txt";
+    NAME_SERIALIZE(typeKey2subTypeKeys) = baseDataFolder + "filePath2typeKey2subTypeKeys.txt";
+    NAME_SERIALIZE(override) = baseDataFolder + "filePath2override.txt";
+    NAME_SERIALIZE(TypeKey2itUseTypeKeys) = baseDataFolder + "filePath2TypeKey2itUseTypeKeys.txt";
+    NAME_SERIALIZE(TypeKey2itUseMethods) = baseDataFolder + "filePath2TypeKey2itUseMethods.txt";
+    NAME_SERIALIZE(MethodUseMethods) = baseDataFolder + "filePath2MethodUseMethods.txt";
+    NAME_SERIALIZE(MethodUseFields) = baseDataFolder + "filePath2MethodUseFields.txt";
     fontBaseDir = baseFolder + "fonts/";
     fontFilePath = fontBaseDir + "optimer_regular.typeface.json";
     fontFileOTFPath = fontBaseDir + "SourceHanSansSC-Normal.otf";
     fontFileTTFPath = fontBaseDir + "SourceHanSansSC-Normal.ttf";
-    configBaseDir = baseFolder + "config/";
-    prologGlobalInfo_baseRuleFile = configBaseDir + "base_rules.pl";
     imguiIniFile = configBaseDir + "imgui.ini";
     hotkeyConfig = configBaseDir + "hotkey.config";
     simpleViewConfig = configBaseDir + "simpleView.config";
@@ -200,11 +216,10 @@ void FileManager::initCurrentDir() {
 
 bool FileManager::shouldRestore(const string& filePath) {
     bool isInSrcPath = filePath.find(srcPath) == 0;
-    return not isInSrcPath or
-        (FileManager::allFiles.count(filePath) and not FileManager::updatedFiles.count(filePath));
+    return not isInSrcPath or (FileManager::allFiles.count(filePath) and not FileManager::updatedFiles.count(filePath));
 }
 
-string FileManager::srcjsonBaseDir = baseDataFolder + "srcjson/";
+string FileManager::srcjsonBaseDir = "";
 string FileManager::headerSerializationFile = "";
 
 string FileManager::fontBaseDir = "";
@@ -221,8 +236,9 @@ string FileManager::convertFilePath2PrologFile(const string& filePath) {
 }
 
 bool FileManager::hasBeenChangedSinceLastTimeParsing(const string& filePath) {
-    string filePathToBeCompared = prologAddressableFileDir + convertFilePath2PrologFile(filePath.data());
-    return (access(filePathToBeCompared.data(), W_OK) != 0 || compareFileEditTime(filePath, filePathToBeCompared));
+    string oldDataFile = prologAddressableFileDir + convertFilePath2PrologFile(filePath.data());
+    bool fileNotExist = access(oldDataFile.data(), F_OK) != 0;
+    return (fileNotExist || compareFileEditTime(filePath, oldDataFile));
 }
 
 bool FileManager::compareFileEditTime(const string& filePath1, const string& filePath2) {

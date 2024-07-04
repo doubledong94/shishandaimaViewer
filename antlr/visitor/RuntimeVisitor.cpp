@@ -197,9 +197,6 @@ any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMeth
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
         pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
-        if (pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo) {
-            pStatementVisitor->codeBlock->conditionItem->overrideKey = pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo->methodKey;
-        }
         pStatementVisitor->visitBlock(ctx->interfaceCommonBodyDeclaration()->methodBody()->block());
         CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
         StatementVisitor::returnToPool(pStatementVisitor);
@@ -216,9 +213,6 @@ std::any ClassLevelVisitor::visitMethodDeclaration(JavaParser::MethodDeclaration
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
         pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
-        if (pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo) {
-            pStatementVisitor->codeBlock->conditionItem->overrideKey = pStatementVisitor->methodScopeAndEnv->methodInfo->overrideMethodInfo->methodKey;
-        }
         pStatementVisitor->visitBlock(ctx->methodBody()->block());
         CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
         StatementVisitor::returnToPool(pStatementVisitor);
@@ -823,9 +817,6 @@ std::any StatementVisitor::visitStatementReturn(JavaParser::StatementReturnConte
         auto* ret = ResolvingItem::getInstance2(methodScopeAndEnv->returnFieldInfo->fieldKey, methodScopeAndEnv->returnFieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_RETURN);
         // method return
         new Relation(getSentence(), item, ret);
-        if (methodScopeAndEnv->methodInfo->overrideMethodInfo) {
-            ret->overrideKey = methodScopeAndEnv->methodInfo->overrideMethodInfo->returnInfo->fieldKey;
-        }
         codeBlock->has_return_sentence = true;
     }
     return 0;
@@ -941,18 +932,6 @@ std::any StatementVisitor::visitPrimaryIdentifier(JavaParser::PrimaryIdentifierC
     map<TypeInfo*, TypeInfo*> typeArgs;
     if (methodScopeAndEnv->findIdWithFileScope(ctx->identifier()->getText(), key, typeInfo, keyType, &typeArgs)) {
         auto item = ResolvingItem::getInstance2(key, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), keyType);
-        if (item->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER and methodScopeAndEnv->methodInfo->overrideMethodInfo) {
-            int index = -1;
-            for (auto& param : methodScopeAndEnv->methodInfo->parameterInfos) {
-                index++;
-                if (param->fieldKey == item->variableKey) {
-                    break;
-                }
-            }
-            if (index > -1) {
-                item->overrideKey = methodScopeAndEnv->methodInfo->overrideMethodInfo->parameterInfos[index]->fieldKey;
-            }
-        }
         item->typeArgs = typeArgs;
         return item;
     } else {
@@ -1008,10 +987,9 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         return nullptr;
     }
     auto* referencedScope = referencedBy->typeInfo->classScopeAndEnv;
-    classScopeAndEnv->addUsage(referencedBy->typeInfo);
     auto* resolvingItem = ResolvingItem::getInstance2();
     if (ctx->identifier() != nullptr) {
-        if (!referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType)) {
+        if (!referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType, NULL, methodScopeAndEnv)) {
             spdlog::get(ErrorManager::DebugTag)->warn("visitExpressionReference: did not find id for name: {} referenced by {} in method: {}", ctx->identifier()->getText(), referencedBy->typeInfo->typeKey, methodScopeAndEnv->methodKey);
             return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
         }
@@ -1669,7 +1647,7 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
 }
 
 void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
-    classScopeAndEnv->addUsage(methodInfo);
+    methodScopeAndEnv->addUsage(methodInfo);
     string indexInsideExpForMethod = getIncreasedIndexInsideExp();
     string& returnKey = methodInfo->returnInfo->fieldKey;
     string& calledReturnKey = methodInfo->calledReturnInfo->fieldKey;
@@ -1799,7 +1777,6 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
                         methodCall.name.clear();
                         splitStr(superTypeInfo->typeName, ".", methodCall.name);
                         pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
-                        classScopeAndEnv->addUsage(superFieldInfo->typeInfo);
                     } else {
                         spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find super for {}", classScopeAndEnv->typeInfo->typeKey);
                     }
@@ -1819,7 +1796,6 @@ std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::Constructor
                         const TypeInfo* superTypeInfo = superFieldInfo->typeInfo;
                         splitStr(superTypeInfo->typeName, ".", methodCall.name);
                         pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
-                        classScopeAndEnv->addUsage(superFieldInfo->typeInfo);
                     } else {
                         spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find default super for {}", classScopeAndEnv->typeInfo->typeKey);
                     }
@@ -1882,12 +1858,10 @@ void AnonymousVisitor::makeTypeInfo() {
     }
     typeInfo->package = outerMethodScopeAndEnv->getPackageScope()->package;
     typeInfo->filePath = outerMethodScopeAndEnv->getFileScope()->filePath;
-    GlobalInfo::filePath2package2typeKeys[typeInfo->filePath][typeInfo->package].insert(typeInfo->typeKey);
-    if (not GlobalInfo::filePath2typeKey2subTypeKeys[typeInfo->filePath].count(superTypeInfo->typeKey)) {
-        GlobalInfo::filePath2typeKey2subTypeKeys[typeInfo->filePath][superTypeInfo->typeKey] = set<string>();
-    }
-    GlobalInfo::filePath2typeKey2subTypeKeys[typeInfo->filePath][superTypeInfo->typeKey].insert(typeInfo->typeKey);
-    GlobalInfo::filePath2typeKey2filePath[typeInfo->filePath][typeInfo->typeKey] = typeInfo->filePath;
+    GlobalInfo::NAME_FILE_TO(typeKey2filePath)[typeInfo->filePath][typeInfo->typeKey] = typeInfo->filePath;
+    GlobalInfo::NAME_FILE_TO(package2typeKeys)[typeInfo->filePath][typeInfo->package].insert(typeInfo->typeKey);
+    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys), typeInfo->filePath, superTypeInfo->typeKey, set<string>);
+    GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys)[typeInfo->filePath][superTypeInfo->typeKey].insert(typeInfo->typeKey);
     GlobalInfo::filePath2typeInfos[typeInfo->filePath].push_back(typeInfo);
     AddressableInfo::typeKey2typeInfo[typeInfo->typeKey] = typeInfo;
     CodeBlock::classKey2methodKey2codeBlock[typeInfo->typeKey] = map<string, CodeBlock*>();
@@ -1973,8 +1947,6 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                 methodInfo->name = method->name;
                 methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, method->name, methodInfo->getParamPartOfKey());
                 methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
-                methodInfo->overrideMethodInfo = typeInfo->classScopeAndEnv->findOverrideMethod(methodInfo);
-                Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo);
                 if (not classScopeAndEnv->name2method.count(method->name)) {
                     classScopeAndEnv->name2method[method->name] = list<MethodInfo*>();
                 }
@@ -2024,6 +1996,7 @@ void AnonymousVisitor::visitForMembers(JavaParser::ClassBodyContext* ctx) {
                     calledParamInfo->typeInfo = paramInfo->typeInfo;
                     AddressableInfo::fieldKey2fieldInfo[calledParamInfo->fieldKey] = calledParamInfo;
                 }
+                Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo, typeInfo->classScopeAndEnv->findOverrideMethod(methodInfo));
                 ctx2methodScopeAndEnv[classBodyDeclaration->memberDeclaration()->methodDeclaration()] = methodScopeAndEnv;
                 AddressableInfo::methodKey2MethodInfo[methodInfo->methodKey] = methodInfo;
             }
@@ -2060,8 +2033,6 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
     methodInfo->name = superMethodInfo->name;
     methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, methodInfo->name, methodInfo->getParamPartOfKey());
     methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
-    methodInfo->overrideMethodInfo = superMethodInfo;
-    Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo);
     typeInfo->methodInfos.insert(methodInfo);
     auto methodScopeAndEnv = new MethodScopeAndEnv();
     methodScopeAndEnv->methodKey = methodInfo->methodKey;
@@ -2124,6 +2095,7 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
             ));
         }
     }
+    Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo, superMethodInfo);
     CodeBlock::classKey2methodKey2codeBlock[typeInfo->typeKey][pStatementVisitor->methodScopeAndEnv->methodKey] = pStatementVisitor->codeBlock;
     StatementVisitor::returnToPool(pStatementVisitor);
 

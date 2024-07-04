@@ -45,30 +45,21 @@ void Header::EnterClassPhase::run() {
     for (auto& compileUnit : AddressableInfo::filePath2compilationUnits) {
         reset();
         currentFilePath = compileUnit.first;
-        if (not GlobalInfo::filePath2package2typeKeys.count(currentFilePath)) {
-            GlobalInfo::filePath2package2typeKeys[currentFilePath] = map<string, set<string>>();
-        }
-        if (not GlobalInfo::filePath2package2typeKeys[currentFilePath].count(compileUnit.second->package)) {
-            GlobalInfo::filePath2package2typeKeys[currentFilePath][compileUnit.second->package] = set<string>();
-        }
-        if (not GlobalInfo::filePath2typeKey2subTypeKeys.count(currentFilePath)) {
-            GlobalInfo::filePath2typeKey2subTypeKeys[currentFilePath] = map<string, set<string>>();
-        }
-        if (not GlobalInfo::filePath2override.count(currentFilePath)) {
-            GlobalInfo::filePath2override[currentFilePath] = map<string, set<string>>();
-        }
-        if (not GlobalInfo::filePath2typeKey2filePath.count(currentFilePath)) {
-            GlobalInfo::filePath2typeKey2filePath[currentFilePath] = map<string, string>();
-        }
+        INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(package2typeKeys), currentFilePath, compileUnit.second->package, set<string>);
         GlobalInfo::filePath2typeInfos[currentFilePath] = list<TypeInfo*>();
         visitCompilationUnit(compileUnit.second);
     }
     for (auto& filePath : duplicateTypeFile) {
         AddressableInfo::filePath2compilationUnits.erase(filePath);
-        GlobalInfo::filePath2package2typeKeys.erase(filePath);
-        GlobalInfo::filePath2typeKey2subTypeKeys.erase(filePath);
-        GlobalInfo::filePath2override.erase(filePath);
-        GlobalInfo::filePath2typeKey2filePath.erase(filePath);
+        GlobalInfo::NAME_FILE_TO(typeKey2filePath).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(package2typeKeys).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(override).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(TypeKey2itUseTypeKeys).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(TypeKey2itUseMethods).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(MethodUseMethods).erase(filePath);
+        GlobalInfo::NAME_FILE_TO(MethodUseFields).erase(filePath);
+        GlobalInfo::filePath2typeInfos.erase(filePath);
     }
 }
 
@@ -80,8 +71,10 @@ void Header::EnterClassPhase::visitType(Type* type) {
         return;
     }
 
-    GlobalInfo::filePath2package2typeKeys[currentFilePath][package].insert(typeKeyStack.back());
-    GlobalInfo::filePath2typeKey2filePath[currentFilePath][typeKeyStack.back()] = currentFilePath;
+    GlobalInfo::NAME_FILE_TO(typeKey2filePath)[currentFilePath][typeKeyStack.back()] = currentFilePath;
+    GlobalInfo::NAME_FILE_TO(package2typeKeys)[currentFilePath][package].insert(typeKeyStack.back());
+    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(TypeKey2itUseTypeKeys), currentFilePath, typeKeyStack.back(), set<string>);
+    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(TypeKey2itUseMethods), currentFilePath, typeKeyStack.back(), set<string>);
     auto* pTypeInfo = new TypeInfo;
     AddressableInfo::typeKey2typeInfo[typeKeyStack.back()] = pTypeInfo;
     GlobalInfo::filePath2typeInfos[currentFilePath].push_back(pTypeInfo);
@@ -181,10 +174,8 @@ bool Header::HierarchyPhase::finishUnresolved() {
                 }
             }
             ClassScopeAndEnv::linkSuperScopeAndEnv(pTypeInfo, superTypeInfo);
-            if (not GlobalInfo::filePath2typeKey2subTypeKeys[pTypeInfo->filePath].count(superTypeInfo->typeKey)) {
-                GlobalInfo::filePath2typeKey2subTypeKeys[pTypeInfo->filePath][superTypeInfo->typeKey] = set<string>();
-            }
-            GlobalInfo::filePath2typeKey2subTypeKeys[pTypeInfo->filePath][superTypeInfo->typeKey].insert(pTypeInfo->typeKey);
+            INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys), pTypeInfo->filePath, superTypeInfo->typeKey, set<string>);
+            GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys)[pTypeInfo->filePath][superTypeInfo->typeKey].insert(pTypeInfo->typeKey);
             resolved.insert(superRelationUnresolvedI);
         }
     }
@@ -207,19 +198,18 @@ void Header::HierarchyPhase::resolveHierarchy() {
         "HierarchyPhase::resolveHierarchy: did not find super and implement name in total: {}", superRelationUnresolved.size());
 }
 
-void Header::HierarchyPhase::addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo) {
-    if (methodInfo->overrideMethodInfo) {
-        string& overrideMethodKey = methodInfo->overrideMethodInfo->methodKey;
-        if (not GlobalInfo::filePath2override[typeInfo->filePath].count(overrideMethodKey)) {
-            GlobalInfo::filePath2override[typeInfo->filePath][overrideMethodKey] = set<string>();
-        }
-        GlobalInfo::filePath2override[typeInfo->filePath][overrideMethodKey].insert(methodInfo->methodKey);
+void Header::HierarchyPhase::addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInfo* methodInfo, MethodInfo* superMethodInfo) {
+    if (superMethodInfo) {
+        string& overrideMethodKey = superMethodInfo->methodKey;
+        INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(override), typeInfo->filePath, overrideMethodKey, set<string>);
+        GlobalInfo::NAME_FILE_TO(override)[typeInfo->filePath][overrideMethodKey].insert(methodInfo->methodKey);
+        string& overrideReturnKey = superMethodInfo->returnInfo->fieldKey;
+        INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(override), typeInfo->filePath, overrideReturnKey, set<string>);
+        GlobalInfo::NAME_FILE_TO(override)[typeInfo->filePath][overrideReturnKey].insert(methodInfo->returnInfo->fieldKey);
         for (int i = 0;i < methodInfo->parameterInfos.size();i++) {
-            string& overrideParamKey = methodInfo->overrideMethodInfo->parameterInfos[i]->fieldKey;
-            if (not GlobalInfo::filePath2override[typeInfo->filePath].count(overrideParamKey)) {
-                GlobalInfo::filePath2override[typeInfo->filePath][overrideParamKey] = set<string>();
-            }
-            GlobalInfo::filePath2override[typeInfo->filePath][overrideParamKey].insert(methodInfo->parameterInfos[i]->fieldKey);
+            string& overrideParamKey = superMethodInfo->parameterInfos[i]->fieldKey;
+            INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(override), typeInfo->filePath, overrideParamKey, set<string>);
+            GlobalInfo::NAME_FILE_TO(override)[typeInfo->filePath][overrideParamKey].insert(methodInfo->parameterInfos[i]->fieldKey);
         }
     }
 }
@@ -227,8 +217,7 @@ void Header::HierarchyPhase::addOverMethod2TypeKey(TypeInfo* typeInfo, MethodInf
 void Header::HierarchyPhase::addOverrideInfo() {
     for (auto& typeKeyAndTypeInfo : AddressableInfo::typeKey2typeInfo) {
         for (auto& methodInfo : typeKeyAndTypeInfo.second->methodInfos) {
-            methodInfo->overrideMethodInfo = typeKeyAndTypeInfo.second->classScopeAndEnv->findOverrideMethod(methodInfo);
-            addOverMethod2TypeKey(typeKeyAndTypeInfo.second, methodInfo);
+            addOverMethod2TypeKey(typeKeyAndTypeInfo.second, methodInfo, typeKeyAndTypeInfo.second->classScopeAndEnv->findOverrideMethod(methodInfo));
         }
     }
 }
@@ -443,4 +432,6 @@ void Header::MemeberPhase::addMethodInfo(Method* method, bool isConstructor) {
             }
         }
     }
+    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(MethodUseMethods), currentFilePath, methodInfo->methodKey, set<string>);
+    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(MethodUseFields), currentFilePath, methodInfo->methodKey, set<string>);
 }

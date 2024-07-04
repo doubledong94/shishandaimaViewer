@@ -239,7 +239,7 @@ namespace shishan {
             allKeyType.erase(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE);
         }
         if (not setting->chosen_index) {
-            allKeyType.erase(GlobalInfo::KEY_TYPE_OPTR_INDEX_RETURN);
+            allKeyType.erase(GlobalInfo::KEY_TYPE_INDEX);
         }
         };
 }

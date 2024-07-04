@@ -13,6 +13,8 @@ ofstream debug_prolog_file;
 
 bool PrologWrapper::init() {
     debug_prolog_file.open(FileManager::baseFolder + "debug_prolog.pl");
+    debug_prolog_file << (":-dynamic addressableLoaded/1.") << "\n";
+    debug_prolog_file << (":-dynamic unaddressableLoaded/1.") << "\n";
     debug_prolog_file << (":-discontiguous resolve/2.") << "\n";
     debug_prolog_file << (":-discontiguous resolveRuntime/6.") << "\n";
     debug_prolog_file << (":-discontiguous forwardFa/7.") << "\n";
@@ -23,14 +25,15 @@ bool PrologWrapper::init() {
     debug_prolog_file << (":-discontiguous backwardFa/9.") << "\n";
     e = new PlEngine("");
     bool loaded = true;
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_package2typeKey);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2itUseTypeKeys);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2itUseMethods);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2AddressableFilePath);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2UnaddressableFilePath);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_typeKey2subTypeKeys);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_override);
-    loaded &= loadFileIfExist(FileManager::prologGlobalInfo_baseRuleFile);
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(baseRuleFile));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(typeKey2filePath));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(package2typeKeys));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(override));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(MethodUseMethods));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(MethodUseFields));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Methods));
+    loaded &= loadFileIfExist(FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Fields));
     return loaded;
 }
 
@@ -122,14 +125,6 @@ int PrologWrapper::queryCount(CompoundTerm* term) {
         easyPrint(e.as_string());
         exit(1);
     }
-}
-
-void PrologWrapper::queryLoadedTypeKeys(list<string>& loadedTypeKeys) {
-    loadedTypeKeys.clear();
-    auto* plTerm = PooledItem<CompoundTerm>::getInstance();
-    plTerm->head = HEAD_LOADED;
-    plTerm->addVarTermArg();
-    queryList(plTerm, [&](vector<Term*>& ret) {loadedTypeKeys.push_back(REMOVE_QUOTATION(ret[0]->toString()));});
 }
 
 void PrologWrapper::declareFun(const string& functorName, int arity) {

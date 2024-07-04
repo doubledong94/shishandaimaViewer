@@ -73,8 +73,6 @@ namespace SimpleView {
 
         void resolve(std::function<void(int, int, const char*)>* update) override;
 
-        void resolveForRuntime(std::function<void(int, int, const char*)>* update);
-
         static void loadAddressableForRuntime(const set<string>& runtimeClassKey, std::function<void(int, int, const char*)>* update);
 
         void unResolve(bool retract = false) override;
@@ -519,9 +517,12 @@ public:
     static void saveVocabulary(SimpleViewLexer& lexer, int symbol);
     static void saveVocabulary(SimpleViewLexer& lexer);
     static void init();
+    static void declareKeyConvertion();
+    static void declareClassResolveRules();
+    static void declareNodeResolveRules();
     static void declareStepRules();
     static void declareOverrideRules();
-    static void declareLoadRuntimeByStepKey();
+    static void declareLoadWhileSearching();
     static void searchClass(char* searchStr, vector<const char*>& searchResult);
     static void searchNode(const char* classKey, vector<const char*>& searchResult);
     static void filterSearchResults(char* searchStr, vector<const char*>& searchResult);

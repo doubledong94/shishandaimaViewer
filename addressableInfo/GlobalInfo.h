@@ -1,18 +1,22 @@
+
 struct TypeInfo;
 
 class GlobalInfo {
 public:
     const static string type_key_array;
 
-    static map<string, map<string, set<string>>> filePath2package2typeKeys;
-    static map<string, map<string, set<string>>> filePath2typeKey2subTypeKeys;
-    static map<string, map<string, set<string>>> filePath2override;
+    static TYPE_MAP_MAP(string) NAME_FILE_TO(typeKey2filePath);
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(package2typeKeys);
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(typeKey2subTypeKeys);
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(override);
+    // todo to be deleted TypeKey2itUseTypeKeys
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(TypeKey2itUseTypeKeys);
+    // todo to be deleted TypeKey2itUseMethods
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(TypeKey2itUseMethods);
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(MethodUseMethods);
+    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(MethodUseFields);
 
-    static map<string, map<string, string>> filePath2typeKey2filePath;
     static map<string, list<TypeInfo*>> filePath2typeInfos;
-
-    static map<string, map<string, set<string>>> filePath2TypeKey2itUseTypeKeys;
-    static map<string, map<string, set<string>>> filePath2TypeKey2itUseMethods;
 
     static std::mutex addUsageLock;
 
@@ -51,6 +55,8 @@ public:
 
     static void saveGlobalInfo();
 
+    static void serializeGlobalInfo();
+
     //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Key Type^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     enum {
         // value keys
@@ -70,7 +76,7 @@ public:
         KEY_TYPE_TIMING_STEP,
         KEY_TYPE_DATA_OVERRIDE,
         KEY_TYPE_TIMING_OVERRIDE,
-        KEY_TYPE_OPTR_INDEX_RETURN,
+        KEY_TYPE_INDEX,
 
         KEY_TYPE_LOCAL_VARIABLE,
         KEY_TYPE_FINAL,
@@ -121,30 +127,17 @@ public:
 
     static void release();
 
-    static void beforeParseAll();
+    static void serialize(TYPE_MAP_MAP(string)&, string&);
 
-    static void serializeUseRelation();
+    static void serialize(TYPE_MAP_MAP(set<string>)&, string&);
 
-    static void deserializeUseRelation();
+    static void deserialize();
 
-    static void serializeUseMethod();
+    static void deserialize(TYPE_MAP_MAP(string)&, string&);
 
-    static void deserializeUseMethod();
+    static void deserialize(TYPE_MAP_MAP(set<string>)&, string&);
 
-    static void serializeFilePath();
+    static void initGlobalInfoWhichIsUpdatedAndNotRestored();
 
-    static void deserializeFilePath();
-
-    static void serializePackage2typeKey();
-
-    static void deserializePackage2typeKey();
-
-    static void serializeSubType();
-
-    static void deserializeSubType();
-
-    static void serializeOverrideType();
-
-    static void deserializeOverrideType();
 };
 

@@ -18,7 +18,7 @@ map<string, FileScopeAndEnv*> FileScopeAndEnv::filePath2scopeAndEnv;
 const string PackageScopeAndEnv::langPackage = "java.lang";
 
 void PackageScopeAndEnv::addScopeAndEnvForAllPackage() {
-    for (auto& package2typeKeys : GlobalInfo::filePath2package2typeKeys) {
+    for (auto& package2typeKeys : GlobalInfo::NAME_FILE_TO(package2typeKeys)) {
         for (auto& item : package2typeKeys.second) {
             PackageScopeAndEnv::package2scopeAndEnv[item.first] = new PackageScopeAndEnv(item.first);
         }
@@ -54,7 +54,7 @@ void PackageScopeAndEnv::release() {
 
 void FileScopeAndEnv::addImportedTypeNameScopeAndEnvForAllFile() {
     map<string, set<string>> package2typeKeys;
-    for (auto& fileAndPackgeAndTypeKeys : GlobalInfo::filePath2package2typeKeys) {
+    for (auto& fileAndPackgeAndTypeKeys : GlobalInfo::NAME_FILE_TO(package2typeKeys)) {
         for (auto& packageAndTypeKeys : fileAndPackgeAndTypeKeys.second) {
             if (not package2typeKeys.count(packageAndTypeKeys.first)) {
                 package2typeKeys[packageAndTypeKeys.first] = set<string>();
@@ -64,26 +64,8 @@ void FileScopeAndEnv::addImportedTypeNameScopeAndEnvForAllFile() {
             }
         }
     }
-    for (auto& item : GlobalInfo::filePath2typeInfos) {
-        FileScopeAndEnv::filePath2scopeAndEnv[item.first] = new FileScopeAndEnv(item.first);
-        if (not GlobalInfo::filePath2TypeKey2itUseTypeKeys.count(item.first)) {
-            GlobalInfo::filePath2TypeKey2itUseTypeKeys[item.first] = map<string, set<string>>();
-        }
-        for (auto& typeInfo : item.second) {
-            if (not GlobalInfo::filePath2TypeKey2itUseTypeKeys[item.first].count(typeInfo->typeKey)) {
-                GlobalInfo::filePath2TypeKey2itUseTypeKeys[item.first][typeInfo->typeKey] = set<string>();
-            }
-        }
-        if (not GlobalInfo::filePath2TypeKey2itUseMethods.count(item.first)) {
-            GlobalInfo::filePath2TypeKey2itUseMethods[item.first] = map<string, set<string>>();
-        }
-        for (auto& typeInfo : item.second) {
-            if (not GlobalInfo::filePath2TypeKey2itUseMethods[item.first].count(typeInfo->typeKey)) {
-                GlobalInfo::filePath2TypeKey2itUseMethods[item.first][typeInfo->typeKey] = set<string>();
-            }
-        }
-    }
     for (auto& file : AddressableInfo::filePath2compilationUnits) {
+        filePath2scopeAndEnv[file.first] = new FileScopeAndEnv(file.first);
         auto& pFileScopeAndEnv = filePath2scopeAndEnv[file.first];
         for (auto& importedType : file.second->importedTypes) {
             if (AddressableInfo::typeKey2typeInfo.count(importedType) > 0) {
@@ -376,7 +358,6 @@ TypeInfo* ClassScopeAndEnv::getTypeInfoWithFileScope(const list<string>& typeNam
         // after resolve one of type names, change scopeAndEnv
         if (typeInfoSoFar != nullptr) {
             scopeAndEnv = typeInfoSoFar->classScopeAndEnv;
-            addUsage(typeInfoSoFar);
         } else {
             break;
         }
@@ -411,12 +392,15 @@ void ClassScopeAndEnv::getMethodInfoWithFileScope(const list<string>& names, int
     }
 }
 
-bool ClassScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs) {
+bool ClassScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs, MethodScopeAndEnv* runtimeMethod) {
     auto* fieldInfo = getFieldInfoFromSelf(name);
     if (fieldInfo != nullptr) {
         key = fieldInfo->fieldKey;
         typeInfo = fieldInfo->typeInfo;
         keyType = GlobalInfo::KEY_TYPE_FIELD;
+        if (runtimeMethod) {
+            runtimeMethod->addUsage(fieldInfo);
+        }
         return true;
     }
     TypeInfo* pTypeInfo = getTypeInfoFromSelf(name);
@@ -555,29 +539,6 @@ void ClassScopeAndEnv::getMethodInfoFromImports(const string& name, int paramCou
 
 }
 
-void ClassScopeAndEnv::addUsage(TypeInfo* usedTypeInfo) {
-    GlobalInfo::addUsageLock.lock();
-    bool exist = GlobalInfo::filePath2TypeKey2itUseTypeKeys[typeInfo->filePath][typeInfo->typeKey].count(usedTypeInfo->typeKey);
-    if (not exist) {
-        GlobalInfo::filePath2TypeKey2itUseTypeKeys[typeInfo->filePath][typeInfo->typeKey].insert(usedTypeInfo->typeKey);
-    }
-    GlobalInfo::addUsageLock.unlock();
-    if (not exist) {
-        for (auto& superType : usedTypeInfo->superTypeInfos) {
-            addUsage(superType);
-        }
-        for (auto& interfaceType : usedTypeInfo->interfaceInfos) {
-            addUsage(interfaceType);
-        }
-    }
-}
-
-void ClassScopeAndEnv::addUsage(MethodInfo* usedMethodInfo) {
-    GlobalInfo::addUsageLock.lock();
-    GlobalInfo::filePath2TypeKey2itUseMethods[typeInfo->filePath][typeInfo->typeKey].insert(usedMethodInfo->methodKey);
-    GlobalInfo::addUsageLock.unlock();
-}
-
 void ClassScopeAndEnv::release(ClassScopeAndEnv* toBeReleased) {
     delete toBeReleased;
 }
@@ -626,7 +587,6 @@ bool MethodScopeAndEnv::findIdWithFileScope(const string& name, string& key, Typ
         key = pTypeInfo->typeKey;
         typeInfo = pTypeInfo;
         keyType = GlobalInfo::KEY_TYPE_CLASS;
-        classScopeAndEnv->addUsage(pTypeInfo);
         return true;
     }
     auto* fieldInfo = classScopeAndEnv->getFieldInfoFromImports(name);
@@ -634,12 +594,13 @@ bool MethodScopeAndEnv::findIdWithFileScope(const string& name, string& key, Typ
         key = fieldInfo->fieldKey;
         typeInfo = fieldInfo->typeInfo;
         keyType = GlobalInfo::KEY_TYPE_FIELD;
+        addUsage(fieldInfo);
         return true;
     }
     return false;
 }
 
-bool MethodScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs) {
+bool MethodScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs, MethodScopeAndEnv* runtimeMethod) {
     for (CodeBlockScopeAndEnv* codeBlockScopeAndEnv : codeBlockScopeAndEnvs) {
         if (key.empty() && codeBlockScopeAndEnv->LVName2LVKey.count(name) > 0) {
             key = codeBlockScopeAndEnv->LVName2LVKey[name];
@@ -697,6 +658,18 @@ string MethodScopeAndEnv::putLocalVariable(const string& name, TypeInfo* typeInf
     codeBlockScopeAndEnvs.front()->LVName2LVKey[name] = lvShortKey;
     LVKey2LVTypeInfo[lvShortKey] = typeInfo;
     return lvShortKey;
+}
+
+void MethodScopeAndEnv::addUsage(MethodInfo* usedMethodInfo) {
+    GlobalInfo::addUsageLock.lock();
+    GlobalInfo::NAME_FILE_TO(MethodUseMethods)[getFileScope()->filePath][methodKey].insert(usedMethodInfo->methodKey);
+    GlobalInfo::addUsageLock.unlock();
+}
+
+void MethodScopeAndEnv::addUsage(FieldInfo* usedFieldInfo) {
+    GlobalInfo::addUsageLock.lock();
+    GlobalInfo::NAME_FILE_TO(MethodUseFields)[getFileScope()->filePath][methodKey].insert(usedFieldInfo->fieldKey);
+    GlobalInfo::addUsageLock.unlock();
 }
 
 string MethodScopeAndEnv::getSupStructureKey(const string& structureKey) {
