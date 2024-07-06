@@ -87,8 +87,6 @@ string FileManager::GLOBAL_PL_FILE_PATH(typeKey2filePath) = "";
 string FileManager::GLOBAL_PL_FILE_PATH(package2typeKeys) = "";
 string FileManager::GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys) = "";
 string FileManager::GLOBAL_PL_FILE_PATH(override) = "";
-string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2itUseTypeKeys) = "";
-string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2itUseMethods) = "";
 string FileManager::GLOBAL_PL_FILE_PATH(MethodUseMethods) = "";
 string FileManager::GLOBAL_PL_FILE_PATH(MethodUseFields) = "";
 string FileManager::GLOBAL_PL_FILE_PATH(TypeKey2Methods) = "";
@@ -98,8 +96,6 @@ string FileManager::NAME_SERIALIZE(typeKey2filePath) = "";
 string FileManager::NAME_SERIALIZE(package2typeKeys) = "";
 string FileManager::NAME_SERIALIZE(typeKey2subTypeKeys) = "";
 string FileManager::NAME_SERIALIZE(override) = "";
-string FileManager::NAME_SERIALIZE(TypeKey2itUseTypeKeys) = "";
-string FileManager::NAME_SERIALIZE(TypeKey2itUseMethods) = "";
 string FileManager::NAME_SERIALIZE(MethodUseMethods) = "";
 string FileManager::NAME_SERIALIZE(MethodUseFields) = "";
 
@@ -154,8 +150,6 @@ void FileManager::initCurrentDir() {
     GLOBAL_PL_FILE_PATH(package2typeKeys) = prologBaseDir + "package2typeKey.pl";
     GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys) = prologBaseDir + "typeKey2subTypeKeys.pl";
     GLOBAL_PL_FILE_PATH(override) = prologBaseDir + "override.pl";
-    GLOBAL_PL_FILE_PATH(TypeKey2itUseTypeKeys) = prologBaseDir + "typeKey2itUseTypeKeys.pl";
-    GLOBAL_PL_FILE_PATH(TypeKey2itUseMethods) = prologBaseDir + "typeKey2itUseMethods.pl";
     GLOBAL_PL_FILE_PATH(MethodUseMethods) = prologBaseDir + "MethodUseMethods.pl";
     GLOBAL_PL_FILE_PATH(MethodUseFields) = prologBaseDir + "MethodUseFields.pl";
     GLOBAL_PL_FILE_PATH(TypeKey2Methods) = prologBaseDir + "TypeKey2Methods.pl";
@@ -165,8 +159,6 @@ void FileManager::initCurrentDir() {
     NAME_SERIALIZE(package2typeKeys) = baseDataFolder + "filePath2package2typeKey.txt";
     NAME_SERIALIZE(typeKey2subTypeKeys) = baseDataFolder + "filePath2typeKey2subTypeKeys.txt";
     NAME_SERIALIZE(override) = baseDataFolder + "filePath2override.txt";
-    NAME_SERIALIZE(TypeKey2itUseTypeKeys) = baseDataFolder + "filePath2TypeKey2itUseTypeKeys.txt";
-    NAME_SERIALIZE(TypeKey2itUseMethods) = baseDataFolder + "filePath2TypeKey2itUseMethods.txt";
     NAME_SERIALIZE(MethodUseMethods) = baseDataFolder + "filePath2MethodUseMethods.txt";
     NAME_SERIALIZE(MethodUseFields) = baseDataFolder + "filePath2MethodUseFields.txt";
     fontBaseDir = baseFolder + "fonts/";

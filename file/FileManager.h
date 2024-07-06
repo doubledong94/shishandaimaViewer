@@ -45,8 +45,6 @@ public:
     static string GLOBAL_PL_FILE_PATH(package2typeKeys);
     static string GLOBAL_PL_FILE_PATH(typeKey2subTypeKeys);
     static string GLOBAL_PL_FILE_PATH(override);
-    static string GLOBAL_PL_FILE_PATH(TypeKey2itUseTypeKeys);
-    static string GLOBAL_PL_FILE_PATH(TypeKey2itUseMethods);
     static string GLOBAL_PL_FILE_PATH(MethodUseMethods);
     static string GLOBAL_PL_FILE_PATH(MethodUseFields);
     static string GLOBAL_PL_FILE_PATH(TypeKey2Methods);
@@ -56,8 +54,6 @@ public:
     static string NAME_SERIALIZE(package2typeKeys);
     static string NAME_SERIALIZE(typeKey2subTypeKeys);
     static string NAME_SERIALIZE(override);
-    static string NAME_SERIALIZE(TypeKey2itUseTypeKeys);
-    static string NAME_SERIALIZE(TypeKey2itUseMethods);
     static string NAME_SERIALIZE(MethodUseMethods);
     static string NAME_SERIALIZE(MethodUseFields);
 

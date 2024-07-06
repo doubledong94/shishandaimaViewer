@@ -357,7 +357,7 @@ void EasierSimpleView::declareNodeResolveRules() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
             CompoundTerm::getResolveTerm(nodeValName, node),
             CompoundTerm::getResolveTerm(ClassScopeValName, Class),
-            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodTerm(Class, Method),CompoundTerm::getConstructorTerm(Class, Method)) ,
+            CompoundTerm::getMethodTerm(Class, Method),
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
@@ -860,9 +860,6 @@ void EasierSimpleView::searchNode(const char* classKey, vector<const char*>& sea
     if (not classToMethod.count(classKey)) {
         classToMethod[classKey] = list<string>();
         PrologWrapper::queryList(CompoundTerm::getMethodTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
-            classToMethod[classKey].push_back(retList[0]->atomOrVar);
-            });
-        PrologWrapper::queryList(CompoundTerm::getConstructorTerm(Term::getStr(classKey), Term::getVar("A")), [&](vector<Term*>& retList) {
             classToMethod[classKey].push_back(retList[0]->atomOrVar);
             });
     }

@@ -12,8 +12,6 @@ TYPE_MAP_MAP(string) GlobalInfo::NAME_FILE_TO(typeKey2filePath);
 TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(package2typeKeys);
 TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys);
 TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(override);
-TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(TypeKey2itUseTypeKeys);
-TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(TypeKey2itUseMethods);
 TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(MethodUseMethods);
 TYPE_MAP_MAP(set<string>) GlobalInfo::NAME_FILE_TO(MethodUseFields);
 
@@ -75,16 +73,6 @@ void GlobalInfo::saveGlobalInfo() {
             lines.push_back(CompoundTerm::getOverrideFact(item2.first, item3));
         }
             );
-    SAVE_GLOBAL_PROLOG(TypeKey2itUseTypeKeys,
-        for (auto& item3 : item2.second) {
-            lines.push_back(CompoundTerm::getRelatedTypeFact(item2.first, item3));
-        }
-            );
-    SAVE_GLOBAL_PROLOG(TypeKey2itUseMethods,
-        for (auto& item3 : item2.second) {
-            lines.push_back(CompoundTerm::getRelatedTypeAndMethodFact(item2.first, item3));
-        }
-            );
     SAVE_GLOBAL_PROLOG(MethodUseMethods,
         for (auto& item3 : item2.second) {
             lines.push_back(CompoundTerm::getMethodUseMethodFact(item2.first, item3));
@@ -116,8 +104,6 @@ void GlobalInfo::serializeGlobalInfo() {
     serialize(NAME_FILE_TO(package2typeKeys), FileManager::NAME_SERIALIZE(package2typeKeys));
     serialize(NAME_FILE_TO(typeKey2subTypeKeys), FileManager::NAME_SERIALIZE(typeKey2subTypeKeys));
     serialize(NAME_FILE_TO(override), FileManager::NAME_SERIALIZE(override));
-    serialize(NAME_FILE_TO(TypeKey2itUseTypeKeys), FileManager::NAME_SERIALIZE(TypeKey2itUseTypeKeys));
-    serialize(NAME_FILE_TO(TypeKey2itUseMethods), FileManager::NAME_SERIALIZE(TypeKey2itUseMethods));
     serialize(NAME_FILE_TO(MethodUseMethods), FileManager::NAME_SERIALIZE(MethodUseMethods));
     serialize(NAME_FILE_TO(MethodUseFields), FileManager::NAME_SERIALIZE(MethodUseFields));
 }
@@ -132,8 +118,6 @@ void GlobalInfo::release() {
     NAME_FILE_TO(typeKey2subTypeKeys).clear();
     NAME_FILE_TO(override).clear();
     NAME_FILE_TO(typeKey2filePath).clear();
-    NAME_FILE_TO(TypeKey2itUseTypeKeys).clear();
-    NAME_FILE_TO(TypeKey2itUseMethods).clear();
     NAME_FILE_TO(MethodUseMethods).clear();
     NAME_FILE_TO(MethodUseFields).clear();
 }
@@ -176,8 +160,6 @@ void GlobalInfo::deserialize() {
     deserialize(NAME_FILE_TO(package2typeKeys), FileManager::NAME_SERIALIZE(package2typeKeys));
     deserialize(NAME_FILE_TO(typeKey2subTypeKeys), FileManager::NAME_SERIALIZE(typeKey2subTypeKeys));
     deserialize(NAME_FILE_TO(override), FileManager::NAME_SERIALIZE(override));
-    deserialize(NAME_FILE_TO(TypeKey2itUseTypeKeys), FileManager::NAME_SERIALIZE(TypeKey2itUseTypeKeys));
-    deserialize(NAME_FILE_TO(TypeKey2itUseMethods), FileManager::NAME_SERIALIZE(TypeKey2itUseMethods));
     deserialize(NAME_FILE_TO(MethodUseMethods), FileManager::NAME_SERIALIZE(MethodUseMethods));
     deserialize(NAME_FILE_TO(MethodUseFields), FileManager::NAME_SERIALIZE(MethodUseFields));
 }
@@ -258,8 +240,6 @@ void GlobalInfo::initGlobalInfoWhichIsUpdatedAndNotRestored() {
         NAME_FILE_TO(package2typeKeys)[updatedFile] = map<string, set<string>>();
         NAME_FILE_TO(typeKey2subTypeKeys)[updatedFile] = map<string, set<string>>();
         NAME_FILE_TO(override)[updatedFile] = map<string, set<string>>();
-        NAME_FILE_TO(TypeKey2itUseTypeKeys)[updatedFile] = map<string, set<string>>();
-        NAME_FILE_TO(TypeKey2itUseMethods)[updatedFile] = map<string, set<string>>();
         NAME_FILE_TO(MethodUseMethods)[updatedFile] = map<string, set<string>>();
         NAME_FILE_TO(MethodUseFields)[updatedFile] = map<string, set<string>>();
     }

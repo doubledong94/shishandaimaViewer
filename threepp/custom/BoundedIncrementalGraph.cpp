@@ -432,13 +432,7 @@ void NodeInfo::makeTypeKey() {
 }
 
 void NodeInfo::makeRuntimeClass() {
-    auto* result = PrologWrapper::query(CompoundTerm::getMethodTerm(Term::getVar("Class"), Term::getStr(methodOfRuntime)));
-    if (result) {
-        runtimeClass = result->atomOrVar;
-    } else {
-        result = PrologWrapper::query(CompoundTerm::getConstructorTerm(Term::getVar("Class"), Term::getStr(methodOfRuntime)));
-        runtimeClass = result->atomOrVar;
-    }
+    runtimeClass = PrologWrapper::query(CompoundTerm::getMethodTerm(Term::getVar("Class"), Term::getStr(methodOfRuntime)))->atomOrVar;
 }
 
 void NodeInfo::makeDeclaredInType() {
@@ -464,13 +458,7 @@ void NodeInfo::makeDeclaredInType() {
         int pos = key.rfind(':');
         string mk = key.substr(0, pos + 1);
         findTypeTerm = CompoundTerm::getMethodTerm(Term::getVar("T"), Term::getStr(mk));
-        auto result = PrologWrapper::query(findTypeTerm);
-        if (result) {
-            declaredInType = result->atomOrVar;
-        } else {
-            findTypeTerm = CompoundTerm::getConstructorTerm(Term::getVar("T"), Term::getStr(mk));
-            declaredInType = PrologWrapper::query(findTypeTerm)->atomOrVar;
-        }
+        declaredInType = PrologWrapper::query(findTypeTerm)->atomOrVar;
         break;
     }
 }

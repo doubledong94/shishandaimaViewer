@@ -9,10 +9,6 @@ public:
     static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(package2typeKeys);
     static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(typeKey2subTypeKeys);
     static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(override);
-    // todo to be deleted TypeKey2itUseTypeKeys
-    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(TypeKey2itUseTypeKeys);
-    // todo to be deleted TypeKey2itUseMethods
-    static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(TypeKey2itUseMethods);
     static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(MethodUseMethods);
     static TYPE_MAP_MAP(set<string>) NAME_FILE_TO(MethodUseFields);
 

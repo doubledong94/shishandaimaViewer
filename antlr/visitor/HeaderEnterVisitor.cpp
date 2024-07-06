@@ -55,8 +55,6 @@ void Header::EnterClassPhase::run() {
         GlobalInfo::NAME_FILE_TO(package2typeKeys).erase(filePath);
         GlobalInfo::NAME_FILE_TO(typeKey2subTypeKeys).erase(filePath);
         GlobalInfo::NAME_FILE_TO(override).erase(filePath);
-        GlobalInfo::NAME_FILE_TO(TypeKey2itUseTypeKeys).erase(filePath);
-        GlobalInfo::NAME_FILE_TO(TypeKey2itUseMethods).erase(filePath);
         GlobalInfo::NAME_FILE_TO(MethodUseMethods).erase(filePath);
         GlobalInfo::NAME_FILE_TO(MethodUseFields).erase(filePath);
         GlobalInfo::filePath2typeInfos.erase(filePath);
@@ -73,8 +71,6 @@ void Header::EnterClassPhase::visitType(Type* type) {
 
     GlobalInfo::NAME_FILE_TO(typeKey2filePath)[currentFilePath][typeKeyStack.back()] = currentFilePath;
     GlobalInfo::NAME_FILE_TO(package2typeKeys)[currentFilePath][package].insert(typeKeyStack.back());
-    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(TypeKey2itUseTypeKeys), currentFilePath, typeKeyStack.back(), set<string>);
-    INIT_IF_NOT_EXISTS(GlobalInfo::NAME_FILE_TO(TypeKey2itUseMethods), currentFilePath, typeKeyStack.back(), set<string>);
     auto* pTypeInfo = new TypeInfo;
     AddressableInfo::typeKey2typeInfo[typeKeyStack.back()] = pTypeInfo;
     GlobalInfo::filePath2typeInfos[currentFilePath].push_back(pTypeInfo);
