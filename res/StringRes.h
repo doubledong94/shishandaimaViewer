@@ -25,6 +25,9 @@ public:
     virtual char* getHotKeyTitle_chooseClass() { return NULL; };
     virtual char* getHotKeyTitle_chooseLine() { return NULL; };
     virtual char* getHotKeyTitle_chooseGraph() { return NULL; };
+    virtual char* getHotKeyTitle_unchooseClass() { return NULL; };
+    virtual char* getHotKeyTitle_unchooseLine() { return NULL; };
+    virtual char* getHotKeyTitle_unchooseGraph() { return NULL; };
     virtual char* getHotKeyTitle_startSearch() { return NULL; };
     virtual char* getHotKeyTitle_deleteNode() { return NULL; };
     virtual char* getHotKeyTitle_deleteAllNode() { return NULL; };
@@ -134,6 +137,9 @@ private:
     string hotKeyTitle_chooseClass = "选择class";
     string hotKeyTitle_chooseLine = "选择line";
     string hotKeyTitle_chooseGraph = "选择graph";
+    string hotKeyTitle_unchooseClass = "取消选择class";
+    string hotKeyTitle_unchooseLine = "取消选择line";
+    string hotKeyTitle_unchooseGraph = "取消选择graph";
     string hotKeyTitle_startSearch = "开始搜索（添加节点）";
     string hotKeyTitle_deleteNode = "删除选中的节点";
     string hotKeyTitle_deleteAllNode = "删除未选中的节点";
@@ -241,6 +247,9 @@ public:
     char* getHotKeyTitle_chooseClass() override;
     char* getHotKeyTitle_chooseLine() override;
     char* getHotKeyTitle_chooseGraph() override;
+    char* getHotKeyTitle_unchooseClass() override;
+    char* getHotKeyTitle_unchooseLine() override;
+    char* getHotKeyTitle_unchooseGraph() override;
     char* getHotKeyTitle_startSearch() override;
     char* getHotKeyTitle_deleteNode() override;
     char* getHotKeyTitle_deleteAllNode() override;
@@ -350,6 +359,9 @@ private:
     string hotKeyTitle_chooseClass = "选择class";
     string hotKeyTitle_chooseLine = "选择line";
     string hotKeyTitle_chooseGraph = "选择graph";
+    string hotKeyTitle_unchooseClass = "取消选择class";
+    string hotKeyTitle_unchooseLine = "取消选择line";
+    string hotKeyTitle_unchooseGraph = "取消选择graph";
     string hotKeyTitle_startSearch = "开始搜索（添加节点）";
     string hotKeyTitle_deleteNode = "删除选中的节点";
     string hotKeyTitle_deleteAllNode = "删除未选中的节点";
@@ -457,6 +469,9 @@ public:
     char* getHotKeyTitle_chooseClass() override;
     char* getHotKeyTitle_chooseLine() override;
     char* getHotKeyTitle_chooseGraph() override;
+    char* getHotKeyTitle_unchooseClass() override;
+    char* getHotKeyTitle_unchooseLine() override;
+    char* getHotKeyTitle_unchooseGraph() override;
     char* getHotKeyTitle_startSearch() override;
     char* getHotKeyTitle_deleteNode() override;
     char* getHotKeyTitle_deleteAllNode() override;

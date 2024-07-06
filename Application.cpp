@@ -212,6 +212,9 @@ int app::Application::ApplicationMain() {
             classScopeNames[i] = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[i].data();
         }
         };
+    HotkeyConfig::functionEnumToFunction[UNCHOOOSE_CLASS_SCOPE] = [&]() {
+        selected_class_scope = -1;
+        };
     HotkeyConfig::functionEnumToFunction[CHOOSE_LINE_INSTANCE_TO_SEARCH] = [&]() {
         showTooltip = false;
         chooseLineInstancePopupOpen = true;
@@ -227,6 +230,9 @@ int app::Application::ApplicationMain() {
             lineAndLineInstanceNames[line_instance_starting_count + i] = SimpleView::SimpleViewToGraphConverter::lineInstanceNameOrder[i].data();
         }
         };
+    HotkeyConfig::functionEnumToFunction[UNCHOOSE_LINE_INSTANCE_TO_SEARCH] = [&]() {
+        selected_line_instance = -1;
+        };
     HotkeyConfig::functionEnumToFunction[CHOOSE_GRAPH_INSTANCE_TO_SEARCH] = [&]() {
         showTooltip = false;
         chooseGraphInstancePopupOpen = true;
@@ -241,13 +247,16 @@ int app::Application::ApplicationMain() {
             graphAndGraphInstanceNames[graph_instance_starting_count + i] = SimpleView::SimpleViewToGraphConverter::graphInstanceNameOrder[i].data();
         }
         };
+    HotkeyConfig::functionEnumToFunction[UNCHOOSE_GRAPH_INSTANCE_TO_SEARCH] = [&]() {
+        selected_graph_instance = -1;
+        };
     PL_engine_t pl_engine_for_earching = PL_create_engine(NULL);
     HotkeyConfig::functionEnumToFunction[START_SEARCHING] = [&]() {
         // search line instance
         if (searchingInProgress) {
             return;
         }
-        if (selected_class_scope > -1 and selected_line_instance > -1) {
+        if (selected_line_instance > -1) {
             bool isTemplate = selected_line_instance < line_instance_starting_count;
             char* lineName = lineAndLineInstanceNames[selected_line_instance];
             SimpleView::LineInstance* lineInstance = NULL;
@@ -259,7 +268,10 @@ int app::Application::ApplicationMain() {
             }
             spdlog::get(ErrorManager::DebugTag)->info("search line: {}; {}", lineInstance->valName.data(), lineInstance->innerValName.data());
             boundedGraph->searchingGraphName = "single lines";
-            SimpleView::ClassScope* classScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeNames[selected_class_scope]];
+            SimpleView::ClassScope* classScope = NULL;
+            if (selected_class_scope > -1) {
+                classScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeNames[selected_class_scope]];
+            }
             std::thread worker([&](SimpleView::LineInstance* lineInstance, SimpleView::ClassScope* classScope) {
                 if (searchingInProgress) {
                     return;
@@ -290,7 +302,7 @@ int app::Application::ApplicationMain() {
             worker.detach();
         }
         // search graph instance
-        if (selected_class_scope > -1 and selected_graph_instance > -1) {
+        if (selected_graph_instance > -1) {
             bool isTemplate = selected_graph_instance < graph_instance_starting_count;
             char* graphName = graphAndGraphInstanceNames[selected_graph_instance];
             SimpleView::GraphInstance* graphInstance = NULL;
@@ -303,7 +315,10 @@ int app::Application::ApplicationMain() {
                 spdlog::get(ErrorManager::DebugTag)->info("search line instance: {}; {}", graphInstance->valName.data(), graphInstance->innerValName.data());
             }
             boundedGraph->searchingGraphName = graphInstance->valName;
-            SimpleView::ClassScope* classScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeNames[selected_class_scope]];
+            SimpleView::ClassScope* classScope = NULL;
+            if (selected_class_scope > -1) {
+                classScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeNames[selected_class_scope]];
+            }
             std::thread worker([&](SimpleView::GraphInstance* graphInstance, SimpleView::ClassScope* classScope) {
                 if (searchingInProgress) {
                     return;
@@ -1122,12 +1137,12 @@ int app::Application::ApplicationMain() {
             if (ImGui::Begin("status bar2", &showStatusBar, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove)) {
                 if (selected_class_scope > -1) {
                     ImGui::Text("class scope: %s", classScopeNames[selected_class_scope]);
-                    if (selected_line_instance > -1) {
-                        ImGui::Text("current search: %s", lineAndLineInstanceNames[selected_line_instance]);
-                    }
-                    if (selected_graph_instance > -1) {
-                        ImGui::Text("current search: %s", graphAndGraphInstanceNames[selected_graph_instance]);
-                    }
+                }
+                if (selected_line_instance > -1) {
+                    ImGui::Text("current search: %s", lineAndLineInstanceNames[selected_line_instance]);
+                }
+                if (selected_graph_instance > -1) {
+                    ImGui::Text("current search: %s", graphAndGraphInstanceNames[selected_graph_instance]);
                 }
                 if (searchingInProgress) {
                     searchTime = (absl::GetCurrentTimeNanos() - startSearchTime) / 1000000000;
@@ -1217,7 +1232,7 @@ int app::Application::ApplicationMain() {
         }
         bool isShowLoadingUnaddressableDialog = loadingUnaddressableIndex > 0;
         if (isShowLoadingUnaddressableDialog) {
-            showProgressDialog("loading unaddressable", &isShowLoadingUnaddressableDialog, loadingUnaddressableIndex, loadingUnaddressableTotal, loadingUnaddressableName);
+            showProgressDialog("loading runtime", &isShowLoadingUnaddressableDialog, loadingUnaddressableIndex, loadingUnaddressableTotal, loadingUnaddressableName);
         }
         });
 

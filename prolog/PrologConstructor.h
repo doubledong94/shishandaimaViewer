@@ -211,6 +211,7 @@ static Term* HEAD_LOAD_ADDRESSABLE = new Term("load_addressable", Term::TERM_TYP
 static Term* HEAD_ADDRESSABLE_LOADED = new Term("addressableLoaded", Term::TERM_TYPE_ATOM);
 static Term* HEAD_UNADDRESSABLE_LOADED = new Term("unaddressableLoaded", Term::TERM_TYPE_ATOM);
 static Term* HEAD_STRING_CONCAT = new Term("string_concat", Term::TERM_TYPE_ATOM);
+static Term* HEAD_CLASS_THAT_USE_METHOD_AND_FIELD = new Term("classThatUseMethodAndField", Term::TERM_TYPE_ATOM);
 
 class CompoundTerm : public Term, public PooledItem<CompoundTerm> {
 public:
@@ -234,7 +235,11 @@ public:
 
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4);
 
+    static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5);
+
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5, Term* arg6);
+
+    static CompoundTerm* getClassThatUseMethodAndFieldTerm(Term* methodOrField, Term* classKey);
 
     static CompoundTerm* getAddressableLoadedTerm(Term* addressable);
 
@@ -539,7 +544,7 @@ public:
 
     static CompoundTerm* getResolveRuntimeTerm(Term* nodeValName, Term* classValName, Term* methodKey, Term* runtimeNode, Term* key, Term* keyType);
 
-    static CompoundTerm* getResolveRuntimeCheckTerm(Term* nodeValName, Term* classValName, Term* methodKey, Term* runtimeNode, Term* key, Term* keyType);
+    static CompoundTerm* getResolveRuntimeCheckTerm(Term* nodeValName, Term* methodKey, Term* runtimeNode, Term* key, Term* keyType);
 
     static CompoundTerm* getPrintTerm(Term* p);
 

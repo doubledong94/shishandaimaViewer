@@ -252,6 +252,17 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     return ret;
 }
 
+CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5) {
+    auto ret = PooledItem<CompoundTerm>::getInstance();
+    ret->head = head;
+    ret->addArg(arg1);
+    ret->addArg(arg2);
+    ret->addArg(arg3);
+    ret->addArg(arg4);
+    ret->addArg(arg5);
+    return ret;
+}
+
 CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5, Term* arg6) {
     auto ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = head;
@@ -262,6 +273,10 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     ret->addArg(arg5);
     ret->addArg(arg6);
     return ret;
+}
+
+CompoundTerm* CompoundTerm::getClassThatUseMethodAndFieldTerm(Term* methodOrField, Term* classKey) {
+    return makeTerm(HEAD_CLASS_THAT_USE_METHOD_AND_FIELD, methodOrField, classKey);
 }
 
 CompoundTerm* CompoundTerm::getLoadStepInRuntimeTerm(Term* addressable) {
@@ -489,11 +504,11 @@ CompoundTerm* CompoundTerm::getReturnOfClassTerm(Term* classKey, Term* returnKey
 }
 
 CompoundTerm* CompoundTerm::getStepKeyTerm(Term* key, Term* stepKey) {
-    return makeTerm(HEAD_STEP_KEY,key,stepKey);
+    return makeTerm(HEAD_STEP_KEY, key, stepKey);
 }
 
 CompoundTerm* CompoundTerm::getOverrideKeyTerm(Term* key, Term* overrideKey) {
-    return makeTerm(HEAD_OVERRIDE_KEY,key,overrideKey);
+    return makeTerm(HEAD_OVERRIDE_KEY, key, overrideKey);
 }
 
 CompoundTerm* CompoundTerm::getVarTerm(Term* t) {
@@ -897,8 +912,8 @@ CompoundTerm* CompoundTerm::getResolveRuntimeTerm(Term* nodeValName, Term* class
     return makeTerm(HEAD_RESOLVE_RUNTIME, nodeValName, classValName, methodKey, runtimeNode, key, keyType);
 }
 
-CompoundTerm* CompoundTerm::getResolveRuntimeCheckTerm(Term* nodeValName, Term* classValName, Term* methodKey, Term* runtimeNode, Term* key, Term* keyType) {
-    return makeTerm(HEAD_RESOLVE_RUNTIME_CHECK, nodeValName, classValName, methodKey, runtimeNode, key, keyType);
+CompoundTerm* CompoundTerm::getResolveRuntimeCheckTerm(Term* nodeValName, Term* methodKey, Term* runtimeNode, Term* key, Term* keyType) {
+    return makeTerm(HEAD_RESOLVE_RUNTIME_CHECK, nodeValName, methodKey, runtimeNode, key, keyType);
 }
 
 CompoundTerm* CompoundTerm::getPrintTerm(Term* p) {

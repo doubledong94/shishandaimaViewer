@@ -241,25 +241,25 @@ namespace ImHotKey {
                 if (i == 2) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_prepare2());
                 }
-                if (i == 7) {
+                if (i == 10) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_add_and_delete_node());
                 }
-                if (i == 11) {
+                if (i == 14) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_select_node());
                 }
-                if (i == 31) {
+                if (i == 34) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_layout());
                 }
-                if (i == 59) {
+                if (i == 62) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_style());
                 }
-                if (i == 77) {
+                if (i == 80) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_explore());
                 }
-                if (i == 79) {
+                if (i == 82) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cate_next_round());
                 }
-                if (i == 80) {
+                if (i == 83) {
                     ImGui::SeparatorText(StringRes::singleton->getHotKeyTitle_cat_saveAndRestoreGraph());
                 }
                 addHotKeySelectable(hotkey[i], i);

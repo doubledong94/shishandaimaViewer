@@ -82,8 +82,11 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SHOW_EDIT_LINE_AND_GRAPH,"edit line and graph",0xffffff2b, SINGLE_CLICK},
     {CHANGE_MAX_SEARCH_DEPTH,"change max search depth",0xffffff37,SINGLE_CLICK},
     {CHOOOSE_CLASS_SCOPE,"choose class scope",0xffffff33,SINGLE_CLICK},
+    {UNCHOOOSE_CLASS_SCOPE,"unchoose class scope",0xffff3303,SINGLE_CLICK},
     {CHOOSE_LINE_INSTANCE_TO_SEARCH,"search line instance",0xffffff34,SINGLE_CLICK},
+    {UNCHOOSE_LINE_INSTANCE_TO_SEARCH,"unsearch line instance",0xffff3403,SINGLE_CLICK},
     {CHOOSE_GRAPH_INSTANCE_TO_SEARCH,"search graph instance",0xffffff35,SINGLE_CLICK},
+    {UNCHOOSE_GRAPH_INSTANCE_TO_SEARCH,"unsearch graph instance",0xffff3503,SINGLE_CLICK},
     // add and remove node
     {START_SEARCHING,"start searching",0xffff3601,SINGLE_CLICK},
     {REMOVE_SELECTED_NODES, "remove selected node", 0xffff6e01,SINGLE_CLICK},
@@ -225,6 +228,9 @@ void HotkeyConfig::init() {
     hotkeyMap[CHOOOSE_CLASS_SCOPE]->functionName = StringRes::singleton->getHotKeyTitle_chooseClass();
     hotkeyMap[CHOOSE_LINE_INSTANCE_TO_SEARCH]->functionName = StringRes::singleton->getHotKeyTitle_chooseLine();
     hotkeyMap[CHOOSE_GRAPH_INSTANCE_TO_SEARCH]->functionName = StringRes::singleton->getHotKeyTitle_chooseGraph();
+    hotkeyMap[UNCHOOOSE_CLASS_SCOPE]->functionName = StringRes::singleton->getHotKeyTitle_unchooseClass();
+    hotkeyMap[UNCHOOSE_LINE_INSTANCE_TO_SEARCH]->functionName = StringRes::singleton->getHotKeyTitle_unchooseLine();
+    hotkeyMap[UNCHOOSE_GRAPH_INSTANCE_TO_SEARCH]->functionName = StringRes::singleton->getHotKeyTitle_unchooseGraph();
     hotkeyMap[START_SEARCHING]->functionName = StringRes::singleton->getHotKeyTitle_startSearch();
     hotkeyMap[SHOW_SEARCHED_LINE_AND_GRAPH]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByPosition();
     hotkeyMap[SELECT_BY_KEY_TYPE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByKeyType();

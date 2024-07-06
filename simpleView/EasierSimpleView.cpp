@@ -233,6 +233,15 @@ void EasierSimpleView::declareKeyConvertion() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getOverrideKeyTerm(key, overrideKey), {
         CompoundTerm::getStringConcatTerm(key,overrideSuffix,overrideKey)
         }));
+    Term* fieldOrMethod = Term::getVar("FieldOrMethod");
+    Term* classKey = Term::getVar("ClassKey");
+    Term* methodThatUseIt = Term::getVar("MethodThatUseIt");
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassThatUseMethodAndFieldTerm(fieldOrMethod, classKey), {
+        CompoundTerm::getMethodUseMethodTerm(methodThatUseIt,fieldOrMethod), CompoundTerm::getMethodTerm(classKey,methodThatUseIt)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassThatUseMethodAndFieldTerm(fieldOrMethod, classKey), {
+        CompoundTerm::getMethodUseFieldTerm(methodThatUseIt,fieldOrMethod), CompoundTerm::getMethodTerm(classKey,methodThatUseIt)
+        }));
     for (auto& rule : rules) {
         PrologWrapper::addRule(rule->toString());
     }
@@ -254,10 +263,10 @@ void EasierSimpleView::declareClassResolveRules() {
             CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getRelatedTypeTerm(ClassToBeResolved, ResolvedClass)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeSuper(ClassScopeName1, ClassToBeResolved), {
-            CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeTerm(ClassToBeResolved, ResolvedClass)
+            CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeUpRecurTerm(ClassToBeResolved, ResolvedClass)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeSub(ClassScopeName1, ClassToBeResolved), {
-            CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeTerm(ResolvedClass, ClassToBeResolved)
+            CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeDownRecurTerm(ResolvedClass, ClassToBeResolved)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeUnionTerm(ClassScopeName1, ClassScopeName2, ClassToBeResolved), {
             DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getResolveTerm(ClassScopeName1, ClassToBeResolved), CompoundTerm::getResolveTerm(ClassScopeName2, ClassToBeResolved))
@@ -360,7 +369,7 @@ void EasierSimpleView::declareNodeResolveRules() {
             CompoundTerm::getMethodTerm(Class, Method),
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType)
         }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, Method, RuntimeKey, node, keyType), {
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType),
             CompoundTerm::getResolveTerm(nodeValName, node),
         }));
@@ -371,24 +380,6 @@ void EasierSimpleView::declareNodeResolveRules() {
     for (auto& rule : rules) {
         rule->returnThisToPool();
     }
-    Resolved->returnThisToPool();
-    ClassScopeValName->returnThisToPool();
-    Class->returnThisToPool();
-    ClassValName->returnThisToPool();
-    ClassType->returnThisToPool();
-    MethodValName->returnThisToPool();
-    Method->returnThisToPool();
-    ParamValName->returnThisToPool();
-    Param->returnThisToPool();
-    ReturnValName->returnThisToPool();
-    Return->returnThisToPool();
-    Node1->returnThisToPool();
-    Node2->returnThisToPool();
-    RuntimeKey->returnThisToPool();
-    nodeValName->returnThisToPool();
-    node->returnThisToPool();
-    keyType->returnThisToPool();
-
 }
 
 // if it is increase steps: called key -> key
@@ -1397,16 +1388,6 @@ void SimpleView::ClassScope::resolve(std::function<void(int, int, const char*)>*
     resolved = true;
 }
 
-void SimpleView::ClassScope::loadAddressableForRuntime(const set<string>& runtimeClassKey, std::function<void(int, int, const char*)>* update) {
-    set<string> usedBy;
-    for (auto& typeKey : runtimeClassKey) {
-        PrologWrapper::queryList(CompoundTerm::getRelatedTypeTerm(Term::getStr(typeKey), Term::getVar("U")), [&](vector<Term*>& retList) {usedBy.insert(retList[0]->atomOrVar);});
-    }
-    int c = 0;
-    FOR_EACH_ITEM(usedBy, c++;if (update) (*update)(c, usedBy.size(), item.data());PrologWrapper::loadTypeKeyAddressable(item););
-    if (update) (*update)(usedBy.size() + 1, usedBy.size(), "");
-}
-
 void SimpleView::ClassScope::unResolve(bool retract) {
     spdlog::get(ErrorManager::DebugTag)->info("unresolve class scope: {}; {}", displayName.data(), innerValName.data());
     if (referenceClassScope) {
@@ -1733,6 +1714,62 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         FOR_EACH_ITEM(resolvedList, PrologWrapper::addFact(CompoundTerm::getResolveTerm(Term::getStr(innerValName), Term::getStr(item))->toString(true)););
     }
     resolved = true;
+}
+
+SimpleView::ClassScope* SimpleView::Node::runtimeScopeThatUseIt() {
+    if (nodeType == NODE_TYPE_VAR) {
+        return referenceNode->runtimeScopeThatUseIt();
+    }
+    set<string> paramAndReturnKeys;
+    set<string> fieldAndMethods;
+    switch (nodeType) {
+    case NODE_TYPE_RUNTIME:
+    case NODE_TYPE_READ:
+    case NODE_TYPE_WRITE:
+        break;
+    case NODE_TYPE_KEY:
+    case NODE_TYPE_LIST:
+    case NODE_TYPE_UNION:
+    case NODE_TYPE_INTERSECTION:
+    case NODE_TYPE_DIFFERENCE:
+        for (auto& key : resolvedList) {
+            if (key[key.size() - 1] == ':') {
+                fieldAndMethods.insert(key);
+            } else if (key.rfind(':') != string::npos) {
+                paramAndReturnKeys.insert(key);
+            } else {
+                fieldAndMethods.insert(key);
+            }
+        }
+        break;
+    case NODE_TYPE_PARAMETER_OF:
+    case NODE_TYPE_RETURN_OF:
+        paramAndReturnKeys.insert(resolvedList.begin(), resolvedList.end());
+        break;
+    default:
+        fieldAndMethods.insert(resolvedList.begin(), resolvedList.end());
+    }
+    for (auto& key : paramAndReturnKeys) {
+        int pos = key.rfind(':');
+        string mk = key.substr(0, pos + 1);
+        fieldAndMethods.insert(mk);
+    }
+    set<string> classThatUseIt;
+    for (auto& fieldOrMethod : fieldAndMethods) {
+        PrologWrapper::queryList(CompoundTerm::getClassThatUseMethodAndFieldTerm(Term::getStr(fieldOrMethod), Term::getVar("C")),
+            [&](vector<Term*>& retList) {classThatUseIt.insert(retList[0]->atomOrVar);}
+        );
+        PrologWrapper::queryList(CompoundTerm::getMethodTerm(Term::getVar("C"), Term::getStr(fieldOrMethod)),
+            [&](vector<Term*>& retList) {classThatUseIt.insert(retList[0]->atomOrVar);}
+        );
+        PrologWrapper::queryList(CompoundTerm::getFieldTerm(Term::getVar("C"), Term::getStr(fieldOrMethod)),
+            [&](vector<Term*>& retList) {classThatUseIt.insert(retList[0]->atomOrVar);}
+        );
+    }
+    auto ret = new ClassScope();
+    ret->classScopeType = ClassScope::CLASS_SCOPE_TYPE_LIST;
+    FOR_EACH_ITEM(classThatUseIt, ret->classList.push_back(item););
+    return ret;
 }
 
 void SimpleView::Node::unResolve(bool retract) {
@@ -2115,6 +2152,23 @@ void SimpleView::NodeAndRepeatType::markSplitByRuntimeCount(RegexTree* splitPoin
             }
         }
     }
+}
+
+SimpleView::Node* SimpleView::NodeAndRepeatType::getSplitPoint(RegexTree* splitPoint, map<string, string>& paramNameToArgName) {
+    if (seg) {
+        for (int i = 0;i < seg->nodeAndRepeatType.size();i++) {
+            if (splitPoint->subStructure[i]->isSplitPosition) {
+                return seg->nodeAndRepeatType[i]->getSplitPoint(splitPoint->subStructure[i], paramNameToArgName);
+            }
+        }
+    } else {
+        if (node->nodeType == SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH) {
+            return SimpleView::SimpleViewToGraphConverter::valNameToNode[paramNameToArgName[node->displayName]];
+        } else {
+            return node;
+        }
+    }
+    return nullptr;
 }
 
 int SimpleView::RegexTree::maxRecurDepth = -1;
@@ -2529,6 +2583,15 @@ void SimpleView::LineInstance::findSplitPoint() {
     }
 }
 
+SimpleView::Node* SimpleView::LineInstance::getSplitPoint() {
+    for (int i = 0;i < lineTemplate->nodeAndRepeatType.size();i++) {
+        if (splitPoint->subStructure[i]->isSplitPosition) {
+            return lineTemplate->nodeAndRepeatType[i]->getSplitPoint(splitPoint->subStructure[i], paramNameToArgName);
+        }
+    }
+    return nullptr;
+}
+
 void SimpleView::LineInstance::resolve(std::function<void(int, int, const char*)>* updateAddressable) {
     if (resolved) {
         return;
@@ -2595,6 +2658,7 @@ bool SimpleView::LineInstance::findIntersectionIndexByChar(IntersectionPointInLi
 }
 
 void SimpleView::LineInstance::addRuntimeNode(list<tuple<string, string, string, int, string>>& runtimeNodes, bool downward) {
+    isLineDownOrLineUp = true;
     Node* node = new Node();
     node->nodeType = Node::NODE_TYPE_RUNTIME;
     node->displayName = node->innerValName;
@@ -2611,6 +2675,7 @@ void SimpleView::LineInstance::addRuntimeNode(list<tuple<string, string, string,
 }
 
 void SimpleView::LineInstance::removeRuntimeNode(bool downward) {
+    isLineDownOrLineUp = false;
     if (downward) {
         lineTemplate->nodeAndRepeatType.erase(lineTemplate->nodeAndRepeatType.begin());
     } else {
@@ -2620,10 +2685,16 @@ void SimpleView::LineInstance::removeRuntimeNode(bool downward) {
 }
 
 // only execute once for each LineInstance obj
-void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) {
+void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, SimpleView::ClassScope* classScope) {
     resolve(updateAddressable);
     // declare fa rule for forward and backward line
     findSplitPoint();
+    bool findClassThatUseSplitPoint = not isLineDownOrLineUp and not classScope and indexInsideGraph == 0;
+    if (findClassThatUseSplitPoint) {
+        classScope = getSplitPoint()->runtimeScopeThatUseIt();
+        classScope->resolve(updateAddressable);
+        classScope->loadRuntime(updateUnaddressable);
+    }
     forwardLine = new HalfLineTheFA(this, HalfLineTheFA::HALF_LINE_TYPE_FORWARD);
     backwardLine = new HalfLineTheFA(this, HalfLineTheFA::HALF_LINE_TYPE_BACKWARD);
     forwardLine->declareHalfLineAndFaRules();
@@ -3345,7 +3416,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         break;
     default:
         // check by node inner name
-        ruleBody.push_back(CompoundTerm::getResolveRuntimeCheckTerm(nodeValNameTerm, classScopeTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
+        ruleBody.push_back(CompoundTerm::getResolveRuntimeCheckTerm(nodeValNameTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType));
         break;
     }
     if (isIntersection) {
@@ -3387,7 +3458,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     outputAddressableKey->returnThisToPool();
     outputKeyType->returnThisToPool();
     expectingNextKeyTerm->returnThisToPool();
-}
+    }
 
 Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth) {
     Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
@@ -3816,7 +3887,7 @@ void SimpleView::GraphInstance::updateDisplayName() {
     displayName = graphTemplate->valName + (orderedArgNames.empty() ? "" : "(" + joinVector(orderedArgNames, ",") + ")");
 }
 
-void SimpleView::GraphInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) {
+void SimpleView::GraphInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, SimpleView::ClassScope* classScope) {
     resolve(updateAddressable);
     // copy line instance from graph template and replace arg of line instance with arg of graph instance
     FOR_EACH_ITEM(graphTemplate->lineInstances, lineInstances.push_back(item->copy()););
@@ -3855,7 +3926,7 @@ void SimpleView::GraphInstance::prepareQuery(std::function<void(int, int, const 
         intersectionTerms.back()->isInPool = true;
     }
     FOR_EACH_ITEM(lineInstances, item->intersectionTerms = intersectionTerms;);
-    FOR_EACH_ITEM(lineInstances, item->prepareQuery(updateAddressable););
+    FOR_EACH_ITEM(lineInstances, item->prepareQuery(updateAddressable, updateUnaddressable, classScope););
 
     // declare graph rule in prolog
     auto classScopeTerm = Term::getVar("ClassScope");
@@ -3930,13 +4001,13 @@ void SimpleView::Searcher::startSearching(ClassScope* classScope, std::function<
         classScope->resolve(updateAddressable);
         classScope->loadRuntime(updateUnaddressable);
     }
-    prepareQuery(updateAddressable);
-    plQueries[classScope] = PrologWrapper::makeQuery(getQueryTerm(classScope), result, outputIndex);
+    prepareQuery(updateAddressable, updateUnaddressable, classScope);
+    plQuerie = PrologWrapper::makeQuery(getQueryTerm(classScope), result, outputIndex);
 }
 
 vector<Tail*> SimpleView::Searcher::queryNext(ClassScope* classScope) {
-    if (plQueries.count(classScope)) {
-        if (plQueries[classScope]->next_solution()) {
+    if (plQuerie) {
+        if (plQuerie->next_solution()) {
             PlTerm plT = (*result)[outputIndex];
             return flatenResult(convertPlTermToTerm(&plT));
         }
@@ -3948,9 +4019,9 @@ void SimpleView::Searcher::endSearching(ClassScope* classScope) {
     if (classScope) {
         classScope->unResolve();
     }
-    if (plQueries.count(classScope)) {
-        delete plQueries[classScope];
-        plQueries.erase(classScope);
+    if (plQuerie) {
+        delete plQuerie;
+        plQuerie = NULL;
     }
     onQueryFinished();
 }

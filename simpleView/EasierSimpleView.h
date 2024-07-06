@@ -73,8 +73,6 @@ namespace SimpleView {
 
         void resolve(std::function<void(int, int, const char*)>* update) override;
 
-        static void loadAddressableForRuntime(const set<string>& runtimeClassKey, std::function<void(int, int, const char*)>* update);
-
         void unResolve(bool retract = false) override;
 
         int getClassType() override;
@@ -184,6 +182,8 @@ namespace SimpleView {
         void resetValue(const char* name, int type, vector<const char*>& values, vector<const char*>& typeKeyForNodeKey);
 
         void updateDisplayText();
+
+        ClassScope* runtimeScopeThatUseIt();
     };
 
     class RegexTree {
@@ -242,6 +242,8 @@ namespace SimpleView {
         int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, bool isRepeatTypeOne, map<Node*, char>& nodeToChar);
 
         void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName);
+
+        Node* getSplitPoint(RegexTree* splitPoint, map<string, string>& paramNameToArgName);
     };
 
     class LineInstance;
@@ -311,10 +313,10 @@ namespace SimpleView {
 
     class Searcher {
     public:
-        map<ClassScope*, PlQuery*> plQueries;
+        PlQuery* plQuerie;
         PlTermv* result = NULL;
         int outputIndex = -1;
-        virtual void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) {};
+        virtual void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope) {};
         virtual void onQueryFinished() {};
         virtual CompoundTerm* getQueryTerm(ClassScope* classScope) { return NULL; };
         virtual vector<Tail*> flatenResult(Term* result) { return {}; };
@@ -329,6 +331,7 @@ namespace SimpleView {
     // parameter node in line template will be replaced by argument in line instance
     class LineInstance : public ToBeResolved, public Searcher {
     public:
+        bool isLineDownOrLineUp = false;
         int indexInsideGraph = 0;
         string valName;
         LineTemplate* lineTemplate = nullptr;
@@ -353,6 +356,8 @@ namespace SimpleView {
 
         void findSplitPoint();
 
+        Node* getSplitPoint();
+
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
 
         void unResolve(bool retract = false) override;
@@ -361,7 +366,7 @@ namespace SimpleView {
 
         LineInstance* copy();
 
-        void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) override;
+        void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope) override;
 
         void onQueryFinished() override;
 
@@ -497,7 +502,7 @@ namespace SimpleView {
         void updateDisplayName();
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
         void unResolve(bool retract = false) override;
-        void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable) override;
+        void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope) override;
         void onQueryFinished() override;
         CompoundTerm* getQueryTerm(ClassScope* classScope);
         vector<Tail*> flatenResult(Term* result) override;

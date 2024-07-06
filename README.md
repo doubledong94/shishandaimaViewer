@@ -136,8 +136,8 @@ git submodule update --init --remote --recursive
 3. inPackage(P)，匹配包P中的所有类
 4. usedBy(C)，匹配被C类使用的所有类
 5. use(C)，匹配使用了C类的所有类
-6. super(C)，匹配C的父类，不包括父类的父类
-7. sub(C)，匹配C的子类，不包括子类的子类
+6. super(C)，匹配C的父类，包括父类的父类，以及父类的父类的父类...
+7. sub(C)，匹配C的子类，包括子类的子类，以及子类的子类的子类...
 8. intersection(A1,A2)，匹配A1和A2的交集
 9. union(A1,A2)，匹配A1和A2的并集
 10. difference(A1,A2)，匹配A1和A2的差集，A1-A2
@@ -431,7 +431,9 @@ class B {
 编辑好正则搜索后，快捷键 `esc` 退出编辑面板，然后：     
 快捷键 `g` 切换搜索深度      
 快捷键 `a` 选择类范围作为搜索范围    
-快捷键 `s` 选择正则搜索 或者 快捷键 `d` 选择相交搜索     
+快捷键 `s` 选择正则搜索    
+快捷键 `d` 选择相交搜索     
+快捷键 `shift + a` 或 `shift + s` 或 `shift + d` 取消对应的选择    
 快捷键 `ctrl + f` 开始搜索    
 
 ## 阅读源码
