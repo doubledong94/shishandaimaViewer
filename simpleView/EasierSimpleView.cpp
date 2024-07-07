@@ -365,8 +365,6 @@ void EasierSimpleView::declareNodeResolveRules() {
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeTerm(nodeValName, ClassScopeValName, Method, RuntimeKey, node, keyType), {
             CompoundTerm::getResolveTerm(nodeValName, node),
-            CompoundTerm::getResolveTerm(ClassScopeValName, Class),
-            CompoundTerm::getMethodTerm(Class, Method),
             CompoundTerm::getRuntimeTerm(Method, node, RuntimeKey, keyType)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getResolveRuntimeCheckTerm(nodeValName, Method, RuntimeKey, node, keyType), {
