@@ -43,6 +43,7 @@ public:
 
     set<int> styled;
     set<int> styled2;
+    set<int> styled3;
 
     int nodeCount = 0;
     int nodeCapacity = 0;

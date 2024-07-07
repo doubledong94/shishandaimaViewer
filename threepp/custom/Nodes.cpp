@@ -137,6 +137,11 @@ void Nodes::applyColor() {
         encodedColor.r = encodeIntoRgb(encodedColor.r, 0.004);
         setColorAt(i, encodedColor);
     }
+    for (int i : styled3) {
+        getColorAt(i, encodedColor);
+        encodedColor.r = encodeIntoRgb(encodedColor.r, 0.006);
+        setColorAt(i, encodedColor);
+    }
     instanceColor()->needsUpdate();
 }
 
@@ -255,6 +260,7 @@ std::string Nodes::vertexSource() {
                out float vFixed;
                out float vStyled;
                out float vStyled2;
+               out float vStyled3;
                void main() {
                     uv_frag = position.xy;
                     vColor = instanceColor;
@@ -272,6 +278,7 @@ std::string Nodes::vertexSource() {
                     float statePartStyle = fract(fract(fract(instanceColor.r) * 100) * 100);
                     vStyled = statePartStyle > 0.1 && statePartStyle < 0.3 ? 1 : 0;
                     vStyled2 = statePartStyle > 0.3 && statePartStyle < 0.5 ? 1 : 0;
+                    vStyled3 = statePartStyle > 0.5 && statePartStyle < 0.7 ? 1 : 0;
 
                     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4( position, 1.0 );
                })";
@@ -287,6 +294,7 @@ std::string Nodes::fragmentSource() {
                 in float vFixed;
                 in float vStyled;
                 in float vStyled2;
+                in float vStyled3;
                 out vec4 pc_fragColor;
                 void main() {
                     vec3 color = vColor;
@@ -301,6 +309,12 @@ std::string Nodes::fragmentSource() {
                             alpha = 0;
                         } else {
                             if (vStyled > 0.5) {
+                                if (l> 0.6) {
+                                } else if (l> 0.5) {
+                                    color -= vec3(0.3);
+                                }
+                            }
+                            if (vStyled3 > 0.5) {
                                 if (l> 0.6) {
                                 } else if (l> 0.5) {
                                     color -= vec3(0.3);
