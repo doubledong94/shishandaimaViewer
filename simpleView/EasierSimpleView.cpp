@@ -506,8 +506,15 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getLoadMethodUseAddressableTerm(outerMethod),
         }));
     // param -> step -> step -> called param (current steps != [])
+    Term* calledParamAddressable = Term::getVar("CalledParamAddressable");
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        // restore step out point
         CompoundTerm::getCalledReturnToCalledParam(outerMethod,calledReturn,calledParam),
+        // check the right parameter
+        CompoundTerm::getRuntimeTerm(innerMethod,param,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
+        CompoundTerm::getCalledKeyTerm(param,calledParamAddressable),
+        CompoundTerm::getRuntimeTerm(outerMethod,calledParamAddressable,calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+        // get the step key
         CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
         }));
@@ -666,8 +673,16 @@ void EasierSimpleView::declareOverrideRules() {
         CompoundTerm::getLoadMethodUseAddressableTerm(outerMethod),
         }));
     // param -> overrideKey -> overrideKey -> called param (current steps != [])
+    Term* calledParamAddressable = Term::getVar("CalledParamAddressable");
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
+        // restore step out point
         CompoundTerm::getCalledReturnToCalledParam(outerMethod,calledReturn,calledParam),
+        // check the right parameter
+        CompoundTerm::getRuntimeTerm(innerMethod,paramTemp,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
+        CompoundTerm::getOverrideOutRecurTerm(param,paramTemp),
+        CompoundTerm::getCalledKeyTerm(param,calledParamAddressable),
+        CompoundTerm::getRuntimeTerm(outerMethod,calledParamAddressable,calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
+        // get the step key
         CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextOverrideKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))
         }));
