@@ -1998,6 +1998,14 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
             nameAndLine.second->resolved = false;
             nameAndLine.second->updateDisplayText();
         }
+        for (auto& lineInstance : SimpleView::SimpleViewToGraphConverter::valNameToLineInstance) {
+            for (auto& paramAndArg : lineInstance.second->paramNameToArgName) {
+                if (strcmp(paramAndArg.second.data(), oldName.data()) == 0) {
+                    lineInstance.second->paramNameToArgName[paramAndArg.first] = this->displayName;
+                    lineInstance.second->updateDisplayName();
+                }
+            }
+        }
         for (auto& nameAndGraph : SimpleView::SimpleViewToGraphConverter::valNameToGraph) {
             for (auto& lineInstance : nameAndGraph.second->lineInstances) {
                 for (auto& paramAndArg : lineInstance->paramNameToArgName) {
@@ -3458,7 +3466,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     outputAddressableKey->returnThisToPool();
     outputKeyType->returnThisToPool();
     expectingNextKeyTerm->returnThisToPool();
-    }
+}
 
 Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth) {
     Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
