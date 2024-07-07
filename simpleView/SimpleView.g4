@@ -21,6 +21,9 @@ METHOD_OF:'MethodOf';
 CREATOR : 'CreatorOf';
 PARAMETER_OF:'ParameterOf';
 RETURN_OF:'ReturnOf';
+CALLED_PARAM_OF :'CalledParamOf';
+CALLED_RETURN_OF : 'CalledReturnOf';
+CALLED_METHOD_OF : 'CalledMethodOf';
 READ : 'read';
 WRITE : 'write';
 
@@ -104,6 +107,10 @@ nodeExp
     | RETURN_OF '(' methodNode=nodeExp ')'
     | INSTANCE_OF '(' classScopeExp ',' classScopeExp ')'
     | CREATOR '(' classScopeExp ')'
+    // called method/parameter/return can only be the outermost layer
+    | CALLED_METHOD_OF '(' methodNode=nodeExp ')'
+    | CALLED_PARAM_OF '(' paramNode=nodeExp ')'
+    | CALLED_RETURN_OF '(' returnNode=nodeExp ')'
     | nodeExp intersection='&' nodeExp
     | nodeExp union='|' nodeExp
     | nodeExp difference='-' nodeExp

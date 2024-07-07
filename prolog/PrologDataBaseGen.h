@@ -14,8 +14,6 @@ class DataFlowVisitor : public GenDataVisitor {
 public:
     thread_local static map<string, list<pair<string, string>>> dataStepRuntimes;
     thread_local static map<string, list<pair<string, string>>> dataOverrideRuntimes;
-    thread_local static set<string> readParameters;
-    thread_local static list<pair<string, ResolvingItem*>> unreadParameters;
 
     void visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) override;
 

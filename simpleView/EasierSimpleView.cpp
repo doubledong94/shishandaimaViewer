@@ -71,6 +71,9 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::METHOD_OF);
     saveVocabulary(lexer, SimpleViewLexer::PARAMETER_OF);
     saveVocabulary(lexer, SimpleViewLexer::RETURN_OF);
+    saveVocabulary(lexer, SimpleViewLexer::CALLED_METHOD_OF);
+    saveVocabulary(lexer, SimpleViewLexer::CALLED_PARAM_OF);
+    saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN_OF);
     saveVocabulary(lexer, SimpleViewLexer::READ);
     saveVocabulary(lexer, SimpleViewLexer::WRITE);
     saveVocabulary(lexer, SimpleViewLexer::REFERENCE);
@@ -135,6 +138,9 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_PARAMETER_OF,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_RETURN_OF,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INSTANCE_OF,Images::instanceOfIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF,Images::methodIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
+                {SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INTERSECTION,Images::anyIconId},
                 {SimpleView::Node::NODE_TYPE_UNION,Images::unionIconId},
                 {SimpleView::Node::NODE_TYPE_DIFFERENCE,Images::differenceIconId},
@@ -346,13 +352,13 @@ void EasierSimpleView::declareNodeResolveRules() {
         }));
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledMethodOf(MethodValName, Resolved), {
-            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getCalledKeyTerm(Method, Resolved)
+            CompoundTerm::getResolveTerm(MethodValName, Method),CompoundTerm::getMethodTerm(Term::getIgnoredVar(),Method), CompoundTerm::getCalledKeyTerm(Method, Resolved)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledParameterOf(ParamValName, Resolved), {
-            CompoundTerm::getResolveTerm(ParamValName, Param), CompoundTerm::getCalledKeyTerm(Param, Resolved)
+            CompoundTerm::getResolveTerm(ParamValName, Param),CompoundTerm::getParameterTerm(Term::getIgnoredVar(),Param), CompoundTerm::getCalledKeyTerm(Param, Resolved)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledReturnOf(ReturnValName, Resolved), {
-            CompoundTerm::getResolveTerm(ReturnValName, Return), CompoundTerm::getCalledKeyTerm(Return, Resolved)
+            CompoundTerm::getResolveTerm(ReturnValName, Return),CompoundTerm::getReturnTerm(Term::getIgnoredVar(),Return), CompoundTerm::getCalledKeyTerm(Return, Resolved)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeUnion(Node1, Node2, Resolved), {
             DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getResolveTerm(Node1, Resolved), CompoundTerm::getResolveTerm(Node2, Resolved))
@@ -1650,6 +1656,18 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         referenceNode->resolve(update);
         PrologWrapper::queryList(CompoundTerm::getNodeReturnOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
         break;
+    case NODE_TYPE_CALLED_METHOD_OF:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeCalledMethodOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
+    case NODE_TYPE_CALLED_PARAMETER_OF:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeCalledParameterOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
+    case NODE_TYPE_CALLED_RETURN_OF:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeCalledReturnOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
     case NODE_TYPE_READ:
     case NODE_TYPE_WRITE:
         // read and write key word can only be the outermost layer
@@ -1744,6 +1762,17 @@ SimpleView::ClassScope* SimpleView::Node::runtimeScopeThatUseIt() {
     case NODE_TYPE_RETURN_OF:
         paramAndReturnKeys.insert(resolvedList.begin(), resolvedList.end());
         break;
+    case NODE_TYPE_CALLED_METHOD_OF:
+        for (auto& key : resolvedList) {
+            fieldAndMethods.insert(key.substr(0, key.size() - 1));
+        }
+        break;
+    case NODE_TYPE_CALLED_PARAMETER_OF:
+    case NODE_TYPE_CALLED_RETURN_OF:
+        for (auto& key : resolvedList) {
+            paramAndReturnKeys.insert(key.substr(0, key.size() - 1));
+        }
+        break;
     default:
         fieldAndMethods.insert(resolvedList.begin(), resolvedList.end());
     }
@@ -1824,6 +1853,12 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::PARAMETER_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_RETURN_OF:
         return voc[SimpleViewLexer::RETURN_OF] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_CALLED_METHOD_OF:
+        return voc[SimpleViewLexer::CALLED_METHOD_OF] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_CALLED_PARAMETER_OF:
+        return voc[SimpleViewLexer::CALLED_PARAM_OF] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_CALLED_RETURN_OF:
+        return voc[SimpleViewLexer::CALLED_RETURN_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_READ:
         return voc[SimpleViewLexer::READ] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_WRITE:
@@ -1926,6 +1961,9 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
+    case NODE_TYPE_CALLED_METHOD_OF:
+    case NODE_TYPE_CALLED_PARAMETER_OF:
+    case NODE_TYPE_CALLED_RETURN_OF:
         values.push_back(referenceNode->displayName.data());
         break;
     case NODE_TYPE_INSTANCE_OF:
@@ -1969,6 +2007,9 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
+    case NODE_TYPE_CALLED_METHOD_OF:
+    case NODE_TYPE_CALLED_PARAMETER_OF:
+    case NODE_TYPE_CALLED_RETURN_OF:
         this->referenceNode = SimpleViewToGraphConverter::valNameToNode[values[0]];
         break;
     case NODE_TYPE_INSTANCE_OF:

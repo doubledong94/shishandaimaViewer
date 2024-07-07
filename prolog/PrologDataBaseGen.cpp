@@ -21,8 +21,6 @@ static RuntimeKeyVisitor* runtimeKeyVisitor = NULL;
 static RuntimeReadVisitor* runtimeReadVisitor = NULL;
 static RuntimeWriteVisitor* runtimeWriteVisitor = NULL;
 
-thread_local set<string> DataFlowVisitor::readParameters;
-thread_local list<pair<string, ResolvingItem*>> DataFlowVisitor::unreadParameters;
 thread_local map<string, list<pair<string, string>>> DataFlowVisitor::dataStepRuntimes;
 thread_local map<string, list<pair<string, string>>> TimingFlowVisitor::timingStepRuntimes;
 thread_local map<string, list<pair<string, string>>> DataFlowVisitor::dataOverrideRuntimes;
@@ -65,10 +63,6 @@ void PrologDataBaseGen::genPrologDataBase(list<string>& prologLines) {
         }
     }
     dataFlowVisitor->dataOverrideRuntimes.clear();
-    for (auto& paramItem : dataFlowVisitor->unreadParameters) {
-        paramItem.second->addRuntimeProlog(CompoundTerm::getRuntimeFact, paramItem.first, prologLines);
-    }
-    dataFlowVisitor->unreadParameters.clear();
     for (auto& mkAndStep : timingFlowVisitor->timingStepRuntimes) {
         for (auto& step : mkAndStep.second) {
             prologLines.emplace_back(CompoundTerm::getRuntimeFact(mkAndStep.first, step.first, step.second, GlobalInfo::KEY_TYPE_TIMING_STEP));
@@ -92,16 +86,7 @@ void PrologDataBaseGen::genPrologDataBase(list<string>& prologLines) {
 void DataFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) {
     dataStepRuntimes[methodKey] = list<pair<string, string>>();
     dataOverrideRuntimes[methodKey] = list<pair<string, string>>();
-    readParameters.clear();
     GenDataVisitor::visitMethod(methodKey, methodBody, prologLines);
-    MethodInfo* methodInfo = AddressableInfo::methodKey2MethodInfo[methodKey];
-    for (auto* paramInfo : methodInfo->parameterInfos) {
-        if (not readParameters.count(paramInfo->fieldKey)) {
-            auto paramItem = ResolvingItem::getInstance2(paramInfo->fieldKey, paramInfo->typeInfo, "0,0,0", "-1", "-1", GlobalInfo::KEY_TYPE_METHOD_PARAMETER);
-            addStepToParam(methodKey, paramItem, prologLines);
-            unreadParameters.push_back({ methodKey, paramItem });
-        }
-    }
 }
 
 void DataFlowVisitor::beforeRunSplitCodeBlock(CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks) {
@@ -207,13 +192,11 @@ void DataFlowVisitor::genDataFlowFromLastWrittenLvs(const string& methodKey, Res
             FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, read->runtimeKey)););
             if (isReadParam and not codeBlock->lvUpdatedByBlockStack100Percent(read->variableKey)) {
                 // step -> param -> ...
-                readParameters.insert(read->variableKey);
                 addStepToParam(methodKey, read, prologLines);
             }
         } else {
             if (isReadParam) {
                 // step -> param -> ...
-                readParameters.insert(read->variableKey);
                 addStepToParam(methodKey, read, prologLines);
             } else {
                 spdlog::get(ErrorManager::DebugTag)->warn("local variable {} read before write in {}", read->variableKey, methodKey);
