@@ -1186,19 +1186,18 @@ void BoundedIncrementalGraph::onNodeHover(int nodeInstanceId) {
         onNodeColorChanged();
         auto& nodeInfo = nodesOrderedByNodeId[nodeInstanceId];
         string info;
-        info += "simpleName:  " + nodeInfo->getSimpleName() + "\n";
-        info += "key:  " + nodeInfo->key + "\n";
+        info += "method:  " + nodeInfo->methodOfRuntime + "\n";
+        info += "key:           " + nodeInfo->key + "\n";
         if (not nodeInfo->getTypeKey().empty()) {
             info += "type:  " + nodeInfo->getTypeKey() + "\n";
         }
-        info += "runtime:  " + nodeInfo->methodOfRuntime + "\n";
-        info += "regex: "  "\n";
-        for (auto& pos : nodeInfo->positionInRegex) {
-            info += "        ";
-            info += pos->graphName + " | ";
-            info += pos->lineName + " | ";
-            info += pos->regex + "\n";
-        }
+        // info += "regex: "  "\n";
+        // for (auto& pos : nodeInfo->positionInRegex) {
+        //     info += "        ";
+        //     info += pos->graphName + " | ";
+        //     info += pos->lineName + " | ";
+        //     info += pos->regex + "\n";
+        // }
         showTooltip(info);
     }
 }
