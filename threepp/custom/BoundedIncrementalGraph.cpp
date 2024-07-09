@@ -2644,6 +2644,7 @@ void BoundedIncrementalGraph::scaleByDistance() {
     }
     nodesObj->matrixNeedUpdate();
     textLoaderThreadPool->submit([this]() {
+        graphGenerateAndConsumeLock.lock();
         for (int i : textAdded) {
             if (nodesObj->nodeSizes[i] > 0.01) {
                 float scale = nodesObj->nodeSizes[i] / textSizes[i];
@@ -2651,6 +2652,7 @@ void BoundedIncrementalGraph::scaleByDistance() {
                 textSizes[i] = nodesObj->nodeSizes[i];
             }
         }
+        graphGenerateAndConsumeLock.unlock();
         });
 }
 
