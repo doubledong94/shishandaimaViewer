@@ -60,6 +60,8 @@ namespace threepp {
 
         void reset();
 
+        void pan(float x, float y);
+
         [[nodiscard]] float getAutoRotationAngle() const;
 
         [[nodiscard]] float getZoomScale() const;

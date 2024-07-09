@@ -277,6 +277,40 @@ struct GraphDragNodeMouseListener : ReactiveMouseListener {
             dragConsumed = true;
         }
     }
+
+    threepp::Vector3 getCurrentFocus(threepp::Vector3& distanceTo) {
+        threepp::Vector3 dir;
+        camera->getWorldDirection(dir);
+        plane.set(dir, 0);
+        float distance = -plane.distanceToPoint(distanceTo);
+        plane.set(dir, distance);
+        scope->raycaster->setFromCamera({ 0,0 }, *camera);
+        scope->raycaster->ray.intersectPlane(plane, intersectionWithPlane);
+        return intersectionWithPlane;
+    }
+
+    threepp::Vector3 convertPosToPanPos(threepp::Vector3 pos) {
+        threepp::Vector3 dir;
+        camera->getWorldDirection(dir);
+        plane.set(dir, 0);
+        float distance = -plane.distanceToPoint(pos);
+        plane.set(dir, distance);
+        scope->raycaster->set(pos, dir);
+        scope->raycaster->ray.intersectPlane(plane, intersectionWithPlane);
+        if (isnan(intersectionWithPlane.x)) {
+            scope->raycaster->set(pos, dir.negate());
+            scope->raycaster->ray.intersectPlane(plane, intersectionWithPlane);
+        }
+        return intersectionWithPlane;
+    }
+
+    threepp::Vector3 rotateAccordingToCamera(threepp::Vector3 v) {
+        threepp::Matrix4 mat;
+        mat.extractRotation(*camera->matrix);
+        v.applyMatrix4(mat.invert());
+        return v;
+    }
+
 };
 
 void BoundedIncrementalGraph::addBuffers(const vector<Tail*>& bufs) {
@@ -1172,7 +1206,9 @@ void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
         doubleClickStateMachine->onClick([&, nodeInstanceId]() {
             if (not nodeClickedForTheFirstTime) {
                 nodesObj->selected.insert(nodeInstanceId);
-                onFocusOn(points[nodeInstanceId]);
+                auto p1 = dragMouseListener->rotateAccordingToCamera(dragMouseListener->getCurrentFocus(points[nodeInstanceId]));
+                auto p2 = dragMouseListener->rotateAccordingToCamera(dragMouseListener->convertPosToPanPos(points[nodeInstanceId]));
+                onFocusOn({ p2.x - p1.x, p2.y - p1.y });
             }
             });
     }

@@ -68,7 +68,7 @@ public:
 
     void reset();
 
-    void panTo(float x, float y);
+    void pan(float x, float y);
 
     [[nodiscard]] float getZoomScale() const;
     [[nodiscard]] float getZoomScale2() const;

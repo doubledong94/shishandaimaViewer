@@ -344,7 +344,7 @@ public:
     threepp::Canvas* canvas = nullptr;
     TwoDControls* twoDControls = NULL;
     threepp::ThreeDControls* threeDControls = NULL;
-    std::function<void(threepp::Vector3)> onFocusOn;
+    std::function<void(threepp::Vector2)> onFocusOn;
     std::function<void(string&)> showTooltip;
     std::function<void()> hideTooltip;
     void invalidateAllGraphInfo();

@@ -340,8 +340,9 @@ void TwoDControls::reset() {
     pimpl_->accumulatedRotation = 0;
 }
 
-void TwoDControls::panTo(float x, float y) {
-    pimpl_->pan(x - target.x, y - target.y);
+void TwoDControls::pan(float x, float y) {
+    pimpl_->panLeft(-x, *pimpl_->camera.matrix);
+    pimpl_->panUp(y, *pimpl_->camera.matrix);
     update();
 }
 

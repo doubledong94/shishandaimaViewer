@@ -518,6 +518,12 @@ void threepp::ThreeDControls::reset() {
     pimpl_->rotateZDelta.set(0, 0);
 }
 
+void threepp::ThreeDControls::pan(float x, float y) {
+    pimpl_->panLeft(-x, *pimpl_->camera.matrix);
+    pimpl_->panUp(y, *pimpl_->camera.matrix);
+    update();
+}
+
 float ThreeDControls::getAutoRotationAngle() const {
 
     return 2 * math::PI / 60 / 60 * this->autoRotateSpeed;

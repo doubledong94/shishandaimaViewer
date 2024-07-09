@@ -62,6 +62,7 @@
 #include "file/FileManager.h"
 #include "threepp/helpers/AxesHelper.hpp"
 #include "absl/time/clock.h"
+#include "animation/AnimationUtil.h"
 
 using namespace threepp;
 
@@ -689,19 +690,11 @@ int app::Application::ApplicationMain() {
     canvas.addMouseListener(canvasMouseListener);
     raycaster.params.lineThreshold = 0.1f;
 
+    static int cameraAnimToken = -1;
+
     boundedGraph = BoundedIncrementalGraph::create(&canvas, camera.get(), &raycaster, &listeners, &twoDControls, &threeDControls);
-    boundedGraph->onFocusOn = [&](threepp::Vector3 pos) {
-        threepp::Vector3 boundedGraphPosition = boundedGraph->position;
-        boundedGraph->position.set(-pos.x, -pos.y, -pos.z);
-        if (twoDControls.enabled) {
-            twoDControls.reset();
-        }
-        if (threeDControls.enabled) {
-            threeDControls.reset();
-        }
-        camera->up.set(0, 1, 0);
-        camera->position.set(0, 0, camera->position.sub(boundedGraphPosition).sub(pos).length());
-        camera.get()->lookAt({ 0,0,0 });
+    boundedGraph->onFocusOn = [&](threepp::Vector2 offset) {
+        cameraAnimToken = AnimationUtil::addAnimation({ 0,0,0 }, { offset.x,offset.y,0 });
         };
     static string tip;
     boundedGraph->showTooltip = [&](string& s) {
@@ -1277,6 +1270,15 @@ int app::Application::ApplicationMain() {
         for (auto* l : listeners) {
             l->reactOnMouseEvent();
         }
+        AnimationUtil::upadteAnim();
+        AnimationUtil::applyAnimAction(cameraAnimToken, [&](AnimValue currentValue,AnimValue lastValue) {
+            if (twoDControls.enabled) {
+                twoDControls.pan(currentValue.x - lastValue.x, currentValue.y - lastValue.y);
+            }
+            if (threeDControls.enabled) {
+                threeDControls.pan(currentValue.x - lastValue.x, currentValue.y - lastValue.y);
+            }
+            });
         boundedGraph->updateAnim(*camera);
         glClear(GL_COLOR_BUFFER_BIT);
         renderer.render(*scene, *camera);
