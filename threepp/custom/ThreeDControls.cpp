@@ -524,6 +524,20 @@ void threepp::ThreeDControls::pan(float x, float y) {
     update();
 }
 
+void threepp::ThreeDControls::panByMouse(float x, float y) {
+    pimpl_->pan(-x, -y);
+    update();
+}
+
+void threepp::ThreeDControls::zoomByKey(bool zoomIn) {
+    if (zoomIn) {
+        pimpl_->dollyOut(pimpl_->scope.getZoomScale());
+    } else {
+        pimpl_->dollyIn(pimpl_->scope.getZoomScale());
+    }
+    update();
+}
+
 float ThreeDControls::getAutoRotationAngle() const {
 
     return 2 * math::PI / 60 / 60 * this->autoRotateSpeed;

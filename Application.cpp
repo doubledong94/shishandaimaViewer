@@ -113,6 +113,29 @@ public:
     }
 };
 
+struct MousePosListener : public ReactiveMouseListener {
+    Vector2 markedMousePos;
+    Vector2 currentMousePos;
+    bool moved;
+    void onMouseMove(const Vector2& pos) override {
+        currentMousePos.copy(pos);
+        moved = true;
+    }
+    void markMousePos() {
+        markedMousePos.copy(currentMousePos);
+    }
+    void markDown() {
+        moved = false;
+    }
+    Vector2 getMouseOffset() {
+        Vector2 ret;
+        ret.copy(currentMousePos).sub(markedMousePos);
+        return ret;
+    }
+};
+
+static MousePosListener* mousePosListener = new MousePosListener();
+
 std::function<void(char*, vector<const char*>&)> app::Application::searchNodeInGraph;
 std::function<void(set<const char*>&, vector<const char*>&)> app::Application::searchNodeByMethodOfRuntime;
 std::function<void(set<const char*>&, vector<const char*>&)> app::Application::searchNodeByAddressableKey;
@@ -686,6 +709,7 @@ int app::Application::ApplicationMain() {
         });
     colorWidgetWidth = canvas.size().width / 5;
 
+    listeners.push_back(mousePosListener);
     CanvasMouseListener canvasMouseListener(&listeners);
     canvas.addMouseListener(canvasMouseListener);
     raycaster.params.lineThreshold = 0.1f;
@@ -712,6 +736,9 @@ int app::Application::ApplicationMain() {
         };
 
     std::function<void()> restoreGraph = []() {};
+
+    static bool moveCameraByMouse = false;
+    static bool focusByMouse = false;
 
     bool show_demo_window = false;
     auto ui = ImguiFunctionalContext(canvas.windowPtr(), [&] {
@@ -1227,6 +1254,20 @@ int app::Application::ApplicationMain() {
         if (isShowLoadingUnaddressableDialog) {
             showProgressDialog("loading runtime", &isShowLoadingUnaddressableDialog, loadingUnaddressableIndex, loadingUnaddressableTotal, loadingUnaddressableName);
         }
+        if (ImGui::IsKeyDown(ImGuiKey_Space)) {
+            if (not moveCameraByMouse) {
+                moveCameraByMouse = true;
+                mousePosListener->markDown();
+            }
+        } else {
+            mousePosListener->markMousePos();
+        }
+        if (ImGui::IsKeyReleased(ImGuiKey_Space)) {
+            moveCameraByMouse = false;
+            if (not mousePosListener->moved) {
+                focusByMouse = true;
+            }
+        }
         });
 
     Images::init();
@@ -1270,8 +1311,33 @@ int app::Application::ApplicationMain() {
         for (auto* l : listeners) {
             l->reactOnMouseEvent();
         }
+        if (moveCameraByMouse) {
+            auto dir = mousePosListener->getMouseOffset();
+            dir.multiplyScalar(30 / camera->position.length());
+            if (twoDControls.enabled) {
+                twoDControls.panByMouse(dir.x, dir.y);
+            }
+            if (threeDControls.enabled) {
+                threeDControls.panByMouse(dir.x, dir.y);
+            }
+            mousePosListener->markMousePos();
+            bool zoomIn = ImGui::IsKeyDown(ImGuiKey_Equal);
+            bool zoomOut = ImGui::IsKeyDown(ImGuiKey_Minus);
+            if (zoomIn or zoomOut) {
+                if (twoDControls.enabled) {
+                    twoDControls.zoomByKey(zoomIn);
+                }
+                if (threeDControls.enabled) {
+                    threeDControls.zoomByKey(zoomIn);
+                }
+            }
+        }
+        if (focusByMouse) {
+            boundedGraph->focusHoverd();
+            focusByMouse = false;
+        }
         AnimationUtil::upadteAnim();
-        AnimationUtil::applyAnimAction(cameraAnimToken, [&](AnimValue currentValue,AnimValue lastValue) {
+        AnimationUtil::applyAnimAction(cameraAnimToken, [&](AnimValue currentValue, AnimValue lastValue) {
             if (twoDControls.enabled) {
                 twoDControls.pan(currentValue.x - lastValue.x, currentValue.y - lastValue.y);
             }

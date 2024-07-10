@@ -346,6 +346,20 @@ void TwoDControls::pan(float x, float y) {
     update();
 }
 
+void TwoDControls::panByMouse(float x, float y) {
+    pimpl_->pan(-x, -y);
+    update();
+}
+
+void TwoDControls::zoomByKey(bool zoomIn) {
+    if (zoomIn) {
+        pimpl_->dollyOut(pimpl_->scope.getZoomScale());
+    } else {
+        pimpl_->dollyIn(pimpl_->scope.getZoomScale());
+    }
+    update();
+}
+
 float TwoDControls::getZoomScale() const {
     return std::pow(0.95f, this->zoomSpeed);
 }

@@ -40,7 +40,7 @@ public:
     // This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
     // Set to false to disable zooming
     bool enableZoom = true;
-    float zoomSpeed = 3.0f;
+    float zoomSpeed = 1.0f;
     float zoomSpeed2 = 0.1f;
 
     // Set to false to disable rotating
@@ -69,6 +69,10 @@ public:
     void reset();
 
     void pan(float x, float y);
+
+    void panByMouse(float x, float y);
+
+    void zoomByKey(bool zoomIn);
 
     [[nodiscard]] float getZoomScale() const;
     [[nodiscard]] float getZoomScale2() const;

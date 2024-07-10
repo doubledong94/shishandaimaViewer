@@ -331,6 +331,8 @@ public:
 
     void getConnectedNodesByDim(int nodeId, set<int>& nodeTypes, set<int>& connected, bool dir);
 
+    void focusHoverd();
+
     static std::function<void(int, set<int>&)> getDimControl;
     // tested property start
     bool isDag();

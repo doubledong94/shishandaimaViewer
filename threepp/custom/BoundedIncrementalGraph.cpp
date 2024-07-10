@@ -3077,6 +3077,15 @@ void BoundedIncrementalGraph::getConnectedNodesByDim(int nodeId, set<int>& nodeT
     igraph_vector_int_destroy(&neighbors);
 }
 
+void BoundedIncrementalGraph::focusHoverd() {
+    if (not nodesObj->hovered.empty()) {
+        int nodeInstanceId = *nodesObj->hovered.begin();
+        auto p1 = dragMouseListener->rotateAccordingToCamera(dragMouseListener->getCurrentFocus(points[nodeInstanceId]));
+        auto p2 = dragMouseListener->rotateAccordingToCamera(dragMouseListener->convertPosToPanPos(points[nodeInstanceId]));
+        onFocusOn({ p2.x - p1.x, p2.y - p1.y });
+    }
+}
+
 void BoundedIncrementalGraph::prepareSelectByMethodStackSize() {
     if (not methodStackSizeToNodes.needUpdate) {
         return;

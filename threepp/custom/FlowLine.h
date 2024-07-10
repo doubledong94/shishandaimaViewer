@@ -5,6 +5,7 @@
 class FlowLine : public threepp::Mesh {
 public:
     int edgeCapacity = 10000;
+    float flowSpeed = 0.03f;
 
     std::shared_ptr<threepp::RawShaderMaterial> shaderMaterial;
 

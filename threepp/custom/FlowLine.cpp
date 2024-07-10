@@ -178,7 +178,7 @@ void FlowLine::updateFlowImpl(const std::function<void(int, bool)>& onAnimationF
         int startPoint = startAndEndPoint.first;
         for (auto& endPointAndFlow : startAndEndPoint.second) {
             int endPoint = endPointAndFlow.first;
-            flowingEdges[startPoint][endPoint] += backward ? -0.03 : 0.03;
+            flowingEdges[startPoint][endPoint] += backward ? -flowSpeed : flowSpeed;
 
             if ((not backward and flowingEdges[startPoint][endPoint] > 1) or
                 (backward and flowingEdges[startPoint][endPoint] < 0)) {

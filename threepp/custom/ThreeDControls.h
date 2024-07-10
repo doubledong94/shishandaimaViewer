@@ -62,6 +62,10 @@ namespace threepp {
 
         void pan(float x, float y);
 
+        void panByMouse(float x, float y);
+
+        void zoomByKey(bool zoomIn);
+
         [[nodiscard]] float getAutoRotationAngle() const;
 
         [[nodiscard]] float getZoomScale() const;
