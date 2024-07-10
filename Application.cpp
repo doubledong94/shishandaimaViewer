@@ -1304,6 +1304,8 @@ int app::Application::ApplicationMain() {
         };
     canvas.setIOCapture(&capture);
 
+    static threepp::Plane plane;
+    static threepp::Vector3 cameraDir;
 
     auto f = [&]() {
         restoreGraph();
@@ -1312,8 +1314,10 @@ int app::Application::ApplicationMain() {
             l->reactOnMouseEvent();
         }
         if (moveCameraByMouse) {
+            camera->getWorldDirection(cameraDir);
+            plane.set(cameraDir, 0);
             auto dir = mousePosListener->getMouseOffset();
-            dir.multiplyScalar(30 / camera->position.length());
+            dir.multiplyScalar(50 / -plane.distanceToPoint(camera->position));
             if (twoDControls.enabled) {
                 twoDControls.panByMouse(dir.x, dir.y);
             }
