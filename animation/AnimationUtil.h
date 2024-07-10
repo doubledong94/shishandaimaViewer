@@ -17,6 +17,7 @@ public:
     void upadteAnim();
     bool animFinished();
     void start();
+    AnimationInstace();
 };
 
 class AnimationUtil {

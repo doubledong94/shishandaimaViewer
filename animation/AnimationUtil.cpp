@@ -1,5 +1,6 @@
 #include "../util/util.h"
 #include "AnimationUtil.h"
+#include "math.h"
 
 float lerp(float a, float b, float t) {
     return a + t * (b - a);
@@ -28,6 +29,16 @@ bool AnimationInstace::animFinished() {
 void AnimationInstace::start() {
     if (currentProgress < 0) {
         currentProgress = 0;
+    }
+}
+
+AnimationInstace::AnimationInstace() {
+    progress.clear();
+    int animCount = 30;
+    for (int i = 0;i < animCount + 1;i++) {
+        float p = i * 1.0f / animCount;
+        p = sin(p * M_PI - M_PI_2) / 2 + 0.5;
+        progress.push_back(p);
     }
 }
 
