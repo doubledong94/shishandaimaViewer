@@ -1328,6 +1328,7 @@ int app::Application::ApplicationMain() {
             bool zoomIn = ImGui::IsKeyDown(ImGuiKey_Equal);
             bool zoomOut = ImGui::IsKeyDown(ImGuiKey_Minus);
             if (zoomIn or zoomOut) {
+                mousePosListener->moved = true;
                 if (twoDControls.enabled) {
                     twoDControls.zoomByKey(zoomIn);
                 }
