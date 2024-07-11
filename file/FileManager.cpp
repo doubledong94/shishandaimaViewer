@@ -68,6 +68,7 @@ void FileManager::getFileNameInDir(const string& dirPath, list<string>& fileName
             }
         }
     }
+    fileNames.sort();
 }
 
 void FileManager::deleteFile(const string& filePath) {

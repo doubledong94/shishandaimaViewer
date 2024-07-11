@@ -1056,7 +1056,7 @@ namespace shishan {
 
     static void addNewLineFinalInstance(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##lineNewFinalInstanceName", "", lineNewFinalInstanceName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##lineNewFinalInstanceName", "", lineNewFinalInstanceName, 1000, { 12 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 2 * fontSize);
         static bool lineNewFinalInstanceNameIsWrong = false;
@@ -1107,7 +1107,7 @@ namespace shishan {
 
     static void addLineFinalInstanceNameEdit(float fontSize) {
         ImGui::Text("name: "); ImGui::SameLine();
-        ImGui::InputTextEx("##lineFinalInstanceNameEdit", "", lineFinalInstanceEditingName, 1000, { 6 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
+        ImGui::InputTextEx("##lineFinalInstanceNameEdit", "", lineFinalInstanceEditingName, 1000, { 12 * fontSize,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank);
         ImGui::SameLine();
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 2 * fontSize);
         static bool lineFinalInstanceNameIsWrong = false;
