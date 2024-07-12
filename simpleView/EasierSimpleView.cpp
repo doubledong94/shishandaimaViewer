@@ -3503,8 +3503,9 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_CALLED_RETURN:
     case Node::NODE_TYPE_INDEX:
         // check by node type
-        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
-        ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
+        ruleBody.push_back(DisjunctionTerm::getDisjunctionInstance(
+            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)),Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)) }),
+            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)) })));
         break;
     default:
         // check by node inner name

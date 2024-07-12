@@ -299,7 +299,15 @@ void TimingFlowVisitor::visitToConditionSentence(const string& methodKey, CodeBl
 }
 
 void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBlock, ResolvingItem* item, list<string>& prologLines) {
-    if (item->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or item->keyType == GlobalInfo::KEY_TYPE_FIELD) {
+    if (
+        item->keyType == GlobalInfo::KEY_TYPE_FIELD or
+        item->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
+        item->keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN or
+        item->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
+        item->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
+        item->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or 
+        item->keyType == GlobalInfo::KEY_TYPE_ERROR
+        ) {
         item->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
     }
     if (item->referencedBy) {

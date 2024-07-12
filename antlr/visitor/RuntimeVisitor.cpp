@@ -18,6 +18,21 @@
 #include "RuntimeVisitor.h"
 #include "../../antlr/syntaxObject/Modifier.h"
 
+static ResolvingItem* getErrorItem(antlr4::tree::ParseTree* ctx, StatementVisitor* visitor) {
+    return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()), AddressableInfo::errorTypeInfo,
+        visitor->codeBlock->structure_key, visitor->getSentence()->sentenceIndexStr, visitor->getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+}
+
+static ResolvingItem* acceptAndHandleError(antlr4::tree::ParseTree* ctx, StatementVisitor* visitor) {
+    const any& itemOrNull = ctx->accept(visitor);
+    if (visitor->abort) {
+        visitor->abort = false;
+        return getErrorItem(ctx, visitor);
+    } else {
+        return any_cast<ResolvingItem*>(itemOrNull);
+    }
+}
+
 void RuntimeVisitor::copyFrom(RuntimeVisitor* copied) {
     classScopeAndEnv = copied->classScopeAndEnv;
     methodScopeAndEnv = copied->methodScopeAndEnv;
@@ -294,15 +309,7 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
         auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
         statementVisitor->codeBlock = codeBlock;
         statementVisitor->sentenceIndex = -1;
-        const any& itemOrNull = ctx->forControl()->enhancedForControl()->expression()->accept(statementVisitor);
-        ResolvingItem* arrayLikeItem = NULL;
-        if (statementVisitor->abort) {
-            arrayLikeItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->forControl()->enhancedForControl()->expression()->getText()),
-                AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
-            statementVisitor->abort = false;
-        } else {
-            arrayLikeItem = any_cast<ResolvingItem*>(itemOrNull);
-        }
+        ResolvingItem* arrayLikeItem = acceptAndHandleError(ctx->forControl()->enhancedForControl()->expression(), statementVisitor);
         VariableDeclaration variableDeclarator;
         if (ctx->forControl()->enhancedForControl()->typeType()) {
             AntlrNodeToSyntaxObjectConverter::convertTypeType(ctx->forControl()->enhancedForControl()->typeType(), &(variableDeclarator.typeType));
@@ -342,18 +349,10 @@ std::any StructuralVisitor::visitStatementDoWhile(JavaParser::StatementDoWhileCo
 std::any StructuralVisitor::visitStatementSwitch(JavaParser::StatementSwitchContext* ctx) {
     auto* splitCodeBlocks = new SplitCodeBlocks(outerCodeBlock, outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock);
     splitCodeBlocks->splitType = SplitCodeBlocks::SPLIT_TYPE_SWITCH;
-    ResolvingItem* switchItem = NULL;
     auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
     statementVisitor->codeBlock = outerCodeBlock;
     statementVisitor->sentenceIndex = sentenceIndexInOuterCodeBlock;
-    const any& itemOrNull = ctx->parExpression()->expression()->accept(statementVisitor);
-    if (!statementVisitor->abort) {
-        switchItem = any_cast<ResolvingItem*>(itemOrNull);
-    }
-    if (not switchItem) {
-        switchItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->parExpression()->expression()->getText()),
-            AddressableInfo::errorTypeInfo, outerCodeBlock->structure_key, "0", "0", GlobalInfo::KEY_TYPE_ERROR);
-    }
+    ResolvingItem* switchItem = acceptAndHandleError(ctx->parExpression()->expression(), statementVisitor);
     int branchIndex = 1;
     for (auto* group : ctx->switchBlockStatementGroup()) {
         bool closed = false;
@@ -413,11 +412,8 @@ void StructuralVisitor::visitCondition(string& conditionKey, JavaParser::Express
         auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
         statementVisitor->codeBlock = codeBlock;
         statementVisitor->sentenceIndex = -10;
-        const any& itemOrNull = ctx->accept(statementVisitor);
-        if (!statementVisitor->abort) {
-            codeBlock->toConditionValue = any_cast<ResolvingItem*>(itemOrNull);
-            codeBlock->toConditionSentence = statementVisitor->getSentence();
-        }
+        codeBlock->toConditionValue = acceptAndHandleError(ctx, statementVisitor);
+        codeBlock->toConditionSentence = statementVisitor->getSentence();
         StatementVisitor::returnToPool(statementVisitor);
     }
 }
@@ -458,15 +454,7 @@ void StructuralVisitor::visitConditionCase(JavaParser::ExpressionContext* ctx, R
         auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
         statementVisitor->codeBlock = codeBlock;
         statementVisitor->sentenceIndex = caseIndex;
-        const any& itemOrNull = ctx->accept(statementVisitor);
-        ResolvingItem* caseItem = NULL;
-        if (!statementVisitor->abort) {
-            caseItem = any_cast<ResolvingItem*>(itemOrNull);
-        }
-        if (not caseItem) {
-            caseItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()),
-                AddressableInfo::errorTypeInfo, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_ERROR);
-        }
+        ResolvingItem* caseItem = acceptAndHandleError(ctx, statementVisitor);
         ResolvingItem* logicItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, to_string(caseIndex), "-1", GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, "==");
         new Relation(statementVisitor->getSentence(), switchItem, logicItem);
         new Relation(statementVisitor->getSentence(), caseItem, logicItem);
@@ -566,9 +554,6 @@ std::any StatementVisitor::visitBlockStatement(JavaParser::BlockStatementContext
 }
 
 std::any StatementVisitor::visitLocalVariableDeclaration(JavaParser::LocalVariableDeclarationContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     VariableDeclaration variableDeclarator;
     AntlrNodeToSyntaxObjectConverter::convertLocalVariableDeclaration(ctx, &variableDeclarator);
     addLocalVariable(variableDeclarator);
@@ -613,19 +598,11 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
             }
             if (variableDeclaratorI.initExpression or fromFor) {
                 abort = false;
-                any itemOrNull = NULL;
-                if (variableDeclaratorI.initExpression) {
-                    itemOrNull = variableDeclaratorI.initExpression->accept(this);
-                }
                 ResolvingItem* valueItem = NULL;
                 if (fromFor) {
                     valueItem = initValueItem;
-                } else if (abort) {
-                    valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()),
-                        AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-                    abort = false;
                 } else {
-                    valueItem = any_cast<ResolvingItem*>(itemOrNull);
+                    valueItem = acceptAndHandleError(variableDeclaratorI.initExpression, this);
                 }
                 if (isTypeVar) {
                     if (fromFor) {
@@ -663,9 +640,6 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
 }
 
 std::any StatementVisitor::visitFieldDeclaration(JavaParser::FieldDeclarationContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     VariableDeclaration variableDeclarator;
     AntlrNodeToSyntaxObjectConverter::convertFieldDeclaration(ctx, &variableDeclarator);
     TypeInfo* typeInfo = classScopeAndEnv->getTypeInfoWithFileScope(variableDeclarator.typeType.typeName);
@@ -688,15 +662,7 @@ std::any StatementVisitor::visitFieldDeclaration(JavaParser::FieldDeclarationCon
         if (variableDeclaratorI.dim == 0) {
             if (variableDeclaratorI.initExpression != nullptr) {
                 abort = false;
-                const any& itemOrNull = variableDeclaratorI.initExpression->accept(this);
-                ResolvingItem* valueItem = NULL;
-                if (abort) {
-                    valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(variableDeclaratorI.initExpression->getText()),
-                        AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-                    abort = false;
-                } else {
-                    valueItem = any_cast<ResolvingItem*>(itemOrNull);
-                }
+                ResolvingItem* valueItem = acceptAndHandleError(variableDeclaratorI.initExpression, this);
                 new Relation(getSentence(), valueItem, varItem);
             } else {
                 // field default value
@@ -809,11 +775,7 @@ std::any StatementVisitor::visitStatementSync(JavaParser::StatementSyncContext* 
 
 std::any StatementVisitor::visitStatementReturn(JavaParser::StatementReturnContext* ctx) {
     if (ctx->expression() != nullptr) {
-        const any& itemOrNull = ctx->expression()->accept(this);
-        if (abort) {
-            return nullptr;
-        }
-        auto* item = any_cast<ResolvingItem*>(itemOrNull);
+        ResolvingItem* item = acceptAndHandleError(ctx->expression(), this);
         auto* ret = ResolvingItem::getInstance2(methodScopeAndEnv->returnFieldInfo->fieldKey, methodScopeAndEnv->returnFieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_RETURN);
         // method return
         new Relation(getSentence(), item, ret);
@@ -835,11 +797,7 @@ std::any StatementVisitor::visitStatementContinue(JavaParser::StatementContinueC
 }
 
 std::any StatementVisitor::visitStatementYield(JavaParser::StatementYieldContext* ctx) {
-    const any& itemOrNull = ctx->expression()->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* item = any_cast<ResolvingItem*>(itemOrNull);
+    auto* item = acceptAndHandleError(ctx->expression(), this);
     auto* ret = ResolvingItem::getInstance2(methodScopeAndEnv->returnFieldInfo->fieldKey, methodScopeAndEnv->returnFieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_RETURN);
     // method yield
     new Relation(getSentence(), item, ret);
@@ -862,36 +820,25 @@ any StatementVisitor::visitStatementLabel(JavaParser::StatementLabelContext* ctx
 }
 
 std::any StatementVisitor::visitPrimaryExp(JavaParser::PrimaryExpContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     return ctx->expression()->accept(this);
 }
 
 std::any StatementVisitor::visitPrimaryThis(JavaParser::PrimaryThisContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     const FieldInfo* fieldInfo = classScopeAndEnv->name2fieldInfo["this"];
     return ResolvingItem::getInstance2(fieldInfo->fieldKey, fieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
 }
 
 std::any StatementVisitor::visitPrimarySuper(JavaParser::PrimarySuperContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     const FieldInfo* fieldInfo = classScopeAndEnv->name2fieldInfo["super"];
-    if (fieldInfo == nullptr) {
+    if (fieldInfo) {
+        return ResolvingItem::getInstance2(fieldInfo->fieldKey, fieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
+    } else {
         spdlog::get(ErrorManager::DebugTag)->warn("visitPrimarySuper: did not find super for {} in method: {}", classScopeAndEnv->typeInfo->typeKey, methodScopeAndEnv->methodKey);
-        return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+        return getErrorItem(ctx, this);
     }
-    return ResolvingItem::getInstance2(fieldInfo->fieldKey, fieldInfo->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
 }
 
 std::any StatementVisitor::visitPrimaryLiteral(JavaParser::PrimaryLiteralContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     string key;
     TypeInfo* literalTypeInfo;
     int keyType = GlobalInfo::KEY_TYPE_FINAL;
@@ -923,9 +870,6 @@ std::any StatementVisitor::visitPrimaryLiteral(JavaParser::PrimaryLiteralContext
 }
 
 std::any StatementVisitor::visitPrimaryIdentifier(JavaParser::PrimaryIdentifierContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     string key;
     TypeInfo* typeInfo = NULL;
     int keyType;
@@ -935,105 +879,95 @@ std::any StatementVisitor::visitPrimaryIdentifier(JavaParser::PrimaryIdentifierC
         item->typeArgs = typeArgs;
         return item;
     } else {
-        return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->identifier()->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+        return getErrorItem(ctx, this);
     }
 }
 
 std::any StatementVisitor::visitPrimaryClass(JavaParser::PrimaryClassContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     TypeName typeName;
     AntlrNodeToSyntaxObjectConverter::convertTypeTypeOrVoid(ctx->typeTypeOrVoid(), &typeName);
     TypeInfo* typeInfo = classScopeAndEnv->getTypeInfoWithFileScope(typeName.typeName);
-    if (typeInfo == nullptr) {
+    if (typeInfo) {
+        return ResolvingItem::getInstance2(typeInfo->typeKey + ".class", AddressableInfo::classTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
+    } else {
         spdlog::get(ErrorManager::DebugTag)->warn("visitPrimaryClass: did not find type name: {} in method: {}", joinList(typeName.typeName, "."), methodScopeAndEnv->methodKey);
-        return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+        return getErrorItem(ctx, this);
     }
-    return ResolvingItem::getInstance2(typeInfo->typeKey + ".class", AddressableInfo::classTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
 }
 
 std::any StatementVisitor::visitPrimaryMethodCallWithExplicitTypeArgument(JavaParser::PrimaryMethodCallWithExplicitTypeArgumentContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     NameAndRelatedExp methodCall;
     AntlrNodeToSyntaxObjectConverter::convertMethodCallWithExplicitTypeArgument(ctx, &methodCall);
     return resolveMethod(methodCall, classScopeAndEnv);
 }
 
 std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionReferenceContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull = ctx->expression()->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* referencedBy = any_cast<ResolvingItem*>(itemOrNull);
-    if (not referencedBy or not referencedBy->typeInfo) {
-        return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-    }
-    if (referencedBy->keyType == GlobalInfo::KEY_TYPE_ERROR) {
-        unhandledError();
-        return NULL;
-    }
+    ResolvingItem* referencedBy = acceptAndHandleError(ctx->expression(), this);
     addTypeArgForResolvingItem(referencedBy);
     if (referencedBy->typeInfo->isTypeParam and typeUnification.getTypeArgFromTypeParam(referencedBy->typeInfo)) {
         referencedBy->typeInfo = typeUnification.getTypeArgFromTypeParam(referencedBy->typeInfo);
     }
-    if (not referencedBy->typeInfo or not referencedBy->typeInfo->classScopeAndEnv) {
-        unhandledError();
-        return nullptr;
-    }
     auto* referencedScope = referencedBy->typeInfo->classScopeAndEnv;
     auto* resolvingItem = ResolvingItem::getInstance2();
     if (ctx->identifier() != nullptr) {
-        if (!referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType, NULL, methodScopeAndEnv)) {
+        if (!referencedScope or !referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType, NULL, methodScopeAndEnv)) {
             spdlog::get(ErrorManager::DebugTag)->warn("visitExpressionReference: did not find id for name: {} referenced by {} in method: {}", ctx->identifier()->getText(), referencedBy->typeInfo->typeKey, methodScopeAndEnv->methodKey);
-            return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+            resolvingItem = getErrorItem(ctx->identifier(), this);
+        } else {
+            resolvingItem->set(resolvingItem->variableKey, resolvingItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), resolvingItem->keyType);
         }
         resolvingItem->referencedBy = referencedBy;
-        resolvingItem->set(resolvingItem->variableKey, resolvingItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), resolvingItem->keyType);
     } else if (ctx->methodCall() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertMethodCall(ctx->methodCall(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
-        calledMethodResolvingItem->referencedBy = referencedBy;
-        resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
-        if (abort) {
-            return nullptr;
+        if (!referencedScope) {
+            resolvingItem = getErrorItem(ctx->methodCall(), this);
+            calledMethodResolvingItem = getErrorItem(ctx->methodCall(), this);
+        } else {
+            resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
+        calledMethodResolvingItem->referencedBy = referencedBy;
     } else if (ctx->THIS() != nullptr) {
-        resolvingItem->set(referencedBy->variableKey + ".this", referencedBy->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
+        if (!referencedScope) {
+            resolvingItem = getErrorItem(ctx->THIS(), this);
+        } else {
+            resolvingItem->set(referencedBy->variableKey + ".this", referencedBy->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
+        }
         resolvingItem->referencedBy = referencedBy;
     } else if (ctx->NEW() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertInnerCreator(ctx->innerCreator(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
-        calledMethodResolvingItem->referencedBy = referencedBy;
-        resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem, true);
-        if (abort) {
-            return nullptr;
+        if (!referencedScope) {
+            resolvingItem = getErrorItem(ctx->NEW(), this);
+            calledMethodResolvingItem = getErrorItem(ctx->NEW(), this);
+        } else {
+            resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem, true);
         }
+        calledMethodResolvingItem->referencedBy = referencedBy;
     } else if (ctx->SUPER() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertSuperSuffix(ctx->superSuffix(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
-        calledMethodResolvingItem->referencedBy = referencedBy;
-        resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
-        if (abort) {
-            return nullptr;
+        if (!referencedScope) {
+            resolvingItem = getErrorItem(ctx->SUPER(), this);
+            calledMethodResolvingItem = getErrorItem(ctx->SUPER(), this);
+        } else {
+            resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
+        calledMethodResolvingItem->referencedBy = referencedBy;
     } else if (ctx->explicitGenericInvocation() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertExplicitGenericInvocationSuffix(ctx->explicitGenericInvocation()->explicitGenericInvocationSuffix(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
-        calledMethodResolvingItem->referencedBy = referencedBy;
-        resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
-        if (abort) {
-            return nullptr;
+        if (!referencedScope) {
+            resolvingItem = getErrorItem(ctx->explicitGenericInvocation(), this);
+            calledMethodResolvingItem = getErrorItem(ctx->explicitGenericInvocation(), this);
+        } else {
+            resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
+        calledMethodResolvingItem->referencedBy = referencedBy;
     }
     if (resolvingItem->typeInfo->isTypeParam and typeUnification.getTypeArgFromTypeParam(resolvingItem->typeInfo)) {
         resolvingItem->typeInfo = typeUnification.getTypeArgFromTypeParam(resolvingItem->typeInfo);
@@ -1042,24 +976,13 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
 }
 
 std::any StatementVisitor::visitExpressionArrayAccess(JavaParser::ExpressionArrayAccessContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    const any& itemOrNull2 = ctx->e2->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* indexedItem = any_cast<ResolvingItem*>(itemOrNull1);
-    auto* indexItem = any_cast<ResolvingItem*>(itemOrNull2);
+    auto* indexedItem = acceptAndHandleError(ctx->e1, this);
+    auto* indexItem = acceptAndHandleError(ctx->e2, this);
     indexedItem->indexedBy = indexItem;
     return indexedItem;
 }
 
 std::any StatementVisitor::visitExpressionMethodCall(JavaParser::ExpressionMethodCallContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     if (ctx->methodCall()->THIS() or ctx->methodCall()->SUPER()) {
         return 0;
     }
@@ -1069,9 +992,6 @@ std::any StatementVisitor::visitExpressionMethodCall(JavaParser::ExpressionMetho
 }
 
 std::any StatementVisitor::visitExpressionNew(JavaParser::ExpressionNewContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     NameAndRelatedExp methodCall;
     AntlrNodeToSyntaxObjectConverter::convertCreator(ctx->creator(), &methodCall);
     if (methodCall.dim > 0) {
@@ -1098,8 +1018,7 @@ std::any StatementVisitor::visitExpressionNew(JavaParser::ExpressionNewContext* 
                 AnonymousVisitor::returnToPool(anonymousVisitor);
                 return anonymousItem;
             } else {
-                unhandledError();
-                return NULL;
+                return getErrorItem(ctx->creator(), this);
             }
         } else {
             return resolveMethod(methodCall, classScopeAndEnv, true);
@@ -1108,20 +1027,13 @@ std::any StatementVisitor::visitExpressionNew(JavaParser::ExpressionNewContext* 
 }
 
 std::any StatementVisitor::visitExpressionCast(JavaParser::ExpressionCastContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull = ctx->expression()->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* itemToBeCast = any_cast<ResolvingItem*>(itemOrNull);
+    auto* itemToBeCast = acceptAndHandleError(ctx->expression(), this);
     TypeName typeName;
     AntlrNodeToSyntaxObjectConverter::convertTypeType(ctx->typeType().front(), &typeName);
     TypeInfo* pTypeInfo = methodScopeAndEnv->getTypeInfoWithFileScope(typeName.typeName);
     if (pTypeInfo == nullptr) {
         spdlog::get(ErrorManager::DebugTag)->warn("visitExpressionCast: did not find cast type name: {} in method: {}", joinList(typeName.typeName, "."), methodScopeAndEnv->methodKey);
-        return ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(ctx->typeType().front()->getText()), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+        return getErrorItem(ctx->typeType().front(), this);
     }
     itemToBeCast->typeInfo = pTypeInfo;
     if (pTypeInfo->typeParamInfos.size() == typeName.typeArgs.size()) {
@@ -1136,20 +1048,13 @@ std::any StatementVisitor::visitExpressionCast(JavaParser::ExpressionCastContext
 }
 
 std::any StatementVisitor::visitExpressionIncDec(JavaParser::ExpressionIncDecContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     string optr;
     if (ctx->postfix != nullptr) {
         optr = ctx->postfix->getText();
     } else if (ctx->prefix != nullptr) {
         optr = ctx->prefix->getText();
     }
-    const any& itemOrNull = ctx->expression()->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* increasedItem1 = any_cast<ResolvingItem*>(itemOrNull);
+    auto* increasedItem1 = acceptAndHandleError(ctx->expression(), this);
     auto* increasedItem2 = ResolvingItem::getInstance2(
         increasedItem1->variableKey,
         increasedItem1->typeInfo,
@@ -1165,44 +1070,22 @@ std::any StatementVisitor::visitExpressionIncDec(JavaParser::ExpressionIncDecCon
 }
 
 std::any StatementVisitor::visitExpressionPosNegSign(JavaParser::ExpressionPosNegSignContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull = ctx->expression()->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg = any_cast<ResolvingItem*>(itemOrNull);
+    ResolvingItem* arg = acceptAndHandleError(ctx->expression(), this);
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_UNARY_RETURN, arg->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_UNARY_RETURN, ctx->prefix->getText());
     new Relation(getSentence(), arg, returnItem);
     return returnItem;
 }
 
 std::any StatementVisitor::visitExpressionUnaryLogical(JavaParser::ExpressionUnaryLogicalContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull = ctx->expression()->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg = any_cast<ResolvingItem*>(itemOrNull);
+    ResolvingItem* arg = acceptAndHandleError(ctx->expression(), this);
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_UNARY_RETURN, arg->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_UNARY_RETURN, ctx->prefix->getText());
     new Relation(getSentence(), arg, returnItem);
     return returnItem;
 }
 
 std::any StatementVisitor::visitExpressionArithmetical(JavaParser::ExpressionArithmeticalContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    const any& itemOrNull2 = ctx->e2->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
-    auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
+    auto* arg1 = acceptAndHandleError(ctx->e1, this);
+    auto* arg2 = acceptAndHandleError(ctx->e2, this);
     const string& optrStr = ctx->bop->getText();
     TypeInfo* returnTypeInfo = arg1->typeInfo;
     if (arg2->typeInfo == AddressableInfo::stringTypeInfo) {
@@ -1224,9 +1107,6 @@ std::any StatementVisitor::visitExpressionArithmetical(JavaParser::ExpressionAri
 }
 
 std::any StatementVisitor::visitExpressionShift(JavaParser::ExpressionShiftContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     string optrString;
     if (ctx->bop1 != nullptr) {
         optrString = "<<";
@@ -1235,13 +1115,8 @@ std::any StatementVisitor::visitExpressionShift(JavaParser::ExpressionShiftConte
     } else if (ctx->bop3 != nullptr) {
         optrString = ">>";
     }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    const any& itemOrNull2 = ctx->e2->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
-    auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
+    auto* arg1 = acceptAndHandleError(ctx->e1, this);
+    auto* arg2 = acceptAndHandleError(ctx->e2, this);
     auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_PARAMETER1, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER1, getOptrParam(optrString, 1));
     auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_PARAMETER2, arg2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_PARAMETER2, getOptrParam(optrString, 2));
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_ARITHMETIC_RETURN, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_ARITHMETIC_RETURN, optrString);
@@ -1253,16 +1128,8 @@ std::any StatementVisitor::visitExpressionShift(JavaParser::ExpressionShiftConte
 }
 
 std::any StatementVisitor::visitExpressionRelational(JavaParser::ExpressionRelationalContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    const any& itemOrNull2 = ctx->e2->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
-    auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
+    auto* arg1 = acceptAndHandleError(ctx->e1, this);
+    auto* arg2 = acceptAndHandleError(ctx->e2, this);
     const string& optrStr = ctx->bop->getText();
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_RELATION_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_RELATION_RETURN, optrStr);
     if (optrStr == "==" or optrStr == "!=") {
@@ -1280,18 +1147,11 @@ std::any StatementVisitor::visitExpressionRelational(JavaParser::ExpressionRelat
 }
 
 std::any StatementVisitor::visitExpressionInstanceOf(JavaParser::ExpressionInstanceOfContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     if (ctx->pattern() != nullptr) {
         unhandledError();
         return nullptr;
     } else if (ctx->typeType() != nullptr) {
-        const any& itemOrNull = ctx->expression()->accept(this);
-        if (abort) {
-            return nullptr;
-        }
-        auto* arg1 = any_cast<ResolvingItem*>(itemOrNull);
+        auto* arg1 = acceptAndHandleError(ctx->expression(), this);
         TypeName typeName;
         AntlrNodeToSyntaxObjectConverter::convertTypeType(ctx->typeType(), &typeName);
         TypeInfo* pInfo = methodScopeAndEnv->getTypeInfoWithFileScope(typeName.typeName);
@@ -1316,16 +1176,8 @@ std::any StatementVisitor::visitExpressionInstanceOf(JavaParser::ExpressionInsta
 }
 
 std::any StatementVisitor::visitExpressionLogical(JavaParser::ExpressionLogicalContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    const any& itemOrNull2 = ctx->e2->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
-    auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
+    auto* arg1 = acceptAndHandleError(ctx->e1, this);
+    auto* arg2 = acceptAndHandleError(ctx->e2, this);
     auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_LOGIC_RETURN, AddressableInfo::primitive_boolTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_LOGIC_RETURN, ctx->bop->getText());
     new Relation(getSentence(), arg1, returnItem);
     new Relation(getSentence(), arg2, returnItem);
@@ -1333,18 +1185,9 @@ std::any StatementVisitor::visitExpressionLogical(JavaParser::ExpressionLogicalC
 }
 
 std::any StatementVisitor::visitExpressionConditional(JavaParser::ExpressionConditionalContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    const any& itemOrNull2 = ctx->e2->accept(this);
-    const any& itemOrNull3 = ctx->e3->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* arg1 = any_cast<ResolvingItem*>(itemOrNull1);
-    auto* arg2 = any_cast<ResolvingItem*>(itemOrNull2);
-    auto* arg3 = any_cast<ResolvingItem*>(itemOrNull3);
+    auto* arg1 = acceptAndHandleError(ctx->e1, this);
+    auto* arg2 = acceptAndHandleError(ctx->e2, this);
+    auto* arg3 = acceptAndHandleError(ctx->e3, this);
     auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_CONDITIONAL_PARAMETER1, arg1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_PARAMETER1, getOptrParam(ctx->bop->getText(), 1));
     auto* param2 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_CONDITIONAL_PARAMETER2, arg2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_PARAMETER2, getOptrParam(ctx->bop->getText(), 2));
     auto* param3 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_CONDITIONAL_PARAMETER3, arg3->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_CONDITIONAL_PARAMETER3, getOptrParam(ctx->bop->getText(), 3));
@@ -1359,14 +1202,7 @@ std::any StatementVisitor::visitExpressionConditional(JavaParser::ExpressionCond
 }
 
 std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
-    const any& itemOrNull1 = ctx->e1->accept(this);
-    if (abort) {
-        return nullptr;
-    }
-    auto* assignedItem1 = any_cast<ResolvingItem*>(itemOrNull1);
+    ResolvingItem* assignedItem1 = acceptAndHandleError(ctx->e1, this);
     auto* assignedItem2 = ResolvingItem::getInstance2(
         assignedItem1->variableKey,
         assignedItem1->typeInfo,
@@ -1377,12 +1213,8 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
     );
     expectingTypeInfo.clear();
     expectingTypeInfo.push_back(assignedItem1->typeInfo);
-    const any& itemOrNull2 = ctx->e2->accept(this);
+    ResolvingItem* item2 = acceptAndHandleError(ctx->e2, this);
     expectingTypeInfo.clear();
-    if (abort) {
-        return nullptr;
-    }
-    auto* item2 = any_cast<ResolvingItem*>(itemOrNull2);
     if (ctx->bop->getText().size() > 1) {
         auto* param1 = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_PARAMETER1, item2->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_PARAMETER1, getOptrParam(ctx->bop->getText(), 1));
         auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, assignedItem1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, ctx->bop->getText());
@@ -1397,9 +1229,6 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
 }
 
 any StatementVisitor::visitExpressionLambda(JavaParser::ExpressionLambdaContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     list<string> paramNames;
     AntlrNodeToSyntaxObjectConverter::convertLambdaParameters(ctx->lambdaExpression()->lambdaParameters(), paramNames);
     for (auto& interfaceType : expectingTypeInfo) {
@@ -1446,34 +1275,22 @@ any StatementVisitor::visitExpressionLambda(JavaParser::ExpressionLambdaContext*
             }
         }
     }
-    unhandledError();
-    return nullptr;
+    return getErrorItem(ctx->lambdaExpression(), this);
 }
 
 any StatementVisitor::visitExpressionSwitch(JavaParser::ExpressionSwitchContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     unhandledError();
     return nullptr;
 }
 
 any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMethodReferenceContext* ctx) {
-    if (abort) {
-        return nullptr;
-    }
     if (expectingTypeInfo.empty()) {
-        unhandledError();
-        return NULL;
+        return getErrorItem(ctx, this);
     }
     TypeInfo* typeInfo = NULL;
     string methodName = "";
     if (ctx->expression()) {
-        const any& itemOrNull = ctx->expression()->accept(this);
-        if (abort) {
-            return nullptr;
-        }
-        auto* item = any_cast<ResolvingItem*>(itemOrNull);
+        auto* item = acceptAndHandleError(ctx->expression(), this);
         typeInfo = item->typeInfo;
         if (ctx->identifier()) {
             methodName = ctx->identifier()->getText();
@@ -1516,8 +1333,7 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
             }
         }
     }
-    unhandledError();
-    return nullptr;
+    return getErrorItem(ctx, this);
 }
 
 ResolvingItem* StatementVisitor::handleNewArray(NameAndRelatedExp& methodCall) {
@@ -1528,15 +1344,7 @@ ResolvingItem* StatementVisitor::handleNewArray(NameAndRelatedExp& methodCall) {
         iterNDimArrayRecur(ret, methodCall.arrayInitValues, methodCall.dim, GlobalInfo::GLOBAL_KEY_ARRAY_INIT);
     }
     if (methodCall.initExpression) {
-        const any& itemOrNull = methodCall.initExpression->accept(this);
-        ResolvingItem* valueItem = NULL;
-        if (abort) {
-            valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(methodCall.initExpression->getText()),
-                AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-            abort = false;
-        } else {
-            valueItem = any_cast<ResolvingItem*>(itemOrNull);
-        }
+        ResolvingItem* valueItem = acceptAndHandleError(methodCall.initExpression, this);
         new Relation(getSentence(), valueItem, ret);
     }
     return ret;
@@ -1549,15 +1357,7 @@ void StatementVisitor::iterNDimArrayRecur(ResolvingItem* superDimItem, JavaParse
     // private float[][] mDistanceMatrix = {};      
     if (dim == 1 or (not ctx->variableInitializer().empty() and ctx->variableInitializer(0)->arrayInitializer() == nullptr)) {
         for (auto* varInit : ctx->variableInitializer()) {
-            const any& itemOrNull = varInit->expression()->accept(this);
-            ResolvingItem* valueItem = NULL;
-            if (abort) {
-                valueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(varInit->expression()->getText()),
-                    AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-                abort = false;
-            } else {
-                valueItem = any_cast<ResolvingItem*>(itemOrNull);
-            }
+            ResolvingItem* valueItem = acceptAndHandleError(varInit->expression(), this);
             new Relation(getSentence(), valueItem, superDimItem);
         }
     } else {
@@ -1578,9 +1378,6 @@ ResolvingItem* StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, Cl
 }
 
 void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAndEnv* scopeAndEnv, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem, bool creator) {
-    if (abort) {
-        return;
-    }
     list<MethodInfo*> methodInfos;
     int paramCount = methodCall.arguments == nullptr ? 0 : methodCall.arguments->expression().size();
     scopeAndEnv->getMethodInfoWithFileScope(methodCall.name, paramCount, methodInfos, creator);
@@ -1597,16 +1394,8 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
                     }
                 }
             }
-            const any& itemOrNull = expression->accept(this);
+            ResolvingItem* argResolvingItem = acceptAndHandleError(expression, this);
             expectingTypeInfo.clear();
-            ResolvingItem* argResolvingItem = NULL;
-            if (abort) {
-                argResolvingItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(expression->getText()),
-                    AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-                abort = false;
-            } else {
-                argResolvingItem = any_cast<ResolvingItem*>(itemOrNull);
-            }
             for (auto& methodInfo : methodInfos) {
                 if (not methodInfo->isVariableParameter) {
                     if (methodInfo->parameterInfos[paramIndex]->typeInfo->isTypeParam) {
