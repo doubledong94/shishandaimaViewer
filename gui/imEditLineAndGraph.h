@@ -584,6 +584,7 @@ namespace shishan {
                 if (classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_LIST) {
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                         classScopeEditValues.erase(classScopeEditValues.begin() + classScopeEditValueSelectedIndex);
+                        ImGui::ClearActiveID();
                     }
                 }
                 ImGui::PopID();
@@ -700,6 +701,7 @@ namespace shishan {
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                         nodeEditValues.erase(nodeEditValues.begin() + nodeEditValueSelectedIndex);
                         typeKeyForNodeKey.erase(typeKeyForNodeKey.begin() + nodeEditValueSelectedIndex);
+                        ImGui::ClearActiveID();
                     }
                 }
                 ImGui::PopID();
@@ -936,6 +938,7 @@ namespace shishan {
                         if (deleteIntersectionPointInLineTemplate(lineEditValueSelectedIndex)) {
                             lineEditValues.erase(lineEditValues.begin() + lineEditValueSelectedIndex);
                             lineEditRepeatTypes.erase(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex);
+                            ImGui::ClearActiveID();
                         }
                     }
                 }
