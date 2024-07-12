@@ -110,7 +110,7 @@ namespace shishan {
     static int nodeEditingIndex = -1;
     static char nodeEditingName[1000];
     static int nodeEditingTypeIndex = -1;
-    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","constructorOf","parameterOf","returnOf","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
+    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","constructorOf","parameterOf","returnOf","super","sub","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
     static vector<const char*> nodeEditValues;
     static vector<const char*> typeKeyForNodeKey;
     static char* openedTypeKey;
@@ -636,6 +636,10 @@ namespace shishan {
                 break;
             case SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF:
                 nodeEditValues.push_back("Click return you created above");
+                break;
+            case SimpleView::Node::NODE_TYPE_SUPER:
+            case SimpleView::Node::NODE_TYPE_SUB:
+                nodeEditValues.push_back("Click method/parameter/return you created above");
                 break;
             case SimpleView::Node::NODE_TYPE_INTERSECTION:
             case SimpleView::Node::NODE_TYPE_UNION:
@@ -1315,6 +1319,8 @@ namespace shishan {
                 break;
             case SimpleView::Node::NODE_TYPE_PARAMETER_OF: // method
             case SimpleView::Node::NODE_TYPE_RETURN_OF: // method
+            case SimpleView::Node::NODE_TYPE_SUPER: // 
+            case SimpleView::Node::NODE_TYPE_SUB: // 
             case SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF: // method
             case SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF: // parameter
             case SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF: // return

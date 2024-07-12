@@ -138,6 +138,8 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_PARAMETER_OF,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_RETURN_OF,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INSTANCE_OF,Images::instanceOfIconId},
+                {SimpleView::Node::NODE_TYPE_SUPER,Images::superAndSubIconId},
+                {SimpleView::Node::NODE_TYPE_SUB,Images::superAndSubIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF,Images::methodIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF,Images::returnIconId},
@@ -359,6 +361,16 @@ void EasierSimpleView::declareNodeResolveRules() {
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledReturnOf(ReturnValName, Resolved), {
             CompoundTerm::getResolveTerm(ReturnValName, Return),CompoundTerm::getReturnTerm(Term::getIgnoredVar(),Return), CompoundTerm::getCalledKeyTerm(Return, Resolved)
+        }));
+    Term* superValName = Term::getVar("SuperValName");
+    Term* superNode = Term::getVar("SuperNode");
+    Term* subValName = Term::getVar("SubValName");
+    Term* subNode = Term::getVar("SubNode");
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeSuperOf(subValName, Resolved), {
+            CompoundTerm::getResolveTerm(subValName, subNode), CompoundTerm::getOverrideOutRecurTerm(Resolved, subNode)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeSubOf(superValName, Resolved), {
+            CompoundTerm::getResolveTerm(superValName, superNode), CompoundTerm::getOverrideInRecurTerm(superNode, Resolved)
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeUnion(Node1, Node2, Resolved), {
             DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getResolveTerm(Node1, Resolved), CompoundTerm::getResolveTerm(Node2, Resolved))
@@ -1671,6 +1683,14 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         referenceNode->resolve(update);
         PrologWrapper::queryList(CompoundTerm::getNodeReturnOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
         break;
+    case NODE_TYPE_SUPER:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeSuperOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
+    case NODE_TYPE_SUB:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeSubOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
     case NODE_TYPE_CALLED_METHOD_OF:
         referenceNode->resolve(update);
         PrologWrapper::queryList(CompoundTerm::getNodeCalledMethodOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
@@ -1760,6 +1780,8 @@ SimpleView::ClassScope* SimpleView::Node::runtimeScopeThatUseIt() {
         break;
     case NODE_TYPE_KEY:
     case NODE_TYPE_LIST:
+    case NODE_TYPE_SUPER:
+    case NODE_TYPE_SUB:
     case NODE_TYPE_UNION:
     case NODE_TYPE_INTERSECTION:
     case NODE_TYPE_DIFFERENCE:
@@ -1868,6 +1890,10 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::PARAMETER_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_RETURN_OF:
         return voc[SimpleViewLexer::RETURN_OF] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_SUPER:
+        return voc[SimpleViewLexer::SUPER] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_SUB:
+        return voc[SimpleViewLexer::SUB] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_CALLED_METHOD_OF:
         return voc[SimpleViewLexer::CALLED_METHOD_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_CALLED_PARAMETER_OF:
@@ -1976,6 +2002,8 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
+    case NODE_TYPE_SUPER:
+    case NODE_TYPE_SUB:
     case NODE_TYPE_CALLED_METHOD_OF:
     case NODE_TYPE_CALLED_PARAMETER_OF:
     case NODE_TYPE_CALLED_RETURN_OF:
@@ -2022,6 +2050,8 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
+    case NODE_TYPE_SUPER:
+    case NODE_TYPE_SUB:
     case NODE_TYPE_CALLED_METHOD_OF:
     case NODE_TYPE_CALLED_PARAMETER_OF:
     case NODE_TYPE_CALLED_RETURN_OF:

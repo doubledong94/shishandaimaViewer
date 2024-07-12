@@ -888,6 +888,14 @@ CompoundTerm* CompoundTerm::getNodeCalledReturnOf(Term* ReturnNodeValName, Term*
     return makeTerm(HEAD_NODE_CALLED_RETURN_OF, ReturnNodeValName, CalledReturn);
 }
 
+CompoundTerm* CompoundTerm::getNodeSuperOf(Term* superNode, Term* subNode) {
+    return makeTerm(HEAD_NODE_SUPER_OF, superNode, subNode);
+}
+
+CompoundTerm* CompoundTerm::getNodeSubOf(Term* superNode, Term* subNode) {
+    return makeTerm(HEAD_NODE_SUB_OF, superNode, subNode);
+}
+
 CompoundTerm* CompoundTerm::getNodeUnion(Term* Node1, Term* Node2, Term* Node) {
     return makeTerm(HEAD_NODE_UNION, Node1, Node2, Node);
 }

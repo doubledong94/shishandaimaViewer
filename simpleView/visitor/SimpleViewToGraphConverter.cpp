@@ -182,6 +182,12 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
         } else if (ctx->CREATOR() != nullptr) {
             ret->nodeType = Node::NODE_TYPE_CREATOR;
             ret->classScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0)));
+        } else if (ctx->SUPER() != nullptr) {
+            ret->nodeType = Node::NODE_TYPE_SUPER;
+            ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->node));
+        } else if (ctx->SUB() != nullptr) {
+            ret->nodeType = Node::NODE_TYPE_SUB;
+            ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->node));
         } else if (ctx->CALLED_METHOD_OF() != nullptr) {
             ret->nodeType = Node::NODE_TYPE_CALLED_METHOD_OF;
             ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->methodNode));

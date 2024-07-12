@@ -107,6 +107,8 @@ nodeExp
     | RETURN_OF '(' methodNode=nodeExp ')'
     | INSTANCE_OF '(' classScopeExp ',' classScopeExp ')'
     | CREATOR '(' classScopeExp ')'
+    | SUPER '(' node=nodeExp ')'
+    | SUB '(' node=nodeExp ')'
     // called method/parameter/return can only be the outermost layer
     | CALLED_METHOD_OF '(' methodNode=nodeExp ')'
     | CALLED_PARAM_OF '(' paramNode=nodeExp ')'

@@ -143,6 +143,7 @@ public:
     antlr4::Token *typeKey = nullptr;
     antlr4::Token *nodeKeyList = nullptr;
     SimpleViewParser::NodeExpContext *methodNode = nullptr;
+    SimpleViewParser::NodeExpContext *node = nullptr;
     SimpleViewParser::NodeExpContext *paramNode = nullptr;
     SimpleViewParser::NodeExpContext *returnNode = nullptr;
     SimpleViewParser::NodeExpContext *read = nullptr;
@@ -167,6 +168,8 @@ public:
     antlr4::tree::TerminalNode *RETURN_OF();
     antlr4::tree::TerminalNode *INSTANCE_OF();
     antlr4::tree::TerminalNode *CREATOR();
+    antlr4::tree::TerminalNode *SUPER();
+    antlr4::tree::TerminalNode *SUB();
     antlr4::tree::TerminalNode *CALLED_METHOD_OF();
     antlr4::tree::TerminalNode *CALLED_PARAM_OF();
     antlr4::tree::TerminalNode *CALLED_RETURN_OF();

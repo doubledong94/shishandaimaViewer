@@ -99,6 +99,8 @@ namespace SimpleView {
             NODE_TYPE_CREATOR,
             NODE_TYPE_PARAMETER_OF,
             NODE_TYPE_RETURN_OF,
+            NODE_TYPE_SUPER,
+            NODE_TYPE_SUB,
             NODE_TYPE_CALLED_METHOD_OF,
             NODE_TYPE_CALLED_PARAMETER_OF,
             NODE_TYPE_CALLED_RETURN_OF,
