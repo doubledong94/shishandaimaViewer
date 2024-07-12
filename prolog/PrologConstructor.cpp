@@ -535,14 +535,6 @@ CompoundTerm* CompoundTerm::getInstanceOfTerm(Term* instanceKey, Term* typeKey) 
     return makeTerm(HEAD_INSTANCE_OF, instanceKey, typeKey);
 }
 
-CompoundTerm* CompoundTerm::getCalledParamInstanceOfTerm(Term* instanceKey, Term* typeKey) {
-    return makeTerm(HEAD_CALLED_PARAMETER_INSTANCE_OF, instanceKey, typeKey);
-}
-
-CompoundTerm* CompoundTerm::getCalledReturnInstanceOfTerm(Term* instanceKey, Term* typeKey) {
-    return makeTerm(HEAD_CALLED_RETURN_INSTANCE_OF, instanceKey, typeKey);
-}
-
 string CompoundTerm::getSimpleNameFact(const string& key, const string& simpleName) {
     string ret = getSimpleNameTerm(Term::getStr(key), Term::getStr(simpleName))->toString(true);
     ret.push_back('.');

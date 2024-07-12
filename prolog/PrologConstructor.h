@@ -121,8 +121,6 @@ static Term* HEAD_RETURN_OF_CLASS = new Term("returnOfClass", Term::TERM_TYPE_AT
 static Term* HEAD_VAR = new Term("var", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FIELD = new Term("field", Term::TERM_TYPE_ATOM);
 static Term* HEAD_INSTANCE_OF = new Term("instanceOf", Term::TERM_TYPE_ATOM);
-static Term* HEAD_CALLED_PARAMETER_INSTANCE_OF = new Term("calledParamterInstanceOf", Term::TERM_TYPE_ATOM);
-static Term* HEAD_CALLED_RETURN_INSTANCE_OF = new Term("calledReturnInstanceOf", Term::TERM_TYPE_ATOM);
 static Term* HEAD_SIMPLE_NAME = new Term("simpleName", Term::TERM_TYPE_ATOM);
 static Term* HEAD_IS_FINAL = new Term("isFinal", Term::TERM_TYPE_ATOM);
 
@@ -382,10 +380,6 @@ public:
     static string getInstanceOfFact(const string& instanceKey, const string& typeKey);
 
     static CompoundTerm* getInstanceOfTerm(Term* instanceKey, Term* typeKey);
-
-    static CompoundTerm* getCalledParamInstanceOfTerm(Term* instanceKey, Term* typeKey);
-
-    static CompoundTerm* getCalledReturnInstanceOfTerm(Term* instanceKey, Term* typeKey);
 
     static string getSimpleNameFact(const string& key, const string& simpleName);
 

@@ -450,14 +450,9 @@ void NodeInfo::makeTypeKey() {
         if (result) {
             typeKey = result->atomOrVar;
         }
-    } else if (keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
-        auto* instanceOfTerm = CompoundTerm::getCalledParamInstanceOfTerm(Term::getStr(key), Term::getVar("T"));
-        auto* result = PrologWrapper::query(instanceOfTerm);
-        if (result) {
-            typeKey = result->atomOrVar;
-        }
-    } else if (keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
-        auto* instanceOfTerm = CompoundTerm::getCalledReturnInstanceOfTerm(Term::getStr(key), Term::getVar("T"));
+    } else if (keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+        string originKey = key.substr(0, key.size() - 1);
+        auto* instanceOfTerm = CompoundTerm::getInstanceOfTerm(Term::getStr(originKey), Term::getVar("T"));
         auto* result = PrologWrapper::query(instanceOfTerm);
         if (result) {
             typeKey = result->atomOrVar;
@@ -1223,10 +1218,10 @@ void BoundedIncrementalGraph::onNodeHover(int nodeInstanceId) {
         auto& nodeInfo = nodesOrderedByNodeId[nodeInstanceId];
         string info;
         info += "method:  " + nodeInfo->methodOfRuntime + "\n";
-        info += "key:           " + nodeInfo->key + "\n";
         if (not nodeInfo->getTypeKey().empty()) {
-            info += "type:  " + nodeInfo->getTypeKey() + "\n";
+            info += "type:         " + nodeInfo->getTypeKey() + "\n";
         }
+        info += "key:           " + nodeInfo->key + "\n";
         // info += "regex: "  "\n";
         // for (auto& pos : nodeInfo->positionInRegex) {
         //     info += "        ";
