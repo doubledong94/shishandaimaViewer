@@ -9,6 +9,8 @@ public:
 
     Sentence(CodeStructure *parent, const string &structureKey, int index);
 
+    void markUnreadReturn(int calledReturnKeyType);
+
     void append_structure(CodeStructure *codeStructure) override;
 
     void release() override;

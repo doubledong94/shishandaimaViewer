@@ -5,11 +5,11 @@
 #include "Relation.h"
 #include "Sentence.h"
 
-void Sentence::append_structure(CodeStructure *codeStructure) {
-    relations.push_back(dynamic_cast<Relation *> (codeStructure));
+void Sentence::append_structure(CodeStructure* codeStructure) {
+    relations.push_back(dynamic_cast<Relation*> (codeStructure));
 }
 
-Sentence::Sentence(CodeStructure *parent, const string &structureKey, int index) {
+Sentence::Sentence(CodeStructure* parent, const string& structureKey, int index) {
     sentence_index = index;
     sentenceIndexStr = to_string(index);
     sentenceStartKey = structureKey + ";sent" + sentenceIndexStr + "start";
@@ -17,6 +17,24 @@ Sentence::Sentence(CodeStructure *parent, const string &structureKey, int index)
     structure_type = STRUCTURE_TYPE_SENTENCE;
     if (parent != nullptr) {
         parent->append_structure(this);
+    }
+}
+
+void Sentence::markUnreadReturn(int calledReturnKeyType) {
+    set<Relation*> writtenReturnRelation;
+    set<Relation*> readReturnRelation;
+    for (auto& relation : relations) {
+        if (relation->writen->keyType == calledReturnKeyType) {
+            writtenReturnRelation.insert(relation);
+        }
+        if (relation->read->keyType == calledReturnKeyType) {
+            readReturnRelation.insert(relation);
+        }
+    }
+    for (auto& relation : writtenReturnRelation) {
+        if (not readReturnRelation.count(relation)) {
+            relation->read->reversedRef = true;
+        }
     }
 }
 

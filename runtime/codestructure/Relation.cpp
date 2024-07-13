@@ -31,6 +31,7 @@ void ResolvingItem::reset() {
     indexAdded = false;
     orderPrologAdded = false;
     readFromLastWriteAdded = false;
+    reversedRef = false;
 }
 
 void ResolvingItem::set(const string& variableKey, TypeInfo* typeInfo, const string& structureKey, const string& sentenceIndex, const string& indexInsideExp, int keyType, const string& extraInfo) {
@@ -96,6 +97,14 @@ string ResolvingItem::makeRuntimeKey(const string& key, const string& structureK
     return key + "(" + structureKey + ";" + sentenceIndex + ";" + indexInsideStatement + ")";
 }
 
+ResolvingItem* ResolvingItem::getRefedByRecur() {
+    if (referencedBy) {
+        return referencedBy->getRefedByRecur();
+    } else {
+        return this;
+    }
+}
+
 void ResolvingItem::addRuntimeReadProlog(string(*act)(const string&, const string&, const string&), const string& methodKey, list<string>& prologLines) {
     if (runtimeReadAdded) {
         return;
@@ -131,8 +140,13 @@ void ResolvingItem::addReferenceProlog(string(*act)(const string&, const string&
         return;
     }
     if (referencedBy != nullptr) {
-        prologLines.emplace_back(act(methodKey, referencedBy->runtimeKey, referencedBy->referenceRuntimeKey));
-        prologLines.emplace_back(act(methodKey, referencedBy->referenceRuntimeKey, runtimeKey));
+        if (reversedRef) {
+            prologLines.emplace_back(act(methodKey, runtimeKey, referencedBy->referenceRuntimeKey));
+            prologLines.emplace_back(act(methodKey, referencedBy->referenceRuntimeKey, referencedBy->runtimeKey));
+        } else {
+            prologLines.emplace_back(act(methodKey, referencedBy->runtimeKey, referencedBy->referenceRuntimeKey));
+            prologLines.emplace_back(act(methodKey, referencedBy->referenceRuntimeKey, runtimeKey));
+        }
         referencedBy->addReferenceProlog(act, methodKey, prologLines);
     }
     referenceAdded = true;
@@ -159,10 +173,11 @@ Relation::Relation(CodeStructure* parent) {
     structure_type = STRUCTURE_TYPE_RELATION;
 }
 
-Relation::Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w) {
+Relation::Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w, bool isAssignRelation) {
     structure_type = STRUCTURE_TYPE_RELATION;
     read = r;
     writen = w;
+    writen->reversedRef = isAssignRelation;
     if (parent != nullptr) {
         parent->append_structure(this);
     }

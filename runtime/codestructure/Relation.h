@@ -26,6 +26,7 @@ public:
     bool indexAdded = false;
     bool orderPrologAdded = false;
     bool readFromLastWriteAdded = false;
+    bool reversedRef = false;
 
     void reset() override;
 
@@ -50,6 +51,8 @@ public:
     void addIndexProlog(string(*act)(const string& methodKey, const string& runtime1, const string& runtime2), const string& methodKey, list<string>& prologLines);
 
     static string makeRuntimeKey(const string& key, const string& structureKey, const string& sentenceIndex, const string& indexInsideStatement);
+
+    ResolvingItem* getRefedByRecur();
 };
 
 
@@ -60,7 +63,7 @@ public:
 
     Relation(CodeStructure* parent);
 
-    Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w);
+    Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w, bool isAssignRelation = false);
 
 };
 

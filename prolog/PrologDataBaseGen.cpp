@@ -166,7 +166,17 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, overrideRuntime));
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
-    // mark local variable
+    // mark local variable and make written history
+    if (writen->reversedRef and writen->referencedBy) {
+        auto referencedBy = writen->getRefedByRecur();
+        if (referencedBy->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or referencedBy->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+            if (not codeBlock->lvToLastWrittenKeys.count(referencedBy->variableKey)) {
+                codeBlock->lvToLastWrittenKeys[referencedBy->variableKey] = set<string>();
+            }
+            codeBlock->lvToLastWrittenKeys[referencedBy->variableKey].insert(referencedBy->runtimeKey);
+        }
+    }
+    // mark local variable and make written history
     if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         if (writen->indexedBy) {
             if (not codeBlock->lvToLastWrittenKeys.count(writen->variableKey)) {
@@ -182,7 +192,7 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
 }
 
 void DataFlowVisitor::genDataFlowFromLastWrittenLvs(const string& methodKey, ResolvingItem* read, CodeBlock* codeBlock, list<string>& prologLines) {
-    if (read->readFromLastWriteAdded) {
+    if (read->readFromLastWriteAdded or (read->reversedRef and read->referencedBy)) {
         return;
     }
     read->readFromLastWriteAdded = true;
@@ -216,6 +226,11 @@ void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlo
         genDataFlowFromLastWrittenLvs(methodKey, codeBlock->toConditionValue, codeBlock, prologLines);
     }
     GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
+}
+
+void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) {
+    sentence->markUnreadReturn(GlobalInfo::KEY_TYPE_CALLED_RETURN);
+    GenDataVisitor::visitSentence(methodKey, codeBlock, sentence, prologLines);
 }
 
 void DataFlowVisitor::addStepToParam(const string& methodKey, ResolvingItem* paramItem, list<string>& prologLines) {
@@ -305,7 +320,7 @@ void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBl
         item->keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN or
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
-        item->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or 
+        item->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
         item->keyType == GlobalInfo::KEY_TYPE_ERROR
         ) {
         item->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);

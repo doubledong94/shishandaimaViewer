@@ -1220,10 +1220,10 @@ std::any StatementVisitor::visitExpressionAssign(JavaParser::ExpressionAssignCon
         auto* returnItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_OPTR_SELF_ASSIGN_RETURN, assignedItem1->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_OPTR_SELF_ASSIGN_RETURN, ctx->bop->getText());
         new Relation(getSentence(), item2, param1);
         new Relation(getSentence(), param1, returnItem);
-        new Relation(getSentence(), assignedItem1, returnItem);
-        new Relation(getSentence(), returnItem, assignedItem2);
+        new Relation(getSentence(), assignedItem2, returnItem);
+        new Relation(getSentence(), returnItem, assignedItem1, true);
     } else {
-        new Relation(getSentence(), item2, assignedItem1);
+        new Relation(getSentence(), item2, assignedItem1, true);
     }
     return item2;
 }
