@@ -53,6 +53,8 @@ public:
     static string makeRuntimeKey(const string& key, const string& structureKey, const string& sentenceIndex, const string& indexInsideStatement);
 
     ResolvingItem* getRefedByRecur();
+
+    void setReversedRefRecur(bool reversedRef);
 };
 
 
@@ -60,6 +62,7 @@ class Relation : public CodeStructure {
 public:
     ResolvingItem* read;
     ResolvingItem* writen;
+    bool isAssignRelation = false;
 
     Relation(CodeStructure* parent);
 

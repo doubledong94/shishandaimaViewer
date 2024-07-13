@@ -623,16 +623,16 @@ std::any StatementVisitor::addLocalVariable(VariableDeclaration& variableDeclara
                 }
                 // local variable init
                 auto* varItem = ResolvingItem::getInstance2(lvKey, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_LOCAL_VARIABLE);
-                new Relation(getSentence(), valueItem, varItem);
+                new Relation(getSentence(), valueItem, varItem, true);
             } else {
                 // local variable default value
                 auto* defaultValueItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_DEFAULT_VALUE, AddressableInfo::defaultValueTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_DEFAULT_VALUE);
                 auto* varItem = ResolvingItem::getInstance2(lvKey, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_LOCAL_VARIABLE);
-                new Relation(getSentence(), defaultValueItem, varItem);
+                new Relation(getSentence(), defaultValueItem, varItem, true);
             }
         } else {
             auto* varItem = ResolvingItem::getInstance2(lvKey, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_LOCAL_VARIABLE);
-            new Relation(getSentence(), handleNewArray(variableDeclaratorI), varItem);
+            new Relation(getSentence(), handleNewArray(variableDeclaratorI), varItem, true);
         }
     }
     expectingTypeInfo.clear();

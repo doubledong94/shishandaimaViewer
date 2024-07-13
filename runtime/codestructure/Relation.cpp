@@ -105,6 +105,13 @@ ResolvingItem* ResolvingItem::getRefedByRecur() {
     }
 }
 
+void ResolvingItem::setReversedRefRecur(bool reversedRef) {
+    this->reversedRef = reversedRef;
+    if (referencedBy) {
+        referencedBy->setReversedRefRecur(reversedRef);
+    }
+}
+
 void ResolvingItem::addRuntimeReadProlog(string(*act)(const string&, const string&, const string&), const string& methodKey, list<string>& prologLines) {
     if (runtimeReadAdded) {
         return;
@@ -177,7 +184,8 @@ Relation::Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w, bo
     structure_type = STRUCTURE_TYPE_RELATION;
     read = r;
     writen = w;
-    writen->reversedRef = isAssignRelation;
+    this->isAssignRelation = isAssignRelation;
+    writen->setReversedRefRecur(isAssignRelation);
     if (parent != nullptr) {
         parent->append_structure(this);
     }
