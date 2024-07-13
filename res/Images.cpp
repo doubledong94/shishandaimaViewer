@@ -52,6 +52,7 @@ unsigned int Images::lineIconId = 0;
 unsigned int Images::orderLineIconId = 0;
 unsigned int Images::segmentLineIconId = 0;
 unsigned int Images::anyIconId = 0;
+unsigned int Images::finalIconId = 0;
 unsigned int Images::referenceIconId = 0;
 unsigned int Images::conditionIconId = 0;
 unsigned int Images::elseIconId = 0;
@@ -173,6 +174,7 @@ void Images::init() {
     orderLineIconId = O;
     segmentLineIconId = S;
     anyIconId = A;
+    finalIconId = F;
     referenceIconId = R;
     conditionIconId = C;
     elseIconId = E;

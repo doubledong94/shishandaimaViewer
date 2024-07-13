@@ -65,6 +65,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     // node
     saveVocabulary(lexer, SimpleViewLexer::NODE);
     saveVocabulary(lexer, SimpleViewLexer::ANY);
+    saveVocabulary(lexer, SimpleViewLexer::FINAL);
     saveVocabulary(lexer, SimpleViewLexer::FIELD_OF);
     saveVocabulary(lexer, SimpleViewLexer::INSTANCE_OF);
     saveVocabulary(lexer, SimpleViewLexer::CREATOR);
@@ -149,6 +150,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_READ,Images::readIconId},
                 {SimpleView::Node::NODE_TYPE_WRITE,Images::writeIconId},
                 {SimpleView::Node::NODE_TYPE_ANY,Images::anyIconId},
+                {SimpleView::Node::NODE_TYPE_FINAL,Images::finalIconId},
                 {SimpleView::Node::NODE_TYPE_REFERENCE,Images::referenceIconId},
                 {SimpleView::Node::NODE_TYPE_CONDITION,Images::conditionIconId},
                 {SimpleView::Node::NODE_TYPE_ELSE,Images::elseIconId},
@@ -196,6 +198,7 @@ void EasierSimpleView::init() {
     SimpleViewLexer lexer(&inputStream);
     saveVocabulary(lexer);
     SimpleView::Node::NODE_ANY = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ANY);
+    SimpleView::Node::NODE_FINAL = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FINAL);
     SimpleView::Node::NODE_REFERENCE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_REFERENCE);
     SimpleView::Node::NODE_CONDITION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONDITION);
     SimpleView::Node::NODE_ELSE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ELSE);
@@ -1541,6 +1544,7 @@ void SimpleView::ClassScope::loadRuntime(std::function<void(int, int, const char
 }
 
 SimpleView::Node* SimpleView::Node::NODE_ANY = NULL;
+SimpleView::Node* SimpleView::Node::NODE_FINAL = NULL;
 SimpleView::Node* SimpleView::Node::NODE_REFERENCE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CONDITION = NULL;
 SimpleView::Node* SimpleView::Node::NODE_ELSE = NULL;
@@ -1566,6 +1570,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_ANY:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::ANY];
         node->iconId = Images::anyIconId;
+        break;
+    case Node::NODE_TYPE_FINAL:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::FINAL];
+        node->iconId = Images::finalIconId;
         break;
     case Node::NODE_TYPE_REFERENCE:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::REFERENCE];
@@ -1878,6 +1886,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
     }
     case NODE_TYPE_ANY:
         return voc[SimpleViewLexer::ANY];
+    case NODE_TYPE_FINAL:
+        return voc[SimpleViewLexer::FINAL];
     case NODE_TYPE_FIELD_OF:
         return voc[SimpleViewLexer::FIELD_OF] + " ( " + classScope->displayName + " )";
     case NODE_TYPE_INSTANCE_OF:
@@ -1952,6 +1962,7 @@ string SimpleView::Node::toString(map<int, string>& voc) {
 
 bool SimpleView::Node::isLimitedCount() {
     return nodeType != NODE_TYPE_ANY
+        and nodeType != NODE_TYPE_FINAL
         and nodeType != NODE_TYPE_REFERENCE
         and nodeType != NODE_TYPE_CONDITION
         and nodeType != NODE_TYPE_ELSE
@@ -2466,6 +2477,7 @@ bool SimpleView::LineTemplate::hasRepeatOnceNodeExceptFor(const string& exceptio
     for (auto& nodeAndRepeatTypeI : nodeAndRepeatType) {
         if (nodeAndRepeatTypeI->node != NULL
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_ANY
+            and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_FINAL
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_CONDITION
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_ELSE
             and nodeAndRepeatTypeI->node != SimpleView::Node::NODE_REFERENCE
@@ -3485,6 +3497,9 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_INDEX))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FINAL))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE))));
         break;
     case Node::NODE_TYPE_REFERENCE:
     case Node::NODE_TYPE_CONDITION:
@@ -3506,6 +3521,15 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(DisjunctionTerm::getDisjunctionInstance(
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)),Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)) }),
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)) })));
+        break;
+    case Node::NODE_TYPE_FINAL:
+        // check by node type
+        ruleBody.push_back(DisjunctionTerm::getDisjunctionInstance({
+            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_FINAL)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FINAL)) }),
+            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE)) }),
+            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE)) }),
+            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)) })
+            }));
         break;
     default:
         // check by node inner name

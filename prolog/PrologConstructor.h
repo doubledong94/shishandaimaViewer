@@ -73,10 +73,11 @@ class DisjunctionTerm : public Term, public PooledItem<DisjunctionTerm> {
 public:
     using PooledItem<DisjunctionTerm>::isInPool;
 
-    Term* term1;
-    Term* term2;
+    vector<Term*> terms;
 
     static DisjunctionTerm* getDisjunctionInstance(Term* t1, Term* t2);
+
+    static DisjunctionTerm* getDisjunctionInstance(const vector<Term*>& terms);
 
     void reset() override;
 

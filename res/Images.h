@@ -10,6 +10,7 @@ public:
     static unsigned int orderLineIconId;
     static unsigned int segmentLineIconId;
     static unsigned int anyIconId;
+    static unsigned int finalIconId;
     static unsigned int referenceIconId;
     static unsigned int conditionIconId;
     static unsigned int elseIconId;

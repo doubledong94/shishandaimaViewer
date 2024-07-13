@@ -15,6 +15,7 @@ BASIC_LABEL_SIZE : 'basicLabelSize';
 BASIC_POSITION_Z : 'basicPositionZ';
 
 ANY:'Any';
+FINAL:'Final';
 FIELD_OF:'FieldOf';
 INSTANCE_OF:'InstanceOf';
 METHOD_OF:'MethodOf';
@@ -120,6 +121,7 @@ nodeExp
     | READ '(' read=nodeExp ')'
     | WRITE '(' write=nodeExp ')'
     | ANY
+    | FINAL
     | REFERENCE
     | CONDITION
     | ELSE

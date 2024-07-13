@@ -113,6 +113,7 @@ namespace SimpleView {
             NODE_TYPE_WRITE,
 
             NODE_TYPE_ANY,
+            NODE_TYPE_FINAL,
             NODE_TYPE_REFERENCE,
             NODE_TYPE_CONDITION,
             NODE_TYPE_DATA_STEP,
@@ -139,6 +140,7 @@ namespace SimpleView {
         static Node* getSpecialNode(int nodeType);
 
         static Node* NODE_ANY;
+        static Node* NODE_FINAL;
         static Node* NODE_REFERENCE;
         static Node* NODE_CONDITION;
         static Node* NODE_ELSE;

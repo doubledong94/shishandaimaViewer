@@ -1114,18 +1114,26 @@ string Rule::toString(bool returnToPool) {
 
 DisjunctionTerm* DisjunctionTerm::getDisjunctionInstance(Term* t1, Term* t2) {
     DisjunctionTerm* ret = PooledItem<DisjunctionTerm>::getInstance();
-    ret->term1 = t1;
-    ret->term2 = t2;
+    ret->terms.push_back(t1);
+    ret->terms.push_back(t2);
+    return ret;
+}
+
+DisjunctionTerm* DisjunctionTerm::getDisjunctionInstance(const vector<Term*>& terms) {
+    DisjunctionTerm* ret = PooledItem<DisjunctionTerm>::getInstance();
+    FOR_EACH_ITEM(terms, ret->terms.push_back(item););
     return ret;
 }
 
 void DisjunctionTerm::reset() {
-    term1 = NULL;
-    term2 = NULL;
+    terms.clear();
 }
 
 string DisjunctionTerm::toString(bool returnToPool) {
-    return "(" + term1->toString() + "; " + term2->toString() + ")";
+    string ret = "(";
+    ret += joinVector(terms, ";", termToString);
+    ret.push_back(')');
+    return ret;
 }
 
 ConjunctionTerm* ConjunctionTerm::getConjunctionInstance(const vector<Term*>& terms) {
@@ -1339,8 +1347,7 @@ void NegationTerm::returnThisToPool() {
 }
 
 void DisjunctionTerm::returnThisToPool() {
-    term1->returnThisToPool();
-    term2->returnThisToPool();
+    FOR_EACH_ITEM(terms, item->returnThisToPool(););
     PooledItem<DisjunctionTerm>::returnToPool(this);
 }
 
