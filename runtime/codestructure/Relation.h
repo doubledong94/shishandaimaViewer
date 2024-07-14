@@ -10,6 +10,7 @@ public:
     string indexInsideStatement;
     int keyType = -1;
     ResolvingItem* referencedBy = nullptr;
+    ResolvingItem* calledMethod = nullptr;
     ResolvingItem* indexedBy = nullptr;
     string extraInfoForOptr = "";
     string runtimeKey = "";
@@ -53,6 +54,8 @@ public:
     static string makeRuntimeKey(const string& key, const string& structureKey, const string& sentenceIndex, const string& indexInsideStatement);
 
     ResolvingItem* getRefedByRecur();
+
+    ResolvingItem* getCalledMethodIfExists();
 
     void setReversedRefRecur(bool reversedRef);
 };

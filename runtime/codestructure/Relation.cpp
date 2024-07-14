@@ -15,6 +15,7 @@ void ResolvingItem::reset() {
     indexInsideStatement.clear();
     keyType = -1;
     referencedBy = nullptr;
+    calledMethod = nullptr;
     indexedBy = nullptr;
     extraInfoForOptr.clear();
     runtimeKey.clear();
@@ -105,6 +106,14 @@ ResolvingItem* ResolvingItem::getRefedByRecur() {
     }
 }
 
+ResolvingItem* ResolvingItem::getCalledMethodIfExists() {
+    if (calledMethod) {
+        return calledMethod;
+    } else {
+        return this;
+    }
+}
+
 void ResolvingItem::setReversedRefRecur(bool reversedRef) {
     this->reversedRef = reversedRef;
     if (referencedBy) {
@@ -181,6 +190,9 @@ Relation::Relation(CodeStructure* parent) {
 }
 
 Relation::Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w, bool isAssignRelation) {
+    if (r->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD and w->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+        w->calledMethod = r;
+    }
     structure_type = STRUCTURE_TYPE_RELATION;
     read = r;
     writen = w;
