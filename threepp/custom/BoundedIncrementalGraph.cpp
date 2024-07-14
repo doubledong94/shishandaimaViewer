@@ -572,18 +572,19 @@ void BoundedIncrementalGraph::saveNodeInfo(NodeInfo* nodeInfo) {
         addressableKeyToNodeInfo[nodeInfo->key] = set<NodeInfo*>();
     }
     addressableKeyToNodeInfo[nodeInfo->key].insert(nodeInfo);
-    for (auto& position : nodeInfo->positionInRegex) {
-        if (not graphNameToLineNameToRegexToNodeInfo.count(position->graphName)) {
-            graphNameToLineNameToRegexToNodeInfo[position->graphName] = map<string, map<string, set<NodeInfo*>>>();
-        }
-        if (not graphNameToLineNameToRegexToNodeInfo[position->graphName].count(position->lineName)) {
-            graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName] = map<string, set<NodeInfo*>>();
-        }
-        if (not graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName].count(position->regex)) {
-            graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName][position->regex] = set<NodeInfo*>();
-        }
-        graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName][position->regex].insert(nodeInfo);
+}
+
+void BoundedIncrementalGraph::saveNodePosition(PositionInRegex* position, NodeInfo* nodeInfo) {
+    if (not graphNameToLineNameToRegexToNodeInfo.count(position->graphName)) {
+        graphNameToLineNameToRegexToNodeInfo[position->graphName] = map<string, map<string, set<NodeInfo*>>>();
     }
+    if (not graphNameToLineNameToRegexToNodeInfo[position->graphName].count(position->lineName)) {
+        graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName] = map<string, set<NodeInfo*>>();
+    }
+    if (not graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName].count(position->regex)) {
+        graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName][position->regex] = set<NodeInfo*>();
+    }
+    graphNameToLineNameToRegexToNodeInfo[position->graphName][position->lineName][position->regex].insert(nodeInfo);
 }
 
 NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
@@ -609,9 +610,11 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
         nodeInfo->uniKey = uniKey;
         nodeInfo->methodStackSize = tail->headElements[6]->integer;
         saveNodeInfo(nodeInfo);
+        saveNodePosition(nodeInfo->positionInRegex.back(), nodeInfo);
     } else {
         if (not nodeInfo->getExistingPositionInRegex(searchingGraphName, lineInstanceName, regexChar)) {
             nodeInfo->positionInRegex.push_back(new PositionInRegex(searchingGraphName, lineInstanceName, regexChar));
+            saveNodePosition(nodeInfo->positionInRegex.back(), nodeInfo);
         }
     }
     return nodeInfo;

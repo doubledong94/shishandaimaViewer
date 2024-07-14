@@ -73,6 +73,7 @@ public:
     void removeExistingNodeRecord(int index);
     NodeInfo* getExistingNodeInfo(string& uniKey);
     void saveNodeInfo(NodeInfo* nodeInfo);
+    void saveNodePosition(PositionInRegex* position, NodeInfo* nodeInfo);
     NodeInfo* convertTailToNodeInfo(Tail* tail);
 
     vector<NodeInfo*> nodesOrderedByNodeId;
