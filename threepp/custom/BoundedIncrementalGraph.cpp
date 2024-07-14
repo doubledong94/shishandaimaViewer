@@ -2823,6 +2823,12 @@ void BoundedIncrementalGraph::transitiveReductionImpl() {
     prepareDistance();
     list<pair<int, int>> toBeRemovedEdges;
     for (int nodeId = 0; nodeId < nodesOrderedByNodeId.size();nodeId++) {
+        auto& srcNode = nodesOrderedByNodeId[nodeId];
+        if (srcNode->keyType != GlobalInfo::KEY_TYPE_CONDITION and
+            srcNode->keyType != GlobalInfo::KEY_TYPE_METHOD and
+            srcNode->keyType != GlobalInfo::KEY_TYPE_CONSTRUCTOR) {
+            continue;
+        }
         igraph_vector_int_t nextIds;
         igraph_vector_int_init(&nextIds, 0);
         igraph_neighbors(theOriginalGraph, &nextIds, nodeId, IGRAPH_OUT);
