@@ -1319,22 +1319,22 @@ int app::Application::ApplicationMain() {
             auto dir = mousePosListener->getMouseOffset();
             dir.multiplyScalar(50 / -plane.distanceToPoint(camera->position));
             if (twoDControls.enabled) {
-                float moveSpeedByKey = 10;
+                float moveSpeedByKey = 200 / -plane.distanceToPoint(camera->position);
                 if (ImGui::IsKeyDown(ImGuiKey_LeftArrow)) {
                     mousePosListener->moved = true;
-                    dir.x -= 10;
+                    dir.x -= moveSpeedByKey;
                 }
                 if (ImGui::IsKeyDown(ImGuiKey_RightArrow)) {
                     mousePosListener->moved = true;
-                    dir.x += 10;
+                    dir.x += moveSpeedByKey;
                 }
                 if (ImGui::IsKeyDown(ImGuiKey_UpArrow)) {
                     mousePosListener->moved = true;
-                    dir.y -= 10;
+                    dir.y -= moveSpeedByKey;
                 }
                 if (ImGui::IsKeyDown(ImGuiKey_DownArrow)) {
                     mousePosListener->moved = true;
-                    dir.y += 10;
+                    dir.y += moveSpeedByKey;
                 }
                 twoDControls.panByMouse(dir.x, dir.y);
             }
