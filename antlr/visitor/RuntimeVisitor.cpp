@@ -978,7 +978,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
 std::any StatementVisitor::visitExpressionArrayAccess(JavaParser::ExpressionArrayAccessContext* ctx) {
     auto* indexedItem = acceptAndHandleError(ctx->e1, this);
     auto* indexItem = acceptAndHandleError(ctx->e2, this);
-    indexedItem->indexedBy = indexItem;
+    indexedItem->indexedBy = indexItem->getCalledMethodIfExists();
     return indexedItem;
 }
 
