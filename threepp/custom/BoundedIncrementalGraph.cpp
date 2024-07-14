@@ -2374,6 +2374,9 @@ void BoundedIncrementalGraph::fromFile(ifstream& f) {
             nodeInfo->fromFile(f);
             nodesOrderedByNodeId.push_back(nodeInfo);
             saveNodeInfo(nodeInfo);
+            for (auto& position : nodeInfo->positionInRegex) {
+                saveNodePosition(position, nodeInfo);
+            }
         }
         // edge pair
         int edgeCount = getInt(f);
