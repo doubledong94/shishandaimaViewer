@@ -184,18 +184,18 @@ int app::Application::ApplicationMain() {
     static list<bool*> openedWindows;
 
     static int selected_class_scope = -1;
-    static char* classScopeNames[500];
-    static char* lineDownAndUp[500];
+    static char* classScopeNames[1000];
+    static char* lineDownAndUp[1000];
     static int lineDownAndUpCount = 0;
 
     static int selected_line_instance = -1;
     static int line_instance_starting_count = -1;
-    static char* lineAndLineInstanceNames[500];
+    static char* lineAndLineInstanceNames[1000];
 
     static int selected_graph_instance = -1;
     static int graph_instance_starting_count = -1;
-    static char* graphAndGraphInstanceNames[500];
-    static char saveNodeOrGraphName[100];
+    static char* graphAndGraphInstanceNames[1000];
+    static char saveNodeOrGraphName[1000];
     static char* nodeType[] = { "Class",
     "Field",
     "Constructor",

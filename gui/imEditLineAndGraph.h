@@ -6,7 +6,7 @@
 namespace shishan {
 
     static list<string> createdString;
-    static char searchedStr[1024];
+    static char searchedStr[1000];
     static vector<const char*> searchResults;
 
     static void shadow(float width, float height) {

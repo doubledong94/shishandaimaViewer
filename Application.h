@@ -1,9 +1,9 @@
 static int loadingAddressableTotal = 0;
 static int loadingAddressableIndex = 0;
-static char loadingAddressableName[500];
+static char loadingAddressableName[5000];
 static int loadingUnaddressableTotal = 0;
 static int loadingUnaddressableIndex = 0;
-static char loadingUnaddressableName[500];
+static char loadingUnaddressableName[5000];
 
 static std::function<void(int, int, const char*)> loadingAddressableProgress = [](int progress, int total, const char* fileName) {
     loadingAddressableTotal = total;
