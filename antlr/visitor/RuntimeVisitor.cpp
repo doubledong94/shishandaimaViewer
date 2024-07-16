@@ -916,7 +916,6 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         } else {
             resolvingItem->set(resolvingItem->variableKey, resolvingItem->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), resolvingItem->keyType);
         }
-        resolvingItem->referencedBy = referencedBy->getCalledMethodIfExists();
     } else if (ctx->methodCall() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertMethodCall(ctx->methodCall(), &methodCall);
@@ -927,14 +926,12 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
-        calledMethodResolvingItem->referencedBy = referencedBy->getCalledMethodIfExists();
     } else if (ctx->THIS() != nullptr) {
         if (!referencedScope) {
             resolvingItem = getErrorItem(ctx->THIS(), this);
         } else {
             resolvingItem->set(referencedBy->variableKey + ".this", referencedBy->typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_FIELD);
         }
-        resolvingItem->referencedBy = referencedBy->getCalledMethodIfExists();
     } else if (ctx->NEW() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertInnerCreator(ctx->innerCreator(), &methodCall);
@@ -945,7 +942,6 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem, true);
         }
-        calledMethodResolvingItem->referencedBy = referencedBy->getCalledMethodIfExists();
     } else if (ctx->SUPER() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertSuperSuffix(ctx->superSuffix(), &methodCall);
@@ -956,7 +952,6 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
-        calledMethodResolvingItem->referencedBy = referencedBy->getCalledMethodIfExists();
     } else if (ctx->explicitGenericInvocation() != nullptr) {
         NameAndRelatedExp methodCall;
         AntlrNodeToSyntaxObjectConverter::convertExplicitGenericInvocationSuffix(ctx->explicitGenericInvocation()->explicitGenericInvocationSuffix(), &methodCall);
@@ -967,8 +962,8 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
-        calledMethodResolvingItem->referencedBy = referencedBy->getCalledMethodIfExists();
     }
+    resolvingItem->referencedBy = referencedBy;
     if (resolvingItem->typeInfo->isTypeParam and typeUnification.getTypeArgFromTypeParam(resolvingItem->typeInfo)) {
         resolvingItem->typeInfo = typeUnification.getTypeArgFromTypeParam(resolvingItem->typeInfo);
     }
@@ -978,7 +973,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
 std::any StatementVisitor::visitExpressionArrayAccess(JavaParser::ExpressionArrayAccessContext* ctx) {
     auto* indexedItem = acceptAndHandleError(ctx->e1, this);
     auto* indexItem = acceptAndHandleError(ctx->e2, this);
-    indexedItem->indexedBy = indexItem->getCalledMethodIfExists();
+    indexedItem->indexedBy = indexItem;
     return indexedItem;
 }
 

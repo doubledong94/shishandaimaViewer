@@ -66,7 +66,7 @@ void PrologConstructor::saveAddressableInfo(const string& filePath, const list<T
             lines.push_back(CompoundTerm::getSimpleNameFact(methodKey, methodSimpleName));
             lines.push_back(CompoundTerm::getSimpleNameFact(methodInfo->calledMethodKey, AddressableInfo::makeCalledKey(methodSimpleName)));
             lines.push_back(CompoundTerm::getSimpleNameFact(returnKey, methodInfo->returnInfo->name));
-            lines.push_back(CompoundTerm::getSimpleNameFact(calledReturnKey, methodInfo->calledReturnInfo->name));
+            lines.push_back(CompoundTerm::getSimpleNameFact(calledReturnKey, methodSimpleName + methodInfo->calledReturnInfo->name));
             for (int paramIndex = 0; paramIndex < methodInfo->parameterInfos.size();paramIndex++) {
                 auto& paramInfo = methodInfo->parameterInfos[paramIndex];
                 auto& calledParamInfo = methodInfo->calledParamInfos[paramIndex];

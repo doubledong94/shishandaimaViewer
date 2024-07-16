@@ -21,22 +21,16 @@ Sentence::Sentence(CodeStructure* parent, const string& structureKey, int index)
 }
 
 void Sentence::markUnreadReturn(int calledReturnKeyType) {
-    set<Relation*> writtenReturnRelation;
-    set<ResolvingItem*> readReturnRelation;
+    set<ResolvingItem*> allWrittenItems;
+    set<ResolvingItem*> allReadItems;
     for (auto& relation : relations) {
-        if (relation->writen->keyType == calledReturnKeyType) {
-            writtenReturnRelation.insert(relation);
-        }
-        if (relation->read->keyType == calledReturnKeyType) {
-            readReturnRelation.insert(relation->read);
-        }
-        if (relation->read->referencedBy) {
-            relation->read->referencedBy->collectRefedCalledReturn(readReturnRelation);
-        }
+        allWrittenItems.insert(relation->writen);
+        allReadItems.insert(relation->read);
+        relation->read->collectRefedByAndIndexedBy(allReadItems);
     }
-    for (auto& relation : writtenReturnRelation) {
-        if (not readReturnRelation.count(relation->writen)) {
-            relation->read->setReversedRefRecur(true);
+    for (auto& writtenItem : allWrittenItems) {
+        if (not allReadItems.count(writtenItem)) {
+            writtenItem->setReversedRefRecur(true);
         }
     }
 }
