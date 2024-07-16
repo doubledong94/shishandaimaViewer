@@ -21,11 +21,6 @@ Sentence::Sentence(CodeStructure* parent, const string& structureKey, int index)
 }
 
 void Sentence::markUnreadReturn(int calledReturnKeyType) {
-    for (auto& relation : relations) {
-        if (relation->isAssignRelation) {
-            return;
-        }
-    }
     set<Relation*> writtenReturnRelation;
     set<ResolvingItem*> readReturnRelation;
     for (auto& relation : relations) {
@@ -34,6 +29,9 @@ void Sentence::markUnreadReturn(int calledReturnKeyType) {
         }
         if (relation->read->keyType == calledReturnKeyType) {
             readReturnRelation.insert(relation->read);
+        }
+        if (relation->read->referencedBy) {
+            relation->read->referencedBy->collectRefedCalledReturn(readReturnRelation);
         }
     }
     for (auto& relation : writtenReturnRelation) {

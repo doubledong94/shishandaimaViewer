@@ -11,6 +11,7 @@ public:
     int keyType = -1;
     ResolvingItem* referencedBy = nullptr;
     ResolvingItem* calledMethod = nullptr;
+    ResolvingItem* calledReturn = nullptr;
     ResolvingItem* indexedBy = nullptr;
     string extraInfoForOptr = "";
     string runtimeKey = "";
@@ -56,6 +57,8 @@ public:
     ResolvingItem* getRefedByRecur();
 
     ResolvingItem* getCalledMethodIfExists();
+
+    void collectRefedCalledReturn(std::set<ResolvingItem*> &refedReturn);
 
     void setReversedRefRecur(bool reversedRef);
 };

@@ -16,6 +16,7 @@ void ResolvingItem::reset() {
     keyType = -1;
     referencedBy = nullptr;
     calledMethod = nullptr;
+    calledReturn = nullptr;
     indexedBy = nullptr;
     extraInfoForOptr.clear();
     runtimeKey.clear();
@@ -114,6 +115,15 @@ ResolvingItem* ResolvingItem::getCalledMethodIfExists() {
     }
 }
 
+void ResolvingItem::collectRefedCalledReturn(std::set<ResolvingItem*>& refedReturn) {
+    if (calledReturn) {
+        refedReturn.insert(calledReturn);
+    }
+    if (referencedBy) {
+        referencedBy->collectRefedCalledReturn(refedReturn);
+    }
+}
+
 void ResolvingItem::setReversedRefRecur(bool reversedRef) {
     this->reversedRef = reversedRef;
     if (referencedBy) {
@@ -192,6 +202,7 @@ Relation::Relation(CodeStructure* parent) {
 Relation::Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w, bool isAssignRelation) {
     if (r->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD and w->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
         w->calledMethod = r;
+        r->calledReturn = w;
     }
     structure_type = STRUCTURE_TYPE_RELATION;
     read = r;
