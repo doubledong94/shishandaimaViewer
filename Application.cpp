@@ -798,7 +798,7 @@ int app::Application::ApplicationMain() {
         if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_Escape)) {
             if (editLineAndGraphOpen) {
                 // exit from line and graph editor
-                if (prologLoaded and not searchingInProgress) {
+                if (prologLoaded) {
                     EasierSimpleView::saveToFile();
                 }
             }
@@ -1413,7 +1413,7 @@ int main(int argc, char** argv) {
     BoundedIncrementalGraph::deserializeFilePath();
     app::Application app(&parser);
     app.ApplicationMain();
-    if (prologLoaded and not searchingInProgress) {
+    if (prologLoaded) {
         EasierSimpleView::saveToFile();
     }
     ofstream ofs;

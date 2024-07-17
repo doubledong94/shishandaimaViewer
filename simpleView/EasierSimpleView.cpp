@@ -2406,6 +2406,9 @@ bool SimpleView::LineTemplate::containLineNameRecursive(string& lineName) {
 string SimpleView::LineTemplate::toString(map<int, string>& voc) {
     string ret = "";
     for (auto& nodeAndRepeatTypeI : nodeAndRepeatType) {
+        if (nodeAndRepeatTypeI->node and nodeAndRepeatTypeI->node->nodeType == Node::NODE_TYPE_RUNTIME) {
+            continue;
+        }
         if (nodeAndRepeatTypeI->seg != NULL) {
             ret += "[" + nodeAndRepeatTypeI->seg->name + "]";
         } else {
