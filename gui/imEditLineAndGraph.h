@@ -873,6 +873,9 @@ namespace shishan {
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Constructor##specialNodeConstructor", SimpleView::Node::NODE_CONSTRUCTOR);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Class##specialNodeClass", SimpleView::Node::NODE_CLASS);
 
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("CalledParameter##specialNodeCalledParameter", SimpleView::Node::NODE_CALLED_PARAMETER);

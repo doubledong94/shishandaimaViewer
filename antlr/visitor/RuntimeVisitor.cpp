@@ -921,8 +921,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         AntlrNodeToSyntaxObjectConverter::convertMethodCall(ctx->methodCall(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         if (!referencedScope) {
-            resolvingItem = getErrorItem(ctx->methodCall(), this);
-            calledMethodResolvingItem = getErrorItem(ctx->methodCall(), this);
+            hanldeEmptyMethod(methodCall, resolvingItem, calledMethodResolvingItem);
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
@@ -937,8 +936,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         AntlrNodeToSyntaxObjectConverter::convertInnerCreator(ctx->innerCreator(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         if (!referencedScope) {
-            resolvingItem = getErrorItem(ctx->NEW(), this);
-            calledMethodResolvingItem = getErrorItem(ctx->NEW(), this);
+            hanldeEmptyMethod(methodCall, resolvingItem, calledMethodResolvingItem);
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem, true);
         }
@@ -947,8 +945,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         AntlrNodeToSyntaxObjectConverter::convertSuperSuffix(ctx->superSuffix(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         if (!referencedScope) {
-            resolvingItem = getErrorItem(ctx->SUPER(), this);
-            calledMethodResolvingItem = getErrorItem(ctx->SUPER(), this);
+            hanldeEmptyMethod(methodCall, resolvingItem, calledMethodResolvingItem);
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
@@ -957,8 +954,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
         AntlrNodeToSyntaxObjectConverter::convertExplicitGenericInvocationSuffix(ctx->explicitGenericInvocation()->explicitGenericInvocationSuffix(), &methodCall);
         ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
         if (!referencedScope) {
-            resolvingItem = getErrorItem(ctx->explicitGenericInvocation(), this);
-            calledMethodResolvingItem = getErrorItem(ctx->explicitGenericInvocation(), this);
+            hanldeEmptyMethod(methodCall, resolvingItem, calledMethodResolvingItem);
         } else {
             resolveMethod(methodCall, referencedScope, resolvingItem, calledMethodResolvingItem);
         }
@@ -1377,6 +1373,22 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
     int paramCount = methodCall.arguments == nullptr ? 0 : methodCall.arguments->expression().size();
     scopeAndEnv->getMethodInfoWithFileScope(methodCall.name, paramCount, methodInfos, creator);
     vector<ResolvingItem*> argValueResolvingItems;
+    resolveArgument(methodCall, methodInfos, argValueResolvingItems);
+    // error handling
+    if (methodInfos.empty()) {
+        hanldeEmptyMethod(methodCall, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
+        return;
+    }
+    MethodInfo* methodInfo;
+    if (argValueResolvingItems.empty()) {
+        methodInfo = methodInfos.front();
+    } else {
+        methodInfo = TypeCheckAndInference::findBestMethod(methodInfos, argValueResolvingItems);
+    }
+    handleMethodInfo(methodInfo, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
+}
+
+void StatementVisitor::resolveArgument(NameAndRelatedExp& methodCall, const list<MethodInfo*>& methodInfos, vector<ResolvingItem*>& argValueResolvingItems) {
     if (methodCall.arguments != nullptr) {
         int paramIndex = 0;
         for (auto* expression : methodCall.arguments->expression()) {
@@ -1404,30 +1416,28 @@ void StatementVisitor::resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAn
             paramIndex++;
         }
     }
-    // error handling
-    if (methodInfos.empty()) {
-        string errorMethodName = joinList(methodCall.name, ".");
-        string errorMethodReturn = AddressableInfo::makeReturnKey(errorMethodName);
-        returnResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-        calledMethodResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodReturn), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-        int argCount = 1;
-        for (auto& arg : argValueResolvingItems) {
-            ResolvingItem* calledParamResolvingItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName) + ":::P" + to_string(argCount), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-            new Relation(getSentence(), arg, calledParamResolvingItem);
-            new Relation(getSentence(), calledParamResolvingItem, calledMethodResolvingItem);
-            argCount++;
-        }
-        new Relation(getSentence(), calledMethodResolvingItem, returnResolvingItem);
-        spdlog::get(ErrorManager::DebugTag)->warn("did not find method name: {} with {} params in method:{}", joinList(methodCall.name, "."), paramCount, methodScopeAndEnv->methodKey);
-        return;
+}
+
+void StatementVisitor::hanldeEmptyMethod(NameAndRelatedExp& methodCall, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
+    vector<ResolvingItem*> argValueResolvingItems;
+    resolveArgument(methodCall, {}, argValueResolvingItems);
+    hanldeEmptyMethod(methodCall, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
+}
+
+void StatementVisitor::hanldeEmptyMethod(NameAndRelatedExp& methodCall, vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
+    string errorMethodName = joinList(methodCall.name, ".");
+    string errorMethodReturn = AddressableInfo::makeReturnKey(errorMethodName);
+    returnResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+    calledMethodResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodReturn), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+    int argCount = 1;
+    for (auto& arg : argValueResolvingItems) {
+        ResolvingItem* calledParamResolvingItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName) + ":::P" + to_string(argCount), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+        new Relation(getSentence(), arg, calledParamResolvingItem);
+        new Relation(getSentence(), calledParamResolvingItem, calledMethodResolvingItem);
+        argCount++;
     }
-    MethodInfo* methodInfo;
-    if (argValueResolvingItems.empty()) {
-        methodInfo = methodInfos.front();
-    } else {
-        methodInfo = TypeCheckAndInference::findBestMethod(methodInfos, argValueResolvingItems);
-    }
-    handleMethodInfo(methodInfo, argValueResolvingItems, returnResolvingItem, calledMethodResolvingItem);
+    new Relation(getSentence(), calledMethodResolvingItem, returnResolvingItem);
+    spdlog::get(ErrorManager::DebugTag)->warn("did not find method name: {} with {} params in method:{}", joinList(methodCall.name, "."), argValueResolvingItems.size(), methodScopeAndEnv->methodKey);
 }
 
 void StatementVisitor::handleMethodInfo(MethodInfo* methodInfo, const vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {

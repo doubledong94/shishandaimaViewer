@@ -16,6 +16,7 @@ BASIC_POSITION_Z : 'basicPositionZ';
 
 ANY:'Any';
 FINAL:'Final';
+CLASS:'Class';
 FIELD_OF:'FieldOf';
 INSTANCE_OF:'InstanceOf';
 METHOD_OF:'MethodOf';
@@ -122,6 +123,7 @@ nodeExp
     | WRITE '(' write=nodeExp ')'
     | ANY
     | FINAL
+    | CLASS
     | REFERENCE
     | CONDITION
     | ELSE

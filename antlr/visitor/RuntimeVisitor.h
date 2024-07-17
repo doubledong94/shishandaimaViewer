@@ -252,6 +252,12 @@ public:
 
     void resolveMethod(NameAndRelatedExp& methodCall, ClassScopeAndEnv* scopeAndEnv, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem, bool creator = false);
 
+    void resolveArgument(NameAndRelatedExp& methodCall, const list<MethodInfo*>& methodInfos, vector<ResolvingItem*>& argValueResolvingItems);
+
+    void hanldeEmptyMethod(NameAndRelatedExp& methodCall, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem);
+
+    void hanldeEmptyMethod(NameAndRelatedExp& methodCall, vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem);
+
     void handleMethodInfo(MethodInfo* methodInfo, const vector<ResolvingItem*>& argValueResolvingItems,
         ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem);
 
