@@ -60,10 +60,8 @@ public:
     std::mutex graphGenerateAndConsumeLock;
     // push back and pop front by different thread
     list<Tail*> lineBuffer;
-    list<Tail*> doneBuffer;
     void addBuffers(const vector<Tail*>& bufs);
     void popBuffers(int count, vector<Tail*>& ret);
-    void returnDoneBufferToPool();
     int bufferSize();
 
     map<string, NodeInfo*> uniKeyToNodeInfo;

@@ -313,10 +313,6 @@ int app::Application::ApplicationMain() {
                     count++;
                     result.clear();
                     result = lineInstance->queryNext(classScope);
-                    boundedGraph->returnDoneBufferToPool();
-                }
-                while (boundedGraph->bufferSize()) {
-                    boundedGraph->returnDoneBufferToPool();
                 }
                 lineInstance->endSearching(classScope);
                 spdlog::get(ErrorManager::DebugTag)->info("prolog result count: {}", count);
@@ -360,10 +356,6 @@ int app::Application::ApplicationMain() {
                     count++;
                     result.clear();
                     result = graphInstance->queryNext(classScope);
-                    boundedGraph->returnDoneBufferToPool();
-                }
-                while (boundedGraph->bufferSize()) {
-                    boundedGraph->returnDoneBufferToPool();
                 }
                 graphInstance->endSearching(classScope);
                 spdlog::get(ErrorManager::DebugTag)->info("prolog result count: {}", count);
@@ -1051,10 +1043,6 @@ int app::Application::ApplicationMain() {
                             count++;
                             result.clear();
                             result = lineInstance->queryNext(NULL);
-                            boundedGraph->returnDoneBufferToPool();
-                        }
-                        while (boundedGraph->bufferSize()) {
-                            boundedGraph->returnDoneBufferToPool();
                         }
                         lineInstance->endSearching(NULL);
                         spdlog::get(ErrorManager::DebugTag)->info("prolog result count: {}", count);

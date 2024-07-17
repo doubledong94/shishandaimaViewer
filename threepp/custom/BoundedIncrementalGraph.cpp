@@ -327,19 +327,9 @@ void BoundedIncrementalGraph::popBuffers(int count, vector<Tail*>& ret) {
     for (int i = 0;i < count;i++) {
         if (not lineBuffer.empty()) {
             ret.push_back(lineBuffer.front());
-            doneBuffer.push_back(lineBuffer.front());
             lineBuffer.pop_front();
         }
     }
-    bufferLock.unlock();
-}
-
-void BoundedIncrementalGraph::returnDoneBufferToPool() {
-    bufferLock.lock();
-    for (auto& done : doneBuffer) {
-        done->returnThisToPool();
-    }
-    doneBuffer.clear();
     bufferLock.unlock();
 }
 
@@ -691,6 +681,9 @@ void BoundedIncrementalGraph::updateGraph() {
                 }
             }
         }
+    }
+    for (auto& done : bufLines) {
+        done->returnThisToPool();
     }
     if (newNodeCount > 0) {
         // update node of graph
