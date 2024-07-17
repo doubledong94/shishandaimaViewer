@@ -142,6 +142,11 @@ void Nodes::applyColor() {
         encodedColor.r = encodeIntoRgb(encodedColor.r, 0.006);
         setColorAt(i, encodedColor);
     }
+    for (int i : styled4) {
+        getColorAt(i, encodedColor);
+        encodedColor.r = encodeIntoRgb(encodedColor.r, 0.008);
+        setColorAt(i, encodedColor);
+    }
     instanceColor()->needsUpdate();
 }
 
@@ -261,6 +266,7 @@ std::string Nodes::vertexSource() {
                out float vStyled;
                out float vStyled2;
                out float vStyled3;
+               out float vStyled4;
                void main() {
                     uv_frag = position.xy;
                     vColor = instanceColor;
@@ -279,6 +285,7 @@ std::string Nodes::vertexSource() {
                     vStyled = statePartStyle > 0.1 && statePartStyle < 0.3 ? 1 : 0;
                     vStyled2 = statePartStyle > 0.3 && statePartStyle < 0.5 ? 1 : 0;
                     vStyled3 = statePartStyle > 0.5 && statePartStyle < 0.7 ? 1 : 0;
+                    vStyled4 = statePartStyle > 0.7 && statePartStyle < 0.9 ? 1 : 0;
 
                     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4( position, 1.0 );
                })";
@@ -295,6 +302,7 @@ std::string Nodes::fragmentSource() {
                 in float vStyled;
                 in float vStyled2;
                 in float vStyled3;
+                in float vStyled4;
                 out vec4 pc_fragColor;
                 void main() {
                     vec3 color = vColor;
@@ -311,6 +319,13 @@ std::string Nodes::fragmentSource() {
                             if (vStyled > 0.5) {
                                 if (l> 0.6) {
                                 } else if (l> 0.5) {
+                                    color -= vec3(0.3);
+                                }
+                            }
+                            if (vStyled4 > 0.5) {
+                                if (abs(uv_frag.x)<0.15) {
+                                    color -= vec3(0.3);
+                                } else if (abs(uv_frag.y)<0.15){
                                     color -= vec3(0.3);
                                 }
                             }

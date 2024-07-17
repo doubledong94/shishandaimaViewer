@@ -1425,13 +1425,13 @@ void StatementVisitor::hanldeEmptyMethod(NameAndRelatedExp& methodCall, Resolvin
 }
 
 void StatementVisitor::hanldeEmptyMethod(NameAndRelatedExp& methodCall, vector<ResolvingItem*>& argValueResolvingItems, ResolvingItem* returnResolvingItem, ResolvingItem* calledMethodResolvingItem) {
-    string errorMethodName = joinList(methodCall.name, ".");
+    string errorMethodName = joinList(methodCall.name, ".") + ":::";
     string errorMethodReturn = AddressableInfo::makeReturnKey(errorMethodName);
-    returnResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
-    calledMethodResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodReturn), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+    returnResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodReturn), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+    calledMethodResolvingItem->set(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
     int argCount = 1;
     for (auto& arg : argValueResolvingItems) {
-        ResolvingItem* calledParamResolvingItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName) + ":::P" + to_string(argCount), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
+        ResolvingItem* calledParamResolvingItem = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ERROR + REPLACE_QUOTATION_MARKS(errorMethodName) + "P" + to_string(argCount), AddressableInfo::errorTypeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ERROR);
         new Relation(getSentence(), arg, calledParamResolvingItem);
         new Relation(getSentence(), calledParamResolvingItem, calledMethodResolvingItem);
         argCount++;

@@ -3482,8 +3482,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         nodeType != Node::NODE_TYPE_TIMING_STEP and
         nodeType != Node::NODE_TYPE_DATA_OVERRIDE and
         nodeType != Node::NODE_TYPE_TIMING_OVERRIDE and
-        nodeType != Node::NODE_TYPE_INDEX and
-        nodeType != Node::NODE_TYPE_CLASS;
+        nodeType != Node::NODE_TYPE_INDEX;
     // value check node type/node inner name and output addressable key and key type
     switch (nodeType) {
     case Node::NODE_TYPE_ANY:

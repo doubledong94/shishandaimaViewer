@@ -392,7 +392,7 @@ void NodeInfo::makeSimpleName() {
     } else if (keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE) {
         simpleName = "[override]";
     } else if (keyType == GlobalInfo::KEY_TYPE_ERROR) {
-        simpleName = "[error]";
+        simpleName = key;
     } else if (keyType == GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS) {
         simpleName = "[anonymous]";
     } else if (keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE) {
@@ -1374,6 +1374,9 @@ void BoundedIncrementalGraph::resetStyledNodes() {
         }
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_REFERENCE) {
             nodesObj->styled3.insert(nodeInfo->nodeId);
+        }
+        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_ERROR) {
+            nodesObj->styled4.insert(nodeInfo->nodeId);
         }
     }
 }
