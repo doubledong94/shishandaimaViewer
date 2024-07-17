@@ -333,6 +333,15 @@ void BoundedIncrementalGraph::popBuffers(int count, vector<Tail*>& ret) {
     bufferLock.unlock();
 }
 
+void BoundedIncrementalGraph::returnDoneBufferToPool() {
+    bufferLock.lock();
+    for (auto& done : doneBuffer) {
+        done->returnThisToPool();
+    }
+    doneBuffer.clear();
+    bufferLock.unlock();
+}
+
 int BoundedIncrementalGraph::bufferSize() {
     int size = 0;
     bufferLock.lock();
@@ -682,9 +691,11 @@ void BoundedIncrementalGraph::updateGraph() {
             }
         }
     }
+    bufferLock.lock();
     for (auto& done : bufLines) {
-        done->returnThisToPool();
+        doneBuffer.push_back(done);
     }
+    bufferLock.unlock();
     if (newNodeCount > 0) {
         // update node of graph
         igraph_add_vertices(theOriginalGraph, newNodeCount, NULL);
