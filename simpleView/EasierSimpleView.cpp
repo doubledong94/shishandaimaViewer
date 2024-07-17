@@ -784,16 +784,16 @@ void EasierSimpleView::declareLoadWhileSearching() {
     Term* failTerm = Term::getAtom("fail");
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadMethodUseAddressableTerm(method), {
         NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
-            CompoundTerm::getMethodUseMethodTerm(method,usedMethod),
-            CompoundTerm::getMethodTerm(classKey,usedMethod),
-            CompoundTerm::getLoadAddressableTerm(classKey),
-            failTerm,
-        }))
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadMethodUseAddressableTerm(method), {
-        NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
-            CompoundTerm::getMethodUseFieldTerm(method,usedField),
-            CompoundTerm::getFieldTerm(classKey,usedField),
+            DisjunctionTerm::getDisjunctionInstance({
+                ConjunctionTerm::getConjunctionInstance({
+                    CompoundTerm::getMethodUseMethodTerm(method,usedMethod),
+                    CompoundTerm::getMethodTerm(classKey,usedMethod),
+                }),
+                ConjunctionTerm::getConjunctionInstance({
+                    CompoundTerm::getMethodUseFieldTerm(method,usedField),
+                    CompoundTerm::getFieldTerm(classKey,usedField),
+                }),
+            }),
             CompoundTerm::getLoadAddressableTerm(classKey),
             failTerm,
         }))
@@ -2984,7 +2984,7 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 // debug purpose
                 #ifdef DEBUG_PROLOG
                 CompoundTerm::getToFileTerm(Term::getStr("-----------------------------"), Term::getStr("a.txt")),
-                CompoundTerm::getToFileTerm(Tail::getTailInstance(outputTerm, outputTailTerm), Term::getStr("a.txt")),
+                CompoundTerm::getToFileTerm(Term::getStr("-----------------------------"), Term::getStr("a.txt")),
                 #endif
         }))->toString(true));
     lineInstanceValNameTerm->returnThisToPool();
@@ -3558,12 +3558,12 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (not isStep) {
         ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
         ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
-}
+    }
     Term* depth = Term::getVar("Depth");
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));
     // debug purpose
 #ifdef DEBUG_PROLOG
-    ruleBody.push_back(CompoundTerm::getToFileTerm(getOutputItem(regexCharTerm, nextMethodKeyTerm, nextKeyTerm, outputAddressableKey, outputKeyType, depth), Term::getStr("a.txt")));
+    ruleBody.push_back(CompoundTerm::getToFileTerm(Tail::getInstanceByElements({ nextMethodKeyTerm, nextKeyTerm, outputKeyType,regexCharTerm, Term::getStr(lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName) , depth }), Term::getStr("a.txt")));
 #endif
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getTransitionTerm(
         lineInstanceValNameTerm, classScopeTerm,
