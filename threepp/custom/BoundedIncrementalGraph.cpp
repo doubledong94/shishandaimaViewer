@@ -1602,7 +1602,7 @@ void BoundedIncrementalGraph::lookEachOtherForPath(int i, set<int>& otherNodes, 
 }
 
 void BoundedIncrementalGraph::select(set<int>& s) {
-    if (selectedFromAll) {
+    if (selectedFromAll or nodesObj->selected.empty()) {
         nodesObj->selected.insert(s.begin(), s.end());
     } else {
         set<int> oldSelected;
