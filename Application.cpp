@@ -957,30 +957,25 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByGroupPopupOpen")) {
             ImGui::SeparatorText("select by group");
-            int i = 0;
-            int lastGroupCount = i;
-            for (;i < boundedGraph->groups.size() + lastGroupCount;i++) {
+            for (int i = 0;i < boundedGraph->groups.size();i++) {
                 string s = to_string(i) + "  [" + to_string(boundedGraph->groups[i].size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(boundedGraph->groups[i]);
                 }
             }
-            lastGroupCount = i;
-            for (;i < boundedGraph->xCoordFixed.size() + lastGroupCount;i++) {
+            for (int i = 0;i < boundedGraph->xCoordFixed.size();i++) {
                 string s = to_string(i) + "  [" + to_string(boundedGraph->xCoordFixed[i].size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(boundedGraph->xCoordFixed[i]);
                 }
             }
-            lastGroupCount = i;
-            for (;i < boundedGraph->yCoordFixed.size() + lastGroupCount;i++) {
+            for (int i = 0;i < boundedGraph->yCoordFixed.size();i++) {
                 string s = to_string(i) + "  [" + to_string(boundedGraph->yCoordFixed[i].size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(boundedGraph->yCoordFixed[i]);
                 }
             }
-            lastGroupCount = i;
-            for (;i < boundedGraph->bounds.size() + lastGroupCount;i++) {
+            for (int i = 0;i < boundedGraph->bounds.size();i++) {
                 string s = to_string(i) + "  [" + to_string(boundedGraph->bounds[i].size()) + "]";
                 if (ImGui::Selectable(s.data())) {
                     boundedGraph->select(boundedGraph->bounds[i]);
