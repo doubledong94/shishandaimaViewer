@@ -179,7 +179,7 @@ void EasierSimpleView::init() {
     PrologWrapper::declareFun(HEAD_ADDRESSABLE_LOADED->atomOrVar, 1);
     PrologWrapper::declareFun(HEAD_UNADDRESSABLE_LOADED->atomOrVar, 1);
     PrologWrapper::declareFun(HEAD_RUNTIME_KEY->atomOrVar, 4);
-    PrologWrapper::declareFun(HEAD_DATA_FLOW->atomOrVar, 3);
+    PrologWrapper::declareFun(HEAD_FLOW->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_STEP_KEY->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_OVERRIDE_KEY->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_RUNTIME_READ->atomOrVar, 3);
@@ -431,22 +431,22 @@ void EasierSimpleView::declareStepRules() {
     vector<Rule*> rules;
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod, calledMethod, calledReturn), {
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
+        CompoundTerm::getFlowTerm(runtimeMethod,calledMethod,calledReturn),
         CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledReturn,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledParamToCalledReturnTerm(runtimeMethod, calledParam, calledReturn), {
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
+        CompoundTerm::getFlowTerm(runtimeMethod,calledParam,calledMethod),
         CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
         CompoundTerm::getCalledMethodToCalledReturnTerm(runtimeMethod,calledMethod,calledReturn),
         }));
 
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod, calledReturn, calledMethod), {
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledMethod,calledReturn),
+        CompoundTerm::getFlowTerm(runtimeMethod,calledMethod,calledReturn),
         CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledMethod,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getCalledReturnToCalledParam(runtimeMethod, calledReturn, calledParam), {
         CompoundTerm::getCalledReturnToCalledMethod(runtimeMethod,calledReturn,calledMethod),
-        CompoundTerm::getDataFlowTerm(runtimeMethod,calledParam,calledMethod),
+        CompoundTerm::getFlowTerm(runtimeMethod,calledParam,calledMethod),
         CompoundTerm::getRuntimeTerm(runtimeMethod,Term::getIgnoredVar(),calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
         }));
 
@@ -484,7 +484,7 @@ void EasierSimpleView::declareStepRules() {
         }));
     // return -> step -> step -> called return (current steps != [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
-        CompoundTerm::getDataFlowTerm(outerMethod,nextStepKey,calledReturn),
+        CompoundTerm::getFlowTerm(outerMethod,nextStepKey,calledReturn),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
         }));
     // return -> step -> step -> called return (current steps == [])
@@ -504,7 +504,7 @@ void EasierSimpleView::declareStepRules() {
     // method -> step -> step -> called method (current steps != [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getCalledReturnToCalledMethod(outerMethod,calledReturn,calledMethod),
-        CompoundTerm::getDataFlowTerm(outerMethod,calledMethod,nextStepKey),
+        CompoundTerm::getFlowTerm(outerMethod,calledMethod,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
         }));
     // method -> step -> step -> called method (current steps == [])
@@ -530,7 +530,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getCalledKeyTerm(param,calledParamAddressable),
         CompoundTerm::getRuntimeTerm(outerMethod,calledParamAddressable,calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
         // get the step key
-        CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextStepKey),
+        CompoundTerm::getFlowTerm(outerMethod,calledParam,nextStepKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))
         }));
     // param -> step -> step -> called param (current steps == [])
@@ -647,7 +647,7 @@ void EasierSimpleView::declareOverrideRules() {
         }));
     // return -> override -> override -> called return (current steps != [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
-        CompoundTerm::getDataFlowTerm(outerMethod,nextOverrideKey,calledReturn),
+        CompoundTerm::getFlowTerm(outerMethod,nextOverrideKey,calledReturn),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))
         }));
     // return -> override -> override -> called return (current steps == [])
@@ -669,7 +669,7 @@ void EasierSimpleView::declareOverrideRules() {
     // method -> override -> override -> called method (current steps != [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingOverrideTerm(innerMethod, point, outerMethod, nextOverrideKey, Tail::getTailInstance(Tail::getInstanceByElements({ outerMethod, calledReturn }), nextSteps), nextSteps), {
         CompoundTerm::getCalledReturnToCalledMethod(outerMethod,calledReturn,calledMethod),
-        CompoundTerm::getDataFlowTerm(outerMethod,calledMethod,nextOverrideKey),
+        CompoundTerm::getFlowTerm(outerMethod,calledMethod,nextOverrideKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE))
         }));
     // method -> override -> override -> called method (current steps == [])
@@ -698,7 +698,7 @@ void EasierSimpleView::declareOverrideRules() {
         CompoundTerm::getCalledKeyTerm(param,calledParamAddressable),
         CompoundTerm::getRuntimeTerm(outerMethod,calledParamAddressable,calledParam,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_PARAMETER)),
         // get the step key
-        CompoundTerm::getDataFlowTerm(outerMethod,calledParam,nextOverrideKey),
+        CompoundTerm::getFlowTerm(outerMethod,calledParam,nextOverrideKey),
         CompoundTerm::getRuntimeTerm(outerMethod,Term::getIgnoredVar(),nextOverrideKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))
         }));
     // param -> overrideKey -> overrideKey -> called param (current steps == [])
@@ -3048,9 +3048,9 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
 
     // rule 2 the recursive
     if (isBackward) {
-        flowTerm = CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, expectingNextKeyTerm, currentKeyTerm);
+        flowTerm = CompoundTerm::getFlowTerm(currentMethodKeyTerm, expectingNextKeyTerm, currentKeyTerm);
     } else {
-        flowTerm = CompoundTerm::getDataFlowTerm(currentMethodKeyTerm, currentKeyTerm, expectingNextKeyTerm);
+        flowTerm = CompoundTerm::getFlowTerm(currentMethodKeyTerm, currentKeyTerm, expectingNextKeyTerm);
     }
     // fa impl
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaImplTerm(

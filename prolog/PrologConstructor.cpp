@@ -311,12 +311,12 @@ CompoundTerm* CompoundTerm::getLoadAddressableTerm(Term* classKey) {
     return makeTerm(HEAD_LOAD_ADDRESSABLE, classKey);
 }
 
-CompoundTerm* CompoundTerm::getDataFlowTerm(Term* mk, Term* src, Term* dst) {
-    return makeTerm(HEAD_DATA_FLOW, mk, src, dst);
+CompoundTerm* CompoundTerm::getFlowTerm(Term* mk, Term* src, Term* dst) {
+    return makeTerm(HEAD_FLOW, mk, src, dst);
 }
 
-string CompoundTerm::getDataFlowFact(const string& mk, const string& src, const string& dst) {
-    string ret = getDataFlowTerm(Term::getStr(mk), Term::getStr(src), Term::getStr(dst))->toString(true);
+string CompoundTerm::getFlowFact(const string& mk, const string& src, const string& dst) {
+    string ret = getFlowTerm(Term::getStr(mk), Term::getStr(src), Term::getStr(dst))->toString(true);
     ret.push_back('.');
     return ret;
 }

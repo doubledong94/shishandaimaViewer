@@ -66,7 +66,7 @@ void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, Class
 
     map<Term*, int> unaddressableMultiFileFunctorName2ArgCount;
     unaddressableMultiFileFunctorName2ArgCount[HEAD_RUNTIME_KEY] = 4;
-    unaddressableMultiFileFunctorName2ArgCount[HEAD_DATA_FLOW] = 3;
+    unaddressableMultiFileFunctorName2ArgCount[HEAD_FLOW] = 3;
     unaddressableMultiFileFunctorName2ArgCount[HEAD_CODE_ORDER] = 3;
     unaddressableMultiFileFunctorName2ArgCount[HEAD_RUNTIME_READ] = 3;
     unaddressableMultiFileFunctorName2ArgCount[HEAD_RUNTIME_WRITE] = 3;

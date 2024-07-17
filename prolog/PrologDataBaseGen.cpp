@@ -128,42 +128,42 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
     // data flow from lvToLastWrittenKeys
     genDataFlowFromLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // data flow of this relation
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
+    prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
     // data flow of step
     // called param -> step/override
     if (read->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
         string stepKey = AddressableInfo::makeStepKey(read->variableKey);
         string stepRuntime = ResolvingItem::makeRuntimeKey(stepKey, read->structureKey, read->sentenceIndex, read->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, stepRuntime));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, read->runtimeKey, stepRuntime));
         dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntime });
 
         string overrideKey = AddressableInfo::makeOverrideKey(read->variableKey);
         string overrideRuntime = ResolvingItem::makeRuntimeKey(overrideKey, read->structureKey, read->sentenceIndex, read->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, read->runtimeKey, overrideRuntime));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, read->runtimeKey, overrideRuntime));
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // step/override -> called return
     if (writen->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
         string stepKey = AddressableInfo::makeStepKey(writen->variableKey);
         string stepRuntime = ResolvingItem::makeRuntimeKey(stepKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepRuntime, writen->runtimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, stepRuntime, writen->runtimeKey));
         dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntime });
 
         string overrideKey = AddressableInfo::makeOverrideKey(writen->variableKey);
         string overrideRuntime = ResolvingItem::makeRuntimeKey(overrideKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntime, writen->runtimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, overrideRuntime, writen->runtimeKey));
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // ... -> return -> step/override
     if (writen->keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN) {
         string stepKey = AddressableInfo::makeStepKey(writen->variableKey);
         string stepRuntime = ResolvingItem::makeRuntimeKey(stepKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, stepRuntime));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, writen->runtimeKey, stepRuntime));
         dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntime });
 
         string overrideKey = AddressableInfo::makeOverrideKey(writen->variableKey);
         string overrideRuntime = ResolvingItem::makeRuntimeKey(overrideKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, writen->runtimeKey, overrideRuntime));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, writen->runtimeKey, overrideRuntime));
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // mark local variable and make written history
@@ -199,7 +199,7 @@ void DataFlowVisitor::genDataFlowFromLastWrittenLvs(const string& methodKey, Res
     bool isReadParam = read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER;
     if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or isReadParam) {
         if (codeBlock->lvToLastWrittenKeys.count(read->variableKey)) {
-            FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, item, read->runtimeKey)););
+            FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, item, read->runtimeKey)););
             if (isReadParam and not codeBlock->lvUpdatedByBlockStack100Percent(read->variableKey)) {
                 // step -> param -> ...
                 addStepToParam(methodKey, read, prologLines);
@@ -236,24 +236,24 @@ void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBloc
 void DataFlowVisitor::addStepToParam(const string& methodKey, ResolvingItem* paramItem, list<string>& prologLines) {
     string stepKey = AddressableInfo::makeStepKey(paramItem->variableKey);
     string stepRuntimeKey = ResolvingItem::makeRuntimeKey(stepKey, paramItem->structureKey, paramItem->sentenceIndex, paramItem->indexInsideStatement);
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepRuntimeKey, paramItem->runtimeKey));
+    prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, stepRuntimeKey, paramItem->runtimeKey));
     dataStepRuntimes[methodKey].push_back({ stepKey,stepRuntimeKey });
 
     string overrideKey = AddressableInfo::makeOverrideKey(paramItem->variableKey);
     string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, paramItem->structureKey, paramItem->sentenceIndex, paramItem->indexInsideStatement);
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntimeKey, paramItem->runtimeKey));
+    prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, overrideRuntimeKey, paramItem->runtimeKey));
     dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
 }
 
 void LogicFlowVisitor::genToCondition(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
     // variable to condition
     if (codeBlock->toConditionValue) {
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, codeBlock->toConditionValue->runtimeKey, codeBlock->conditionItem->runtimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, codeBlock->toConditionValue->runtimeKey, codeBlock->conditionItem->runtimeKey));
     }
     // else to condition
     if (codeBlock->elseConditionValue) {
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, codeBlock->elseConditionValue->runtimeKey, codeBlock->elseValue->runtimeKey));
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, codeBlock->elseValue->runtimeKey, codeBlock->conditionItem->runtimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, codeBlock->elseConditionValue->runtimeKey, codeBlock->elseValue->runtimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, codeBlock->elseValue->runtimeKey, codeBlock->conditionItem->runtimeKey));
     }
 }
 
@@ -272,14 +272,14 @@ void TimingFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBo
     // step -> method
     string stepKey = AddressableInfo::makeStepKey(methodBody->conditionItem->variableKey);
     string stepRuntimeKey = ResolvingItem::makeRuntimeKey(stepKey, methodBody->conditionItem->structureKey, "-1", "-1");
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, stepRuntimeKey, methodBody->conditionItem->runtimeKey));
+    prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, stepRuntimeKey, methodBody->conditionItem->runtimeKey));
     timingStepRuntimes[methodKey].push_back({ stepKey,stepRuntimeKey });
 
     timingOverrideRuntimes[methodKey] = list<pair<string, string>>();
     // override -> method
     string overrideKey = AddressableInfo::makeOverrideKey(methodBody->conditionItem->variableKey);
     string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, methodBody->conditionItem->structureKey, "-1", "-1");
-    prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, overrideRuntimeKey, methodBody->conditionItem->runtimeKey));
+    prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, overrideRuntimeKey, methodBody->conditionItem->runtimeKey));
     timingOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
 
     GenDataVisitor::visitMethod(methodKey, methodBody, prologLines);
@@ -288,7 +288,7 @@ void TimingFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBo
 void TimingFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* superCodeBlock, SplitCodeBlocks* splitCodeBlocks, list<string>& prologLines) {
     for (auto* subCodeBlock : splitCodeBlocks->blocks) {
         // super condition to sub condition
-        subCodeBlock->conditionItem->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
+        subCodeBlock->conditionItem->addConditionToProlog(CompoundTerm::getFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
         visitCodeBlock(methodKey, subCodeBlock, prologLines);
     }
 }
@@ -298,12 +298,12 @@ void TimingFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBl
     if (relation->read->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD) {
         string stepKey = AddressableInfo::makeStepKey(relation->read->variableKey);
         string stepRuntimeKey = ResolvingItem::makeRuntimeKey(stepKey, relation->read->structureKey, relation->read->sentenceIndex, relation->read->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, relation->read->runtimeKey, stepRuntimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, relation->read->runtimeKey, stepRuntimeKey));
         timingStepRuntimes[methodKey].push_back({ stepKey,stepRuntimeKey });
 
         string overrideKey = AddressableInfo::makeOverrideKey(relation->read->variableKey);
         string overrideRuntimeKey = ResolvingItem::makeRuntimeKey(overrideKey, relation->read->structureKey, relation->read->sentenceIndex, relation->read->indexInsideStatement);
-        prologLines.emplace_back(CompoundTerm::getDataFlowFact(methodKey, relation->read->runtimeKey, overrideRuntimeKey));
+        prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, relation->read->runtimeKey, overrideRuntimeKey));
         timingOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntimeKey });
     }
     addTimingFlow(methodKey, codeBlock, relation->read, prologLines);
@@ -323,7 +323,7 @@ void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBl
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
         item->keyType == GlobalInfo::KEY_TYPE_ERROR
         ) {
-        item->addConditionToProlog(CompoundTerm::getDataFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
+        item->addConditionToProlog(CompoundTerm::getFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);
     }
     if (item->referencedBy) {
         addTimingFlow(methodKey, codeBlock, item->referencedBy, prologLines);
@@ -335,17 +335,17 @@ void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBl
 
 void ScopeFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlock, list<string>& prologLines) {
     if (codeBlock->toConditionValue) {
-        codeBlock->toConditionValue->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
-        codeBlock->toConditionValue->addIndexProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
+        codeBlock->toConditionValue->addReferenceProlog(CompoundTerm::getFlowFact, methodKey, prologLines);
+        codeBlock->toConditionValue->addIndexProlog(CompoundTerm::getFlowFact, methodKey, prologLines);
     }
     GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
 }
 
 void ScopeFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBlock, Relation* relation, list<string>& prologLines) {
-    relation->read->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
-    relation->writen->addReferenceProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
-    relation->read->addIndexProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
-    relation->writen->addIndexProlog(CompoundTerm::getDataFlowFact, methodKey, prologLines);
+    relation->read->addReferenceProlog(CompoundTerm::getFlowFact, methodKey, prologLines);
+    relation->writen->addReferenceProlog(CompoundTerm::getFlowFact, methodKey, prologLines);
+    relation->read->addIndexProlog(CompoundTerm::getFlowFact, methodKey, prologLines);
+    relation->writen->addIndexProlog(CompoundTerm::getFlowFact, methodKey, prologLines);
 }
 
 void CodeOrderVisitor::visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) {
