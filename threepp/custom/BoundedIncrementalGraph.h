@@ -60,7 +60,7 @@ public:
     std::mutex graphGenerateAndConsumeLock;
     // push back and pop front by different thread
     list<Tail*> lineBuffer;
-    // lineBuffer is created in main thread, so it should be returned by main thread, otherwise, no memory is reused
+    // lineBuffer is created in prolog thread, so it should be returned by prolog thread, otherwise, no memory is reused
     list<Tail*> doneBuffer;
     void addBuffers(const vector<Tail*>& bufs);
     void popBuffers(int count, vector<Tail*>& ret);
