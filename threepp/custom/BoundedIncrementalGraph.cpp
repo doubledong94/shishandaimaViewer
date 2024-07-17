@@ -1355,6 +1355,7 @@ void BoundedIncrementalGraph::resetStyledNodes() {
     nodesObj->styled.clear();
     nodesObj->styled2.clear();
     nodesObj->styled3.clear();
+    nodesObj->styled4.clear();
     for (auto nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
