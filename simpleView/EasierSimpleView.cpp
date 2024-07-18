@@ -2914,6 +2914,7 @@ void SimpleView::HalfLineTheFA::makeFa() {
     re2::Regexp* re = re2::Regexp::Parse(regex, re2::Regexp::LikePerl, NULL);
     re2::Prog* prog = re->CompileToProg(0);
     int stateCount = 0;
+    prog->set_dfa_mem(10485760);
     prog->BuildEntireDFA(re2::Prog::kLongestMatch, [&](const int* next, bool match) {
         if (match) {
             acceptingStates.insert(stateCount);
