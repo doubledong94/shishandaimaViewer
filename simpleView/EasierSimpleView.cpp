@@ -92,6 +92,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::RETURN);
     saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN);
     saveVocabulary(lexer, SimpleViewLexer::INDEX);
+    saveVocabulary(lexer, SimpleViewLexer::ERROR);
     saveVocabulary(lexer, SimpleViewLexer::DATA_OVERRIDE);
     saveVocabulary(lexer, SimpleViewLexer::TIMING_OVERRIDE);
     // line
@@ -169,6 +170,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_RETURN,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_RETURN,Images::returnIconId},
                 {SimpleView::Node::NODE_TYPE_INDEX,Images::indexIcon},
+                {SimpleView::Node::NODE_TYPE_ERROR,Images::elseIconId},
                 {SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_VAR,Images::varIconId},
     };
@@ -218,6 +220,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_RETURN = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_RETURN);
     SimpleView::Node::NODE_CALLED_RETURN = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CALLED_RETURN);
     SimpleView::Node::NODE_INDEX = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_INDEX);
+    SimpleView::Node::NODE_ERROR = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ERROR);
 
     antlr4::CommonTokenStream tokenStream(&lexer);
     SimpleViewParser parser(&tokenStream);
@@ -1564,6 +1567,7 @@ SimpleView::Node* SimpleView::Node::NODE_CALLED_PARAMETER = NULL;
 SimpleView::Node* SimpleView::Node::NODE_RETURN = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CALLED_RETURN = NULL;
 SimpleView::Node* SimpleView::Node::NODE_INDEX = NULL;
+SimpleView::Node* SimpleView::Node::NODE_ERROR = NULL;
 SimpleView::Node* SimpleView::Node::NODE_DATA_OVERRIDE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_TIMING_OVERRIDE = NULL;
 
@@ -1646,6 +1650,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_INDEX:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::INDEX];
         node->iconId = Images::indexIcon;
+        break;
+    case Node::NODE_TYPE_ERROR:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::ERROR];
+        node->iconId = Images::elseIconId;
         break;
     default:
         break;
@@ -1956,6 +1964,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::CALLED_RETURN];
     case NODE_TYPE_INDEX:
         return voc[SimpleViewLexer::INDEX];
+    case NODE_TYPE_ERROR:
+        return voc[SimpleViewLexer::ERROR];
     case NODE_TYPE_INTERSECTION:
         return operandForSetOperation.first->displayName + " & " + operandForSetOperation.second->displayName;
     case NODE_TYPE_UNION:
@@ -1989,7 +1999,8 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_CALLED_PARAMETER
         and nodeType != NODE_TYPE_RETURN
         and nodeType != NODE_TYPE_CALLED_RETURN
-        and nodeType != NODE_TYPE_INDEX;
+        and nodeType != NODE_TYPE_INDEX
+        and nodeType != NODE_TYPE_ERROR;
 }
 
 void SimpleView::Node::release() {
@@ -3434,6 +3445,9 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_INDEX:
         specialKeyType = GlobalInfo::KEY_TYPE_INDEX;
         break;
+    case Node::NODE_TYPE_ERROR:
+        specialKeyType = GlobalInfo::KEY_TYPE_ERROR;
+        break;
     case Node::NODE_TYPE_CLASS:
         specialKeyType = GlobalInfo::KEY_TYPE_CLASS;
         break;
@@ -3475,14 +3489,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     } else {
         ruleBody.push_back(Unification::getUnificationInstance(nextKeyTerm, expectingNextKeyTerm));
     }
-    bool canBeError = nodeType != Node::NODE_TYPE_REFERENCE and
-        nodeType != Node::NODE_TYPE_CONDITION and
-        nodeType != Node::NODE_TYPE_ELSE and
-        nodeType != Node::NODE_TYPE_DATA_STEP and
-        nodeType != Node::NODE_TYPE_TIMING_STEP and
-        nodeType != Node::NODE_TYPE_DATA_OVERRIDE and
-        nodeType != Node::NODE_TYPE_TIMING_OVERRIDE and
-        nodeType != Node::NODE_TYPE_INDEX;
     // value check node type/node inner name and output addressable key and key type
     switch (nodeType) {
     case Node::NODE_TYPE_ANY:
@@ -3525,16 +3531,11 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_RETURN:
     case Node::NODE_TYPE_CALLED_RETURN:
     case Node::NODE_TYPE_INDEX:
+    case Node::NODE_TYPE_ERROR:
     case Node::NODE_TYPE_CLASS:
         // check by node type
-        if (canBeError) {
-            ruleBody.push_back(DisjunctionTerm::getDisjunctionInstance(
-                ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)),Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)) }),
-                ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)) })));
-        } else {
-            ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)));
-            ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
-        }
+        ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)));
+        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
         break;
     case Node::NODE_TYPE_FINAL:
         // check by node type

@@ -909,6 +909,9 @@ namespace shishan {
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("TimingOverride##specialNodeTimingOverride", SimpleView::Node::NODE_TIMING_OVERRIDE);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Error##specialNodeError", SimpleView::Node::NODE_ERROR);
 
             for (int i = 0;i < lineEditValues.size();i++) {
                 if (not nodeInLineIdMap.count(i)) {

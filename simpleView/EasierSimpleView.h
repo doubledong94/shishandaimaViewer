@@ -131,6 +131,7 @@ namespace SimpleView {
             NODE_TYPE_RETURN,
             NODE_TYPE_CALLED_RETURN,
             NODE_TYPE_INDEX,
+            NODE_TYPE_ERROR,
 
             NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,
             NODE_TYPE_RUNTIME,
@@ -158,6 +159,7 @@ namespace SimpleView {
         static Node* NODE_RETURN;
         static Node* NODE_CALLED_RETURN;
         static Node* NODE_INDEX;
+        static Node* NODE_ERROR;
         static Node* NODE_DATA_OVERRIDE;
         static Node* NODE_TIMING_OVERRIDE;
 

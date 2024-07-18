@@ -57,6 +57,7 @@ CALLED_PARAMETER: 'CalledParameter';
 RETURN: 'Return';
 CALLED_RETURN: 'CalledReturn';
 INDEX: 'Index';
+ERROR: 'Error';
 SEGMENT : 'Seg';
 LINE : 'Line';
 LINE_INSTANCE: 'LineInstance';
@@ -140,6 +141,7 @@ nodeExp
     | RETURN
     | CALLED_RETURN
     | INDEX
+    | ERROR
     | '(' bracket=nodeExp ')'
     | refOtherNode=IDENTIFIER
     | varNode='{' IDENTIFIER '}'
