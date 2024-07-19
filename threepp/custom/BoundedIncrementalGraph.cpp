@@ -827,7 +827,7 @@ void BoundedIncrementalGraph::applyLayoutTreeUpAndDown(bool up) {
         }
     }
     layoutAnimating = false;
-    // waite untile layout animatin finished
+    // wait until layout animation finish
     while (!layoutThreadPool->empty()) {
     }
     groups.clear();
