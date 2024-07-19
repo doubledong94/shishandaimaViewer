@@ -690,9 +690,15 @@ int app::Application::ApplicationMain() {
         boundedGraph->resetBounds();
         };
     HotkeyConfig::functionEnumToFunction[TREE_UP] = [&]() {
+        if (searchingInProgress) {
+            return;
+        }
         boundedGraph->applyLayoutTreeUpAndDown(true);
     };
     HotkeyConfig::functionEnumToFunction[TREE_DOWN] = [&]() {
+        if (searchingInProgress) {
+            return;
+        }
         boundedGraph->applyLayoutTreeUpAndDown(false);
     };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
