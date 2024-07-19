@@ -1013,6 +1013,7 @@ void BoundedIncrementalGraph::set2DLayout(bool use2DLayout) {
             for (int i = 0;i < bounds.size();i++) {
                 boundFrames[i]->setDim(true);
             }
+            layoutAnimating = true;
         }
     } else {
         if (layoutState == LAYOUT_STATE_2D) {
@@ -1020,6 +1021,7 @@ void BoundedIncrementalGraph::set2DLayout(bool use2DLayout) {
             for (int i = 0;i < bounds.size();i++) {
                 boundFrames[i]->setDim(false);
             }
+            layoutAnimating = true;
         }
     }
 }

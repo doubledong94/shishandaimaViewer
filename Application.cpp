@@ -435,7 +435,6 @@ int app::Application::ApplicationMain() {
         camera.get()->lookAt({ 0,0,0 });
         boundedGraph->set2DLayout(true);
         boundedGraph->position.set(0, 0, 0);
-        boundedGraph->layoutAnimating = true;
         };
     HotkeyConfig::functionEnumToFunction[TO_3D_LAYOUT] = [&]() {
         twoDControls.enabled = false;
@@ -446,7 +445,6 @@ int app::Application::ApplicationMain() {
         camera.get()->lookAt({ 0,0,0 });
         boundedGraph->set2DLayout(false);
         boundedGraph->position.set(0, 0, 0);
-        boundedGraph->layoutAnimating = true;
         };
     HotkeyConfig::functionEnumToFunction[INCREASE_TEMPERATURE] = [&]() {
         boundedGraph->increaseTemperature();
