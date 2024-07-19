@@ -151,14 +151,12 @@ static Term* HEAD_LINE = new Term("line", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_HALF_LINE = new Term("forwardHalfLine", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_FA = new Term("forwardFa", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_FA_IMPL = new Term("forwardFaImpl", Term::TERM_TYPE_ATOM);
-static Term* HEAD_FORWARD_CACHE_FA = new Term("forwardCacheFa", Term::TERM_TYPE_ATOM);
-static Term* HEAD_FORWARD_FA_CACHE = new Term("forwardFaCache", Term::TERM_TYPE_ATOM);
+static Term* HEAD_FORWARD_FA_SUCC = new Term("forwardFaSucc", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_FA_DONE = new Term("forwardFaDone", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_HALF_LINE = new Term("backwardHalfLine", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_FA = new Term("backwardFa", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_FA_IMPL = new Term("backwardFaImpl", Term::TERM_TYPE_ATOM);
-static Term* HEAD_BACKWARD_CACHE_FA = new Term("backwardCacheFa", Term::TERM_TYPE_ATOM);
-static Term* HEAD_BACKWARD_FA_CACHE = new Term("backwardFaCache", Term::TERM_TYPE_ATOM);
+static Term* HEAD_BACKWARD_FA_SUCC = new Term("backwardFaSucc", Term::TERM_TYPE_ATOM);
 static Term* HEAD_BACKWARD_FA_DONE = new Term("backwardFaDone", Term::TERM_TYPE_ATOM);
 static Term* HEAD_GRAPH = new Term("graph", Term::TERM_TYPE_ATOM);
 static Term* HEAD_FORWARD_TRANSITION = new Term("forwardTransition", Term::TERM_TYPE_ATOM);
@@ -436,24 +434,11 @@ public:
         Term* history,
         bool isBackward);
 
-    static Term* getCacheFaTerm(
+    static Term* getFaSuccTerm(
         Term* lineInstanceValName,
         Term* classScopeValName,
         Term* currentState,
         Term* currentPoint,
-        Term* currentSteps,
-        const vector<Term*>& intersections,
-        Term* output,
-        Term* history,
-        bool isBackward);
-
-    static Term* getFaCacheTerm(
-        Term* lineInstanceValName,
-        Term* classScopeValName,
-        Term* currentState,
-        Term* currentPoint,
-        Term* currentSteps,
-        Term* output,
         bool isBackward);
 
     static Term* getFaDoneTerm(
@@ -461,16 +446,13 @@ public:
         Term* classScopeValName,
         Term* currentState,
         Term* currentPoint,
-        Term* currentSteps,
         bool isBackward);
 
     static void retractAllFaTerm(bool isBackward, int intersectionCount);
 
     static void retractAllFaImplTerm(bool isBackward, int intersectionCount);
 
-    static void retractAllCacheFaTerm(bool isBackward, int intersectionCount);
-
-    static void retractAllFaCacheTerm(bool isBackward);
+    static void retractAllFaSuccTerm(bool isBackward);
 
     static void retractAllFaDoneTerm(bool isBackward);
 

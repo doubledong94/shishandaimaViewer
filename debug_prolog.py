@@ -17,7 +17,7 @@ while True:
         # push stack or pop stack
         prefix = 'x '
         c = int(l2)
-        for i in range(c,len(lineStack)+1):
+        for i in range(c,len(lineStack)):
             lineStack.pop()
         lineStack.append(l1)
     for l in lineStack:

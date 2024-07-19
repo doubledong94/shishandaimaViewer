@@ -189,6 +189,10 @@ void EasierSimpleView::init() {
     PrologWrapper::declareFun(HEAD_RUNTIME_READ->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_RUNTIME_WRITE->atomOrVar, 3);
     PrologWrapper::declareFun(HEAD_CODE_ORDER->atomOrVar, 3);
+    PrologWrapper::declareFun(HEAD_FORWARD_FA_SUCC->atomOrVar, 4);
+    PrologWrapper::declareFun(HEAD_BACKWARD_FA_SUCC->atomOrVar, 4);
+    PrologWrapper::declareFun(HEAD_FORWARD_FA_DONE->atomOrVar, 4);
+    PrologWrapper::declareFun(HEAD_BACKWARD_FA_DONE->atomOrVar, 4);
     declareKeyConvertion();
     declareClassResolveRules();
     declareNodeResolveRules();
@@ -2843,10 +2847,8 @@ void SimpleView::LineInstance::retractAllLineInstanceRule(int intersectionCount)
     CompoundTerm::retractAllFaTerm(true, intersectionCount);
     CompoundTerm::retractAllFaImplTerm(false, intersectionCount);
     CompoundTerm::retractAllFaImplTerm(true, intersectionCount);
-    CompoundTerm::retractAllCacheFaTerm(false, intersectionCount);
-    CompoundTerm::retractAllCacheFaTerm(true, intersectionCount);
-    CompoundTerm::retractAllFaCacheTerm(false);
-    CompoundTerm::retractAllFaCacheTerm(true);
+    CompoundTerm::retractAllFaSuccTerm(false);
+    CompoundTerm::retractAllFaSuccTerm(true);
     CompoundTerm::retractAllFaDoneTerm(false);
     CompoundTerm::retractAllFaDoneTerm(true);
     CompoundTerm::retractAllTransitionTerm(false, intersectionCount);
@@ -2992,7 +2994,7 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 Tail::getInstanceByElements({}),
                 intersection,
                 outputTailTerm,
-                Tail::getInstanceByElements({splitTerm}), isBackward),
+                Tail::getInstanceByElements({}), isBackward),
                 // debug purpose
                 #ifdef DEBUG_PROLOG
                 CompoundTerm::getToFileTerm(Term::getStr("-----------------------------"), Term::getStr("a.txt")),
@@ -3083,79 +3085,16 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         CompoundTerm::getLengthTerm(history,Term::getVar("L")),
         CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
         #endif
-            DisjunctionTerm::getDisjunctionInstance(
-                ConjunctionTerm::getConjunctionInstance({
-                    CompoundTerm::getMemberTerm(nextPoint,history),
-                    Unification::getUnificationInstance(outputTailTerm,Tail::getInstanceByElements({}))
-                }),
-                ConjunctionTerm::getConjunctionInstance({
-                    NegationTerm::getNegInstance(CompoundTerm::getMemberTerm(nextPoint,history)),
-                    CompoundTerm::getFaTerm(
-                        lineInstanceValNameTerm, classScopeTerm,
-                        nextStateTerm,
-                        nextPoint,
-                        nextStepsTerm,
-                        intersection,
-                        outputTailTerm,
-                        Tail::getTailInstance(nextPoint, history), isBackward),
-                        })
-            )
+        NegationTerm::getNegInstance(CompoundTerm::getMemberTerm(nextPoint,history)),
+        CompoundTerm::getFaTerm(
+            lineInstanceValNameTerm, classScopeTerm,
+            nextStateTerm,
+            nextPoint,
+            nextStepsTerm,
+            intersection,
+            outputTailTerm,
+            Tail::getTailInstance(nextPoint, history), isBackward),
         }));
-
-    // // make cache
-    // rules.push_back(Rule::getRuleInstance(CompoundTerm::getCacheFaTerm(
-    //     lineInstanceValNameTerm, classScopeTerm,
-    //     currentStateTerm,
-    //     currentPoint,
-    //     currentStepsTerm,
-    //     intersection,
-    //     faOutput,
-    //     history, isBackward), {
-    //         CompoundTerm::getFaImplTerm(
-    //             lineInstanceValNameTerm, classScopeTerm,
-    //             currentStateTerm,
-    //             currentPoint,
-    //             currentStepsTerm,
-    //             intersection,
-    //             faOutput,
-    //             history, isBackward),
-    //         AssertTerm::getAssertInstance(CompoundTerm::getFaCacheTerm(
-    //             lineInstanceValNameTerm, classScopeTerm,
-    //             currentStateTerm,
-    //             currentPoint,
-    //             currentStepsTerm,
-    //             faOutput,
-    //             isBackward)),
-    //             #ifdef DEBUG_PROLOG
-    //             CompoundTerm::getToFileTerm(
-    //                 CompoundTerm::getFaCacheTerm(
-    //                 lineInstanceValNameTerm, classScopeTerm,
-    //                 currentStateTerm,
-    //                 currentPoint,
-    //                 currentStepsTerm,
-    //                 faOutput,
-    //                 isBackward),
-    //             Term::getStr("a.txt")),
-    //             #endif
-    //         Term::getAtom("fail"),
-    //     }));
-
-    // // use cache
-    // rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
-    //     lineInstanceValNameTerm, classScopeTerm,
-    //     currentStateTerm,
-    //     currentPoint,
-    //     currentStepsTerm,
-    //     intersection,
-    //     faOutput,
-    //     history, isBackward), { CompoundTerm::getFaCacheTerm(
-    //             lineInstanceValNameTerm, classScopeTerm,
-    //             currentStateTerm,
-    //             currentPoint,
-    //             currentStepsTerm,
-    //             faOutput,
-    //             isBackward)
-    //     }));
 
     // there is no cache, if it is not called parameter nor return, just run the fa
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
@@ -3166,76 +3105,96 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         intersection,
         faOutput,
         history, isBackward), {
-            // // type check
-            // NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
-            // NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
-            CompoundTerm::getFaImplTerm(
-                lineInstanceValNameTerm, classScopeTerm,
-                currentStateTerm,
-                currentPoint,
-                currentStepsTerm,
-                intersection,
-                faOutput,
-                history, isBackward),
+            // not done or done and success
+            DisjunctionTerm::getDisjunctionInstance({
+            ConjunctionTerm::getConjunctionInstance({
+                NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
+                NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
+                CompoundTerm::getFaImplTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    currentStepsTerm,
+                    intersection,
+                    faOutput,
+                    history, isBackward),
+            }),
+            ConjunctionTerm::getConjunctionInstance({
+                DisjunctionTerm::getDisjunctionInstance({
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+                }),
+                //done and success
+                CompoundTerm::getFaSuccTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    isBackward),
+                Unification::getUnificationInstance(faOutput,Tail::getInstanceByElements({})),
+            }),
+            ConjunctionTerm::getConjunctionInstance({
+                DisjunctionTerm::getDisjunctionInstance({
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+                }),
+                // no done yet
+                NegationTerm::getNegInstance(CompoundTerm::getFaDoneTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    isBackward)),
+                // mark done
+                AssertTerm::getAssertInstance(CompoundTerm::getFaDoneTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    isBackward)),
+                #ifdef DEBUG_PROLOG
+                CompoundTerm::getToFileTerm(CompoundTerm::getFaDoneTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    isBackward),Term::getStr("b.txt")),
+                #endif
+                CompoundTerm::getFaImplTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    currentStepsTerm,
+                    intersection,
+                    faOutput,
+                    history, isBackward),
+                DisjunctionTerm::getDisjunctionInstance({
+                CompoundTerm::getFaSuccTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    currentStateTerm,
+                    currentPoint,
+                    isBackward),
+                ConjunctionTerm::getConjunctionInstance({
+                    // no succ yet
+                    NegationTerm::getNegInstance(CompoundTerm::getFaSuccTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        currentStateTerm,
+                        currentPoint,
+                        isBackward)),
+                    // mark succ
+                    AssertTerm::getAssertInstance(CompoundTerm::getFaSuccTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        currentStateTerm,
+                        currentPoint,
+                        isBackward)),
+                    #ifdef DEBUG_PROLOG
+                    CompoundTerm::getToFileTerm(CompoundTerm::getFaSuccTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        currentStateTerm,
+                        currentPoint,
+                        isBackward),Term::getStr("b.txt")),
+                    #endif
+                }),
+                }),
+                }),
+            }),
         }));
-
-    // // there is no cache, if it is called parameter or return, make cache and use cache
-    // rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaTerm(
-    //     lineInstanceValNameTerm, classScopeTerm,
-    //     currentStateTerm,
-    //     currentPoint,
-    //     currentStepsTerm,
-    //     intersection,
-    //     faOutput,
-    //     history, isBackward), {
-    //         // type check
-    //         DisjunctionTerm::getDisjunctionInstance(
-    //             CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
-    //             CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))
-    //         ),
-    //             // no cache yet
-    //             NegationTerm::getNegInstance(CompoundTerm::getFaDoneTerm(
-    //                 lineInstanceValNameTerm, classScopeTerm,
-    //                 currentStateTerm,
-    //                 currentPoint,
-    //                 currentStepsTerm,
-    //                 isBackward)),
-    //             // mark done
-    //         AssertTerm::getAssertInstance(CompoundTerm::getFaDoneTerm(
-    //             lineInstanceValNameTerm, classScopeTerm,
-    //             currentStateTerm,
-    //             currentPoint,
-    //             currentStepsTerm,
-    //             isBackward)),
-    //         #ifdef DEBUG_PROLOG
-    //         CompoundTerm::getToFileTerm(CompoundTerm::getFaDoneTerm(
-    //             lineInstanceValNameTerm, classScopeTerm,
-    //             currentStateTerm,
-    //             currentPoint,
-    //             currentStepsTerm,
-    //             isBackward),
-    //             Term::getStr("a.txt")),
-    //         #endif
-    //             // make cache
-    //             NegationTerm::getNegInstance(
-    //             CompoundTerm::getCacheFaTerm(
-    //                 lineInstanceValNameTerm, classScopeTerm,
-    //                 currentStateTerm,
-    //                 currentPoint,
-    //                 currentStepsTerm,
-    //                 intersection,
-    //                 faOutput,
-    //                 history, isBackward)
-    //             ),
-    //             // use cache
-    //             CompoundTerm::getFaCacheTerm(
-    //                 lineInstanceValNameTerm, classScopeTerm,
-    //                 currentStateTerm,
-    //                 currentPoint,
-    //                 currentStepsTerm,
-    //                 faOutput,
-    //                 isBackward),
-    //     }));
 
     for (auto& rule : rules) {
         PrologWrapper::addRule(rule->toString());
@@ -3565,7 +3524,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));
     // debug purpose
 #ifdef DEBUG_PROLOG
-    ruleBody.push_back(CompoundTerm::getToFileTerm(Tail::getInstanceByElements({ nextMethodKeyTerm, nextKeyTerm, outputKeyType,regexCharTerm, Term::getStr(lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName) , depth }), Term::getStr("a.txt")));
+    ruleBody.push_back(CompoundTerm::getToFileTerm(Tail::getInstanceByElements({ regexCharTerm,nextMethodKeyTerm, nextKeyTerm, outputKeyType, Term::getStr(lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName) , depth }), Term::getStr("a.txt")));
 #endif
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getTransitionTerm(
         lineInstanceValNameTerm, classScopeTerm,

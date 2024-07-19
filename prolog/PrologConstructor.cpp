@@ -662,45 +662,18 @@ Term* CompoundTerm::getFaImplTerm(
     return ret;
 }
 
-Term* CompoundTerm::getCacheFaTerm(
+Term* CompoundTerm::getFaSuccTerm(
     Term* lineInstanceValName,
     Term* classScopeValName,
     Term* currentState,
     Term* currentPoint,
-    Term* currentSteps,
-    const vector<Term*>& intersections,
-    Term* output,
-    Term* history,
     bool isBackward) {
     auto ret = PooledItem<CompoundTerm>::getInstance();
-    ret->head = isBackward ? HEAD_BACKWARD_CACHE_FA : HEAD_FORWARD_CACHE_FA;
+    ret->head = isBackward ? HEAD_BACKWARD_FA_SUCC : HEAD_FORWARD_FA_SUCC;
     ret->addArg(lineInstanceValName);
     ret->addArg(classScopeValName);
     ret->addArg(currentState);
     ret->addArg(currentPoint);
-    ret->addArg(currentSteps);
-    FOR_EACH_ITEM(intersections, ret->addArg(item););
-    ret->addArg(output);
-    ret->addArg(history);
-    return ret;
-}
-
-Term* CompoundTerm::getFaCacheTerm(
-    Term* lineInstanceValName,
-    Term* classScopeValName,
-    Term* currentState,
-    Term* currentPoint,
-    Term* currentSteps,
-    Term* output,
-    bool isBackward) {
-    auto ret = PooledItem<CompoundTerm>::getInstance();
-    ret->head = isBackward ? HEAD_BACKWARD_FA_CACHE : HEAD_FORWARD_FA_CACHE;
-    ret->addArg(lineInstanceValName);
-    ret->addArg(classScopeValName);
-    ret->addArg(currentState);
-    ret->addArg(currentPoint);
-    ret->addArg(currentSteps);
-    ret->addArg(output);
     return ret;
 }
 
@@ -709,7 +682,6 @@ Term* CompoundTerm::getFaDoneTerm(
     Term* classScopeValName,
     Term* currentState,
     Term* currentPoint,
-    Term* currentSteps,
     bool isBackward) {
     auto ret = PooledItem<CompoundTerm>::getInstance();
     ret->head = isBackward ? HEAD_BACKWARD_FA_DONE : HEAD_FORWARD_FA_DONE;
@@ -717,7 +689,6 @@ Term* CompoundTerm::getFaDoneTerm(
     ret->addArg(classScopeValName);
     ret->addArg(currentState);
     ret->addArg(currentPoint);
-    ret->addArg(currentSteps);
     return ret;
 }
 
@@ -737,27 +708,19 @@ void CompoundTerm::retractAllFaImplTerm(bool isBackward, int intersectionCount) 
     }
 }
 
-void CompoundTerm::retractAllCacheFaTerm(bool isBackward, int intersectionCount) {
+void CompoundTerm::retractAllFaSuccTerm(bool isBackward) {
     if (isBackward) {
-        PrologWrapper::retractAllFact(HEAD_BACKWARD_CACHE_FA->toString(), 7 + intersectionCount);
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_SUCC->toString(), 4);
     } else {
-        PrologWrapper::retractAllFact(HEAD_FORWARD_CACHE_FA->toString(), 7 + intersectionCount);
-    }
-}
-
-void CompoundTerm::retractAllFaCacheTerm(bool isBackward) {
-    if (isBackward) {
-        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_CACHE->toString(), 6);
-    } else {
-        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_CACHE->toString(), 6);
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_SUCC->toString(), 4);
     }
 }
 
 void CompoundTerm::retractAllFaDoneTerm(bool isBackward) {
     if (isBackward) {
-        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_DONE->toString(), 5);
+        PrologWrapper::retractAllFact(HEAD_BACKWARD_FA_DONE->toString(), 4);
     } else {
-        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_DONE->toString(), 5);
+        PrologWrapper::retractAllFact(HEAD_FORWARD_FA_DONE->toString(), 4);
     }
 }
 

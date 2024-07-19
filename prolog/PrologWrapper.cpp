@@ -13,8 +13,6 @@ ofstream debug_prolog_file;
 
 bool PrologWrapper::init() {
     debug_prolog_file.open(FileManager::baseFolder + "debug_prolog.pl");
-    debug_prolog_file << (":-dynamic addressableLoaded/1.") << "\n";
-    debug_prolog_file << (":-dynamic unaddressableLoaded/1.") << "\n";
     debug_prolog_file << (":-discontiguous resolve/2.") << "\n";
     debug_prolog_file << (":-discontiguous resolveRuntime/6.") << "\n";
     debug_prolog_file << (":-discontiguous forwardFa/7.") << "\n";
@@ -128,6 +126,8 @@ int PrologWrapper::queryCount(CompoundTerm* term) {
 }
 
 void PrologWrapper::declareFun(const string& functorName, int arity) {
+    debug_prolog_file << ":-dynamic " << functorName << "/" << to_string(arity) << "." << "\n";
+    debug_prolog_file.flush();
     PlCall("dynamic " + functorName + "/" + to_string(arity) + ".");
 }
 
@@ -152,8 +152,6 @@ string PrologWrapper::makeUnderScoreArguments(int arity) {
 
 void PrologWrapper::retractAllFact(const string& functorName, int arity) {
     if (arity > 0) {
-        debug_prolog_file << ("retractall(" + functorName + "(" + makeUnderScoreArguments(arity) + ")).") << "\n";
-        debug_prolog_file.flush();
         PlCall("retractall(" + functorName + "(" + makeUnderScoreArguments(arity) + ")).");
     }
 }
