@@ -845,9 +845,14 @@ void BoundedIncrementalGraph::applyLayoutTreeUpAndDown(bool up) {
         VECTOR(roots)[count] = rootId;
         count++;
     }
-    igraph_layout_reingold_tilford(theOriginalGraph, layoutMatrix, IGRAPH_ALL, &roots, NULL);
+    if (treeUpAndDownCircle) {
+        igraph_layout_reingold_tilford_circular(theOriginalGraph, layoutMatrix, IGRAPH_ALL, &roots, NULL);
+    } else {
+        igraph_layout_reingold_tilford(theOriginalGraph, layoutMatrix, IGRAPH_ALL, &roots, NULL);
+    }
     applyLayout(true);
     updateTextPos();
+    treeUpAndDownCircle = not treeUpAndDownCircle;
 }
 
 void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
