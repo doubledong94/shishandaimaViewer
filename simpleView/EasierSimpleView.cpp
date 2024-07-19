@@ -499,10 +499,10 @@ void EasierSimpleView::declareStepRules() {
         }));
     // return -> step -> step -> called return (current steps == [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getForwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key and check type
+        CompoundTerm::getRuntimeTerm(innerMethod,returnKey,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
         // load
         CompoundTerm::getLoadUseMethodRuntimeTerm(innerMethod),
-        // get addressable key
-        CompoundTerm::getRuntimeTerm(innerMethod,returnKey,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN)),
         // to called key and to step key and to runtime key
         CompoundTerm::getCalledKeyTerm(returnKey,calledReturn),
         CompoundTerm::getStepKeyTerm(calledReturn,step),
@@ -519,10 +519,10 @@ void EasierSimpleView::declareStepRules() {
         }));
     // method -> step -> step -> called method (current steps == [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key and check type
+        CompoundTerm::getRuntimeTerm(innerMethod,method,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
         // load
         CompoundTerm::getLoadUseMethodRuntimeTerm(innerMethod),
-        // get addressable key 
-        CompoundTerm::getRuntimeTerm(innerMethod,method,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
         // to called key and to step key and to runtime key
         CompoundTerm::getCalledKeyTerm(method,calledMethod),
         CompoundTerm::getStepKeyTerm(calledMethod,step),
@@ -545,10 +545,10 @@ void EasierSimpleView::declareStepRules() {
         }));
     // param -> step -> step -> called param (current steps == [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardDataStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
+        // get addressable key and check type
+        CompoundTerm::getRuntimeTerm(innerMethod,param,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
         // load
         CompoundTerm::getLoadUseMethodRuntimeTerm(innerMethod),
-        // get addressable key 
-        CompoundTerm::getRuntimeTerm(innerMethod,param,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER)),
         // runtime step
         CompoundTerm::getCalledKeyTerm(param,calledParam),
         CompoundTerm::getStepKeyTerm(calledParam,step),
@@ -767,6 +767,9 @@ void EasierSimpleView::declareLoadWhileSearching() {
             CompoundTerm::getTypeToPLFileTerm(classKey,fileName),
             CompoundTerm::getStringConcatTerm(addressableDir,fileName,filePath),
             EnsureLoadedTerm::getEnsureLoadedInstance(filePath),
+            #ifdef DEBUG_PROLOG
+            CompoundTerm::getToFileTerm(filePath,Term::getStr("c.txt")),
+            #endif
             CompoundTerm::getTypeToPLFileTerm(allClassKey,fileName),
             AssertTerm::getAssertInstance(CompoundTerm::getAddressableLoadedTerm(allClassKey)),
             Term::getAtom("fail"),
@@ -778,6 +781,9 @@ void EasierSimpleView::declareLoadWhileSearching() {
             CompoundTerm::getTypeToPLFileTerm(classKey,fileName),
             CompoundTerm::getStringConcatTerm(unaddressableDir,fileName,filePath),
             EnsureLoadedTerm::getEnsureLoadedInstance(filePath),
+            #ifdef DEBUG_PROLOG
+            CompoundTerm::getToFileTerm(filePath,Term::getStr("c.txt")),
+            #endif
             CompoundTerm::getTypeToPLFileTerm(allClassKey,fileName),
             AssertTerm::getAssertInstance(CompoundTerm::getUnaddressableLoadedTerm(allClassKey)),
             Term::getAtom("fail"),
@@ -3143,57 +3149,57 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                     currentStateTerm,
                     currentPoint,
                     isBackward)),
-                // mark done
-                AssertTerm::getAssertInstance(CompoundTerm::getFaDoneTerm(
-                    lineInstanceValNameTerm, classScopeTerm,
-                    currentStateTerm,
-                    currentPoint,
-                    isBackward)),
-                #ifdef DEBUG_PROLOG
-                CompoundTerm::getToFileTerm(CompoundTerm::getFaDoneTerm(
-                    lineInstanceValNameTerm, classScopeTerm,
-                    currentStateTerm,
-                    currentPoint,
-                    isBackward),Term::getStr("b.txt")),
-                #endif
-                CompoundTerm::getFaImplTerm(
-                    lineInstanceValNameTerm, classScopeTerm,
-                    currentStateTerm,
-                    currentPoint,
-                    currentStepsTerm,
-                    intersection,
-                    faOutput,
-                    history, isBackward),
-                DisjunctionTerm::getDisjunctionInstance({
-                CompoundTerm::getFaSuccTerm(
-                    lineInstanceValNameTerm, classScopeTerm,
-                    currentStateTerm,
-                    currentPoint,
-                    isBackward),
-                ConjunctionTerm::getConjunctionInstance({
-                    // no succ yet
-                    NegationTerm::getNegInstance(CompoundTerm::getFaSuccTerm(
-                        lineInstanceValNameTerm, classScopeTerm,
-                        currentStateTerm,
-                        currentPoint,
-                        isBackward)),
-                    // mark succ
-                    AssertTerm::getAssertInstance(CompoundTerm::getFaSuccTerm(
+                    // mark done
+                    AssertTerm::getAssertInstance(CompoundTerm::getFaDoneTerm(
                         lineInstanceValNameTerm, classScopeTerm,
                         currentStateTerm,
                         currentPoint,
                         isBackward)),
                     #ifdef DEBUG_PROLOG
-                    CompoundTerm::getToFileTerm(CompoundTerm::getFaSuccTerm(
+                    CompoundTerm::getToFileTerm(CompoundTerm::getFaDoneTerm(
                         lineInstanceValNameTerm, classScopeTerm,
                         currentStateTerm,
                         currentPoint,
                         isBackward),Term::getStr("b.txt")),
                     #endif
-                }),
-                }),
-                }),
-            }),
+                    CompoundTerm::getFaImplTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        currentStateTerm,
+                        currentPoint,
+                        currentStepsTerm,
+                        intersection,
+                        faOutput,
+                        history, isBackward),
+                    DisjunctionTerm::getDisjunctionInstance({
+                    CompoundTerm::getFaSuccTerm(
+                        lineInstanceValNameTerm, classScopeTerm,
+                        currentStateTerm,
+                        currentPoint,
+                        isBackward),
+                    ConjunctionTerm::getConjunctionInstance({
+                        // no succ yet
+                        NegationTerm::getNegInstance(CompoundTerm::getFaSuccTerm(
+                            lineInstanceValNameTerm, classScopeTerm,
+                            currentStateTerm,
+                            currentPoint,
+                            isBackward)),
+                            // mark succ
+                            AssertTerm::getAssertInstance(CompoundTerm::getFaSuccTerm(
+                                lineInstanceValNameTerm, classScopeTerm,
+                                currentStateTerm,
+                                currentPoint,
+                                isBackward)),
+                            #ifdef DEBUG_PROLOG
+                            CompoundTerm::getToFileTerm(CompoundTerm::getFaSuccTerm(
+                                lineInstanceValNameTerm, classScopeTerm,
+                                currentStateTerm,
+                                currentPoint,
+                                isBackward),Term::getStr("b.txt")),
+                            #endif
+                        }),
+                        }),
+                        }),
+                    }),
         }));
 
     for (auto& rule : rules) {
