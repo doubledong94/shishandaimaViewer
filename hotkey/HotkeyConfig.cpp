@@ -142,6 +142,8 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {AUTO_GROUP_XY, "auto group x and y", 0xffff3b39,SINGLE_CLICK},
     {BOUND_BY_CLASS, "bound by class", 0xffff403e,SINGLE_CLICK},
     {BOUND_BY_METHOD, "bound by method", 0xffff4240,SINGLE_CLICK},
+    {TREE_UP, "tree up", 0xffff2f2d,SINGLE_CLICK},
+    {TREE_DOWN, "tree down", 0xffff352d,SINGLE_CLICK},
     // style
     {SHOW_AND_HIDE_TEXT, "show and hide text", 0xffff3a03,SINGLE_CLICK},
     {SHOW_AND_HIDE_TOOLTIP, "show and hide tooltip", 0xffff2d03,SINGLE_CLICK},
@@ -310,6 +312,8 @@ void HotkeyConfig::init() {
     hotkeyMap[UNBOUND_UNSELECTED_NODE]->functionName = StringRes::singleton->getHotKeyTitle_unboundUnselected();
     hotkeyMap[BOUND_BY_CLASS]->functionName = StringRes::singleton->getHotKeyTitle_boundByClass();
     hotkeyMap[BOUND_BY_METHOD]->functionName = StringRes::singleton->getHotKeyTitle_boundByMethod();
+    hotkeyMap[TREE_UP]->functionName = StringRes::singleton->getHotKeyTitle_treeUp();
+    hotkeyMap[TREE_DOWN]->functionName = StringRes::singleton->getHotKeyTitle_treeDown();
 }
 
 void HotkeyConfig::saveHotkeyConfig(const string& filePath) {

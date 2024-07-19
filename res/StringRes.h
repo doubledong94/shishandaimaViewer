@@ -101,6 +101,8 @@ public:
     virtual char* getHotKeyTitle_unboundUnselected() { return NULL; };
     virtual char* getHotKeyTitle_boundByClass() { return NULL; };
     virtual char* getHotKeyTitle_boundByMethod() { return NULL; };
+    virtual char* getHotKeyTitle_treeUp() { return NULL; };
+    virtual char* getHotKeyTitle_treeDown() { return NULL; };
 
     virtual char* getHint_press1ToShowHotkey() { return NULL; };
 
@@ -213,6 +215,8 @@ private:
     string hotKeyTitle_unboundUnselected = "取消限制未选中的节点的位置范围";
     string hotKeyTitle_boundByClass = "自动按照类来限制所有节点的位置范围";
     string hotKeyTitle_boundByMethod = "自动按照函数来限制所有节点的位置范围";
+    string hotKeyTitle_treeUp = "树状布局向上";
+    string hotKeyTitle_treeDown = "树状布局向下";
 
     string hotKeyTitle_cat_saveAndRestoreGraph = "保存与恢复图";
     string hotKeyTitle_saveGraph = "保存图";
@@ -323,6 +327,8 @@ public:
     char* getHotKeyTitle_unboundUnselected();
     char* getHotKeyTitle_boundByClass();
     char* getHotKeyTitle_boundByMethod();
+    char* getHotKeyTitle_treeUp();
+    char* getHotKeyTitle_treeDown();
 
     char* getHotKeyTitle_cat_saveAndRestoreGraph() override;
     char* getHotKeyTitle_saveGraph() override;
@@ -435,6 +441,8 @@ private:
     string hotKeyTitle_unboundUnselected = "取消限制未选中的节点的位置范围";
     string hotKeyTitle_boundByClass = "自动按照类来限制所有节点的位置范围";
     string hotKeyTitle_boundByMethod = "自动按照函数来限制所有节点的位置范围";
+    string hotKeyTitle_treeUp = "树状布局向上";
+    string hotKeyTitle_treeDown = "树状布局向下";
 
     string hotKeyTitle_cat_saveAndRestoreGraph = "保存与恢复图";
     string hotKeyTitle_saveGraph = "保存图";
@@ -545,6 +553,8 @@ public:
     char* getHotKeyTitle_unboundUnselected();
     char* getHotKeyTitle_boundByClass();
     char* getHotKeyTitle_boundByMethod();
+    char* getHotKeyTitle_treeUp();
+    char* getHotKeyTitle_treeDown();
 
     char* getHotKeyTitle_cat_saveAndRestoreGraph() override;
     char* getHotKeyTitle_saveGraph() override;

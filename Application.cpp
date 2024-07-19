@@ -691,6 +691,12 @@ int app::Application::ApplicationMain() {
         boundedGraph->boundByMethod();
         boundedGraph->resetBounds();
         };
+    HotkeyConfig::functionEnumToFunction[TREE_UP] = [&]() {
+        boundedGraph->applyLayoutTreeUpAndDown(true);
+    };
+    HotkeyConfig::functionEnumToFunction[TREE_DOWN] = [&]() {
+        boundedGraph->applyLayoutTreeUpAndDown(false);
+    };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
         boundedGraph->grid(boundedGraph->xCoordFixed);
         };

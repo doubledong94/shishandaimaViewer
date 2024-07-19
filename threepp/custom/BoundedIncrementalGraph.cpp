@@ -795,6 +795,58 @@ void BoundedIncrementalGraph::reCreateLayoutWithNoOldLayoutInfo(int nodeCount, b
     resetStyledNodes();
 }
 
+void BoundedIncrementalGraph::applyLayout(bool force) {
+    graphGenerateAndConsumeLock.lock();
+    applyLayoutPosition();
+    bool groupAnimating = false;
+    groupAnimating |= updatePosByGroup(groups, 0);
+    groupAnimating |= updatePosByGroup(xCoordFixed, 1);
+    groupAnimating |= updatePosByGroup(yCoordFixed, 2);
+    if (groupAnimating or force) {
+        resetLayoutBound(is2DLayout());
+    }
+    bool nodeCountChanged = nodesObj->setPointPositions(points);
+    if (nodeCountChanged) {
+        onNodeColorChanged();
+    }
+    linesObj->setEdges(points, edgePairs);
+    scaleByDistance(force);
+    graphGenerateAndConsumeLock.unlock();
+}
+
+void BoundedIncrementalGraph::applyLayoutTreeUpAndDown(bool up) {
+    if (up) {
+        prepareOutDegreeMap();
+        if (not outDegreeToNodes.data.count(0)) {
+            return;
+        }
+    } else {
+        prepareInDegreeMap();
+        if (not inDegreeToNodes.data.count(0)) {
+            return;
+        }
+    }
+    layoutAnimating = false;
+    groups.clear();
+    xCoordFixed.clear();
+    yCoordFixed.clear();
+    for (auto& b : bounds) {
+        b.clear();
+    }
+    clearEmptyGroup(bounds);
+    igraph_vector_int_t roots;
+    set<int>& rootIDs = up ? outDegreeToNodes.data[0] : inDegreeToNodes.data[0];
+    igraph_vector_int_init(&roots, rootIDs.size());
+    int count = 0;
+    for (int rootId : rootIDs) {
+        VECTOR(roots)[count] = rootId;
+        count++;
+    }
+    igraph_layout_reingold_tilford(theOriginalGraph, layoutMatrix, IGRAPH_ALL, &roots, NULL);
+    applyLayout(true);
+    updateTextPos();
+}
+
 void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     for (auto& countAndDo : doOnNextFrame) {
         if (countAndDo.first > 0) {
@@ -857,22 +909,7 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
             });
     }
     if (layoutAnimating) {
-        graphGenerateAndConsumeLock.lock();
-        applyLayoutPosition();
-        bool groupAnimating = false;
-        groupAnimating |= updatePosByGroup(groups, 0);
-        groupAnimating |= updatePosByGroup(xCoordFixed, 1);
-        groupAnimating |= updatePosByGroup(yCoordFixed, 2);
-        if (groupAnimating) {
-            resetLayoutBound(layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED);
-        }
-        bool nodeCountChanged = nodesObj->setPointPositions(points);
-        if (nodeCountChanged) {
-            onNodeColorChanged();
-        }
-        linesObj->setEdges(points, edgePairs);
-        scaleByDistance();
-        graphGenerateAndConsumeLock.unlock();
+        applyLayout();
     }
     threepp::Vector3 worldDir;
     camera.getWorldDirection(worldDir);
@@ -1297,9 +1334,6 @@ void BoundedIncrementalGraph::resetLayoutBound(bool is2D) {
 }
 
 void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, float deltaZ) {
-    if (not layoutAnimating) {
-        return;
-    }
     bool is2D = layoutState == LAYOUT_STATE_2D or layoutState == LAYOUT_STATE_2D_UNFINISHED;
     if (raycastOnFrame) {
         for (int id : ids) {
@@ -1320,6 +1354,10 @@ void BoundedIncrementalGraph::onDrag(set<int>& ids, float deltaX, float deltaY, 
                 VECTOR(*layoutBounds[5])[id] = points[id].z;
             }
         }
+    }
+    if (not layoutAnimating) {
+        applyLayout();
+        updateTextPos();
     }
 }
 
@@ -2170,6 +2208,12 @@ float BoundedIncrementalGraph::diameter() {
     return diameter;
 }
 
+void BoundedIncrementalGraph::updateTextPos() {
+    for (int i : textAdded) {
+        updateTextPosAt(i);
+    }
+}
+
 void BoundedIncrementalGraph::refreshSimpleText() {
     if (showSimpleText) {
         // remove unselected text
@@ -2644,9 +2688,9 @@ KD_TREE<ikdTree_PointType> ikd_Tree(0.3, 0.6, 0.2);
 
 static int scaleByDistanceCount = 0;
 
-void BoundedIncrementalGraph::scaleByDistance() {
+void BoundedIncrementalGraph::scaleByDistance(bool force) {
     scaleByDistanceCount = (scaleByDistanceCount + 1) % 2;
-    if (scaleByDistanceCount) {
+    if (scaleByDistanceCount and not force) {
         return;
     }
     PointVector point_cloud;

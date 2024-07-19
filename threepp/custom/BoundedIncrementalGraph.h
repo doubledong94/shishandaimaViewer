@@ -289,6 +289,8 @@ public:
 
     void refreshSimpleText();
 
+    void updateTextPos();
+
     void updateTextPosAt(int i);
 
     void changeTextSize(bool increase);
@@ -325,7 +327,7 @@ public:
 
     bool is2DLayout();
 
-    void scaleByDistance();
+    void scaleByDistance(bool force = false);
 
     void applyLayoutPosition();
 
@@ -334,6 +336,10 @@ public:
     void getConnectedNodesByDim(int nodeId, set<int>& nodeTypes, set<int>& connected, bool dir);
 
     void focusHoverd();
+
+    void applyLayoutTreeUpAndDown(bool up);
+
+    void applyLayout(bool force = false);
 
     static std::function<void(int, set<int>&)> getDimControl;
     // tested property start
