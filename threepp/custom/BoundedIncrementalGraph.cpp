@@ -2265,7 +2265,11 @@ void BoundedIncrementalGraph::refreshSimpleText() {
                                 textMaterial->color = { 1,1,1 };
                                 textMesh[item.nodeId] = threepp::Text2D::create(threepp::TextGeometry::Options(font, 0.4), item.text, textMaterial);
                                 textMesh[item.nodeId]->geometry()->center();
-                                textSizes[item.nodeId] = nodesObj->nodeSizes[item.nodeId];
+                                if (nodesObj->nodeSizes[item.nodeId] > 0.001) {
+                                    textSizes[item.nodeId] = nodesObj->nodeSizes[item.nodeId];
+                                } else {
+                                    textSizes[item.nodeId] = 0.001;
+                                }
                                 float textSize = baseTextSize * textSizes[item.nodeId] / sqrt(item.text.size() + 0.2);
                                 textMesh[item.nodeId]->geometry()->scale(textSize, textSize, textSize);
                                 this->textLoaded.insert(item.nodeId);
@@ -2745,9 +2749,9 @@ void BoundedIncrementalGraph::scaleByDistance(bool force) {
     textLoaderThreadPool->submit([this]() {
         graphGenerateAndConsumeLock.lock();
         for (int i : textAdded) {
-            int size = nodesObj->nodeSizes[i];
-            if (size < 0.01) {
-                size = 0.01;
+            float size = nodesObj->nodeSizes[i];
+            if (size < 0.001) {
+                size = 0.001;
             }
             float scale = size / textSizes[i];
             textMesh[i]->geometry()->scale(scale, scale, scale);
