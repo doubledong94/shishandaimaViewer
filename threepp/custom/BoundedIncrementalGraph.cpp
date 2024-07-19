@@ -2745,11 +2745,13 @@ void BoundedIncrementalGraph::scaleByDistance(bool force) {
     textLoaderThreadPool->submit([this]() {
         graphGenerateAndConsumeLock.lock();
         for (int i : textAdded) {
-            if (nodesObj->nodeSizes[i] > 0.01) {
-                float scale = nodesObj->nodeSizes[i] / textSizes[i];
-                textMesh[i]->geometry()->scale(scale, scale, scale);
-                textSizes[i] = nodesObj->nodeSizes[i];
+            int size = nodesObj->nodeSizes[i];
+            if (size < 0.01) {
+                size = 0.01;
             }
+            float scale = size / textSizes[i];
+            textMesh[i]->geometry()->scale(scale, scale, scale);
+            textSizes[i] = size;
         }
         graphGenerateAndConsumeLock.unlock();
         });
