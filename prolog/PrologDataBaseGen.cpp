@@ -167,16 +167,6 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // mark local variable and make written history
-    if (writen->reversedRef and writen->referencedBy) {
-        auto referencedBy = writen->getRefedByRecur();
-        if (referencedBy->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or referencedBy->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
-            if (not codeBlock->lvToLastWrittenKeys.count(referencedBy->variableKey)) {
-                codeBlock->lvToLastWrittenKeys[referencedBy->variableKey] = set<string>();
-            }
-            codeBlock->lvToLastWrittenKeys[referencedBy->variableKey].insert(referencedBy->runtimeKey);
-        }
-    }
-    // mark local variable and make written history
     if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         if (writen->indexedBy) {
             if (not codeBlock->lvToLastWrittenKeys.count(writen->variableKey)) {
@@ -231,6 +221,19 @@ void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlo
 void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) {
     sentence->markUnreadReturn(GlobalInfo::KEY_TYPE_CALLED_RETURN);
     GenDataVisitor::visitSentence(methodKey, codeBlock, sentence, prologLines);
+    // mark local variable and make written history for referenced
+    for (auto& relation : sentence->relations) {
+        auto& writen = relation->writen;
+        if (writen->reversedRef and writen->referencedBy) {
+            auto referencedBy = writen->getRefedByRecur();
+            if (referencedBy->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or referencedBy->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+                if (not codeBlock->lvToLastWrittenKeys.count(referencedBy->variableKey)) {
+                    codeBlock->lvToLastWrittenKeys[referencedBy->variableKey] = set<string>();
+                }
+                codeBlock->lvToLastWrittenKeys[referencedBy->variableKey].insert(referencedBy->runtimeKey);
+            }
+        }
+    }
 }
 
 void DataFlowVisitor::addStepToParam(const string& methodKey, ResolvingItem* paramItem, list<string>& prologLines) {
