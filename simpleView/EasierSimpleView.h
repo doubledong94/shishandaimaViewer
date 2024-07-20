@@ -250,7 +250,7 @@ namespace SimpleView {
 
         bool isParamNode();
 
-        int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, bool isRepeatTypeOne, map<Node*, char>& nodeToChar);
+        int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, map<Node*, char>& nodeToChar);
 
         void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName);
 
@@ -320,6 +320,8 @@ namespace SimpleView {
         void loadValueToUI(vector<const char*>& values, vector<int>& repeatTypes);
 
         IntersectionPointInLine* getPointInLine();
+
+        void printNodeEncoding();
     };
 
     class Searcher {
@@ -437,9 +439,9 @@ namespace SimpleView {
 
         void declareTransitionRuleI(int currentState, int nextState, string& regexChar, bool lastTransition);
 
-        void printCharToCharCode(const string& regex);
-
         Tail* getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth);
+
+        void printGraphvizStr();
     };
 
     class GraphInstance;

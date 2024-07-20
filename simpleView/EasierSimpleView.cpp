@@ -2171,7 +2171,7 @@ bool SimpleView::NodeAndRepeatType::isParamNode() {
     return node and node->nodeType == Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH;
 }
 
-int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, bool isRepeatTypeOne, map<Node*, char>& nodeToChar) {
+int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, map<Node*, char>& nodeToChar) {
     int currentCharIndex = charIndex;
     if (seg != NULL) {
         outputRegex->encodeChar = 0;
@@ -2179,17 +2179,15 @@ int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeat
         for (int i = 0; i < seg->nodeAndRepeatType.size(); ++i) {
             auto* subRegexI = new RegexTree();
             outputRegex->subStructure.push_back(subRegexI);
-            currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI, isRepeatTypeOne and seg->nodeAndRepeatType[i]->repeatType == LineTemplate::REPEAT_TYPE_ONE, nodeToChar);
+            currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI, nodeToChar);
         }
     } else {
-        if (isRepeatTypeOne or not nodeToChar.count(node)) {
+        if (not nodeToChar.count(node)) {
             char encodeChar = ALPHABET_FOR_NODE_ENCODING[currentCharIndex];
             charToNode[encodeChar] = this;
             outputRegex->encodeChar = encodeChar;
             currentCharIndex++;
-            if (not isRepeatTypeOne) {
-                nodeToChar[node] = encodeChar;
-            }
+            nodeToChar[node] = encodeChar;
         } else {
             outputRegex->encodeChar = nodeToChar[node];
         }
@@ -2475,6 +2473,49 @@ string SimpleView::LineTemplate::toString(map<int, string>& voc) {
     return ret;
 }
 
+void SimpleView::LineTemplate::printNodeEncoding() {
+    printf("%s\n", name.data());
+    for (auto& charAndNode : charToNodeTemplate) {
+        printf("%c\t%s\n", charAndNode.first, charAndNode.second->node->displayName.data());
+    }
+}
+
+void SimpleView::HalfLineTheFA::printGraphvizStr() {
+    string ret = "digraph G {\n\
+    dpi = \"2000\" \n\
+    node [\n\
+        fontsize=\"2\"\n\
+        width = \"0.01\"\n\
+        height = \"0.01\"\n\
+        shape = \"point\"\n\
+        penwidth = \"0.05\"\n\
+    ]\n\
+    edge [\n\
+        fontsize=\"1\"\n\
+        arrowsize=\"0.02\"\n\
+	    penwidth = \"0.05\"\n\
+    ]\n";
+    for (auto& charCodeAndTransitions : charCodeToStateTransition) {
+        if (not charCodeToChars[charCodeAndTransitions.first].empty()) {
+            // for each regex char corresponding to this transition code
+            for (auto& regexChar : charCodeToChars[charCodeAndTransitions.first]) {
+                // for each transition which is enabled by this transition code(regex char)
+                for (auto& transition : charCodeAndTransitions.second) {
+                    ret += to_string(transition.first) + " -> " + to_string(transition.second) + "[label=\"" + regexChar + "\"];\n";
+                }
+            }
+        } else {
+            // if transition code is not corresponding to a char, it means this code enables a transition ending with accepting states
+            // ending transition
+            for (auto& endingTransition : charCodeAndTransitions.second) {
+                ret += to_string(endingTransition.first) + " -> " + to_string(endingTransition.second) + ";\n";
+            }
+        }
+    }
+    ret.push_back('}');
+    printf("%s\n", ret.data());
+}
+
 void SimpleView::LineTemplate::encode() {
     int charIndex = 0;
     regexTree = new RegexTree();
@@ -2483,7 +2524,7 @@ void SimpleView::LineTemplate::encode() {
     map<Node*, char> nodeToChar;
     for (int i = 0; i < nodeAndRepeatType.size(); ++i) {
         auto subTree = new RegexTree();
-        charIndex = nodeAndRepeatType[i]->encode(charIndex, charToNodeTemplate, subTree, nodeAndRepeatType[i]->repeatType == REPEAT_TYPE_ONE, nodeToChar);
+        charIndex = nodeAndRepeatType[i]->encode(charIndex, charToNodeTemplate, subTree, nodeToChar);
         regexTree->subStructure.push_back(subTree);
     }
 }
@@ -2837,6 +2878,9 @@ void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const c
         outputTerm[1] = outputTermB;
     }
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getLineTerm(lineInstanceValNameTerm, classScopeTerm, intersectionTerms, Tail::getInstanceByElements(outputTerm)), ruleBody))->toString(true));
+    lineTemplate->printNodeEncoding();
+    forwardLine->printGraphvizStr();
+    backwardLine->printGraphvizStr();
 }
 
 void SimpleView::LineInstance::onQueryFinished() {
@@ -3568,25 +3612,6 @@ Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMe
         outputAddressableKey,
         keyType,
         depth });
-}
-
-void SimpleView::HalfLineTheFA::printCharToCharCode(const string& regex) {
-    string byteMap = regex + " bytemap:\n";
-    for (const auto& item : charToCharCode) {
-        byteMap += item.first;
-        byteMap += " -> " + to_string(item.second);
-        byteMap.push_back('\n');
-    }
-    byteMap += "------------\n";
-    for (const auto& item : charCodeToChars) {
-        byteMap += to_string(item.first) + " -> ";
-        for (const auto& charI : item.second) {
-            byteMap += charI;
-            byteMap.push_back(' ');
-        }
-        byteMap.push_back('\n');
-    }
-    easyPrint(byteMap);
 }
 
 SimpleView::GraphInstance* SimpleView::GraphTemplate::getNoneParamInstance() {
