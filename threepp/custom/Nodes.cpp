@@ -147,6 +147,11 @@ void Nodes::applyColor() {
         encodedColor.r = encodeIntoRgb(encodedColor.r, 0.008);
         setColorAt(i, encodedColor);
     }
+    for (int i : styled5) {
+        getColorAt(i, encodedColor);
+        encodedColor.g = encodeIntoRgb(encodedColor.g, 0.002);
+        setColorAt(i, encodedColor);
+    }
     instanceColor()->needsUpdate();
 }
 
@@ -267,6 +272,7 @@ std::string Nodes::vertexSource() {
                out float vStyled2;
                out float vStyled3;
                out float vStyled4;
+               out float vStyled5;
                void main() {
                     uv_frag = position.xy;
                     vColor = instanceColor;
@@ -286,6 +292,8 @@ std::string Nodes::vertexSource() {
                     vStyled2 = statePartStyle > 0.3 && statePartStyle < 0.5 ? 1 : 0;
                     vStyled3 = statePartStyle > 0.5 && statePartStyle < 0.7 ? 1 : 0;
                     vStyled4 = statePartStyle > 0.7 && statePartStyle < 0.9 ? 1 : 0;
+                    float statePartStyleG = fract(fract(fract(instanceColor.g) * 100) * 100);
+                    vStyled5 = statePartStyleG > 0.1 && statePartStyleG < 0.3 ? 1 : 0;
 
                     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4( position, 1.0 );
                })";
@@ -303,6 +311,7 @@ std::string Nodes::fragmentSource() {
                 in float vStyled2;
                 in float vStyled3;
                 in float vStyled4;
+                in float vStyled5;
                 out vec4 pc_fragColor;
                 void main() {
                     vec3 color = vColor;
@@ -313,7 +322,9 @@ std::string Nodes::fragmentSource() {
                     }
                     if (vFixed < 0.5 || (abs(uv_frag.x) < 0.9 && abs(uv_frag.y) < 0.9)){
                         float l = length(uv_frag);
-                        if (l>0.7){
+                        if (vStyled5>0.5 && (uv_frag.y>0 && uv_frag.y<0.7 && uv_frag.x>0.0 && uv_frag.x<0.7)) {
+
+                        } else if (l>0.7){
                             alpha = 0;
                         } else {
                             if (vStyled > 0.5) {

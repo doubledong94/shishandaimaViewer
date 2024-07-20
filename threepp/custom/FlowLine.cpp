@@ -320,7 +320,7 @@ std::string FlowLine::fragmentSource() {
                     float alpha = vAlpha;
                     color += vHovered*vec3(0.2);
                     alpha += vHovered*0.2;
-                    if (uv_frag.y>0.4) {
+                    if (uv_frag.y>0.2) {
                         color += vec3(0.3,0.3,0.3);
                     }
                     if (vFlow > -1.5) {
