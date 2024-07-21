@@ -122,6 +122,7 @@ namespace SimpleView {
             NODE_TYPE_DATA_OVERRIDE,
             NODE_TYPE_TIMING_OVERRIDE,
             NODE_TYPE_ELSE,
+            NODE_TYPE_LV,
             NODE_TYPE_FIELD,
             NODE_TYPE_METHOD,
             NODE_TYPE_CONSTRUCTOR,
@@ -150,6 +151,7 @@ namespace SimpleView {
         static Node* NODE_DATA_STEP;
         static Node* NODE_TIMING_STEP;
 
+        static Node* NODE_LV;
         static Node* NODE_FIELD;
         static Node* NODE_METHOD;
         static Node* NODE_CONSTRUCTOR;

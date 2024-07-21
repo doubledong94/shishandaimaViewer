@@ -860,6 +860,9 @@ namespace shishan {
             addSpecialKeyButton("Final##specialNodeFinal", SimpleView::Node::NODE_FINAL);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("LV##specialNodeLV", SimpleView::Node::NODE_LV);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Field##specialNodeField", SimpleView::Node::NODE_FIELD);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);

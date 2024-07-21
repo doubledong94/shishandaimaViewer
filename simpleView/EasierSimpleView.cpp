@@ -83,6 +83,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::ELSE);
     saveVocabulary(lexer, SimpleViewLexer::DATA_STEP);
     saveVocabulary(lexer, SimpleViewLexer::TIMING_STEP);
+    saveVocabulary(lexer, SimpleViewLexer::LV);
     saveVocabulary(lexer, SimpleViewLexer::FIELD);
     saveVocabulary(lexer, SimpleViewLexer::METHOD);
     saveVocabulary(lexer, SimpleViewLexer::CONSTRUCTOR);
@@ -161,6 +162,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_TIMING_STEP,Images::stepIconId},
                 {SimpleView::Node::NODE_TYPE_DATA_OVERRIDE,Images::overrideIcondId},
                 {SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE,Images::overrideIcondId},
+                {SimpleView::Node::NODE_TYPE_LV,Images::listIconId},
                 {SimpleView::Node::NODE_TYPE_FIELD,Images::fieldIconId},
                 {SimpleView::Node::NODE_TYPE_METHOD,Images::methodIconId},
                 {SimpleView::Node::NODE_TYPE_CONSTRUCTOR,Images::creatorIconId},
@@ -215,6 +217,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_TIMING_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_STEP);
     SimpleView::Node::NODE_DATA_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_OVERRIDE);
     SimpleView::Node::NODE_TIMING_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE);
+    SimpleView::Node::NODE_LV = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_LV);
     SimpleView::Node::NODE_FIELD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FIELD);
     SimpleView::Node::NODE_METHOD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_METHOD);
     SimpleView::Node::NODE_CONSTRUCTOR = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONSTRUCTOR);
@@ -1568,6 +1571,7 @@ SimpleView::Node* SimpleView::Node::NODE_ELSE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_DATA_STEP = NULL;
 SimpleView::Node* SimpleView::Node::NODE_TIMING_STEP = NULL;
 
+SimpleView::Node* SimpleView::Node::NODE_LV = NULL;
 SimpleView::Node* SimpleView::Node::NODE_FIELD = NULL;
 SimpleView::Node* SimpleView::Node::NODE_METHOD = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CONSTRUCTOR = NULL;
@@ -1624,6 +1628,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_TIMING_OVERRIDE:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::TIMING_OVERRIDE];
         node->iconId = Images::overrideIcondId;
+        break;
+    case Node::NODE_TYPE_LV:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::LV];
+        node->iconId = Images::listIconId;
         break;
     case Node::NODE_TYPE_FIELD:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::FIELD];
@@ -1956,6 +1964,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::DATA_OVERRIDE];
     case NODE_TYPE_TIMING_OVERRIDE:
         return voc[SimpleViewLexer::TIMING_OVERRIDE];
+    case NODE_TYPE_LV:
+        return voc[SimpleViewLexer::LV];
     case NODE_TYPE_FIELD:
         return voc[SimpleViewLexer::FIELD];
     case NODE_TYPE_METHOD:
@@ -2001,6 +2011,7 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_TIMING_STEP
         and nodeType != NODE_TYPE_DATA_OVERRIDE
         and nodeType != NODE_TYPE_TIMING_OVERRIDE
+        and nodeType != NODE_TYPE_LV
         and nodeType != NODE_TYPE_FIELD
         and nodeType != NODE_TYPE_METHOD
         and nodeType != NODE_TYPE_CONSTRUCTOR
@@ -3428,6 +3439,9 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_TIMING_OVERRIDE:
         specialKeyType = GlobalInfo::KEY_TYPE_TIMING_OVERRIDE;
         break;
+    case Node::NODE_TYPE_LV:
+        specialKeyType = GlobalInfo::KEY_TYPE_LOCAL_VARIABLE;
+        break;
     case Node::NODE_TYPE_FIELD:
         specialKeyType = GlobalInfo::KEY_TYPE_FIELD;
         break;
@@ -3512,6 +3526,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FIELD))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_PARAMETER))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_METHOD_RETURN))));
@@ -3532,6 +3547,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_TIMING_STEP:
     case Node::NODE_TYPE_DATA_OVERRIDE:
     case Node::NODE_TYPE_TIMING_OVERRIDE:
+    case Node::NODE_TYPE_LV:
     case Node::NODE_TYPE_FIELD:
     case Node::NODE_TYPE_METHOD:
     case Node::NODE_TYPE_CONSTRUCTOR:
@@ -3553,7 +3569,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_FINAL)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_FINAL)) }),
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE)) }),
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE)) }),
-            ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR)) })
             }));
         break;
     default:

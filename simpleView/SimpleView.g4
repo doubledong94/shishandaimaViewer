@@ -48,6 +48,7 @@ DATA_STEP : 'DataStep';
 TIMING_STEP : 'TimingStep';
 DATA_OVERRIDE: 'DataOverride';
 TIMING_OVERRIDE: 'TimingOverride';
+LV: 'LV';
 FIELD: 'Field';
 METHOD: 'Method';
 CONSTRUCTOR: 'Constructor';
@@ -132,6 +133,7 @@ nodeExp
     | TIMING_STEP
     | DATA_OVERRIDE
     | TIMING_OVERRIDE
+    | LV
     | FIELD
     | METHOD
     | CONSTRUCTOR
