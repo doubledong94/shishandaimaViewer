@@ -14,6 +14,9 @@ public:
     map<string, set<string>> lvToLastWrittenKeys;
     set<string> lvKeysUpdatedByThisBlock100Percent;
     CodeStructure* parent = nullptr;
+    bool isLoop = false;
+    map<string, set<ResolvingItem*>> lvToLastWrittenKeysByThisBlock;
+    set<ResolvingItem*> unwrittenReadOfThisBlock;
 
     bool lvUpdatedByBlockStack100Percent(const string& lvKey);
 

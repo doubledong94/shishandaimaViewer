@@ -101,10 +101,20 @@ void DataFlowVisitor::afterRunSplitCodeBlock(CodeBlock* superCodeBlock, SplitCod
             if (lvIsUpdatedByEveryBranch) {
                 superCodeBlock->lvToLastWrittenKeys[lv2lastWriteKeys.first].clear();
                 superCodeBlock->lvKeysUpdatedByThisBlock100Percent.insert(lv2lastWriteKeys.first);
+                if (superCodeBlock->isLoop and superCodeBlock->lvToLastWrittenKeysByThisBlock.count(lv2lastWriteKeys.first)) {
+                    superCodeBlock->lvToLastWrittenKeysByThisBlock[lv2lastWriteKeys.first].clear();
+                }
             }
         }
     }
     for (CodeBlock* subCodeBlock : splitCodeBlocks->blocks) {
+        if (superCodeBlock->isLoop) {
+            for (auto& lv2lastWriteKeys : subCodeBlock->lvToLastWrittenKeysByThisBlock) {
+                if (superCodeBlock->lvToLastWrittenKeysByThisBlock.count(lv2lastWriteKeys.first) > 0) {
+                    FOR_EACH_ITEM(lv2lastWriteKeys.second, superCodeBlock->lvToLastWrittenKeysByThisBlock[lv2lastWriteKeys.first].insert(item););
+                }
+            }
+        }
         if (subCodeBlock->has_return_sentence) {
             continue;
         }
@@ -167,16 +177,26 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // mark local variable and make written history
-    if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+    if (writen->allowWrittenHistory()) {
         if (writen->indexedBy) {
             if (not codeBlock->lvToLastWrittenKeys.count(writen->variableKey)) {
                 codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
             }
             codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
+            if (codeBlock->isLoop) {
+                if (not codeBlock->lvToLastWrittenKeysByThisBlock.count(writen->variableKey)) {
+                    codeBlock->lvToLastWrittenKeysByThisBlock[writen->variableKey] = set<ResolvingItem*>();
+                }
+                codeBlock->lvToLastWrittenKeysByThisBlock[writen->variableKey].insert(writen);
+            }
         } else {
             codeBlock->lvToLastWrittenKeys[writen->variableKey] = set<string>();
             codeBlock->lvToLastWrittenKeys[writen->variableKey].insert(writen->runtimeKey);
             codeBlock->lvKeysUpdatedByThisBlock100Percent.insert(writen->variableKey);
+            if (codeBlock->isLoop) {
+                codeBlock->lvToLastWrittenKeysByThisBlock[writen->variableKey] = set<ResolvingItem*>();
+                codeBlock->lvToLastWrittenKeysByThisBlock[writen->variableKey].insert(writen);
+            }
         }
     }
 }
@@ -187,7 +207,7 @@ void DataFlowVisitor::genDataFlowFromLastWrittenLvs(const string& methodKey, Res
     }
     read->readFromLastWriteAdded = true;
     bool isReadParam = read->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER;
-    if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or isReadParam) {
+    if (read->allowWrittenHistory()) {
         if (codeBlock->lvToLastWrittenKeys.count(read->variableKey)) {
             FOR_EACH_ITEM(codeBlock->lvToLastWrittenKeys[read->variableKey], prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, item, read->runtimeKey)););
             if (isReadParam and not codeBlock->lvUpdatedByBlockStack100Percent(read->variableKey)) {
@@ -198,8 +218,13 @@ void DataFlowVisitor::genDataFlowFromLastWrittenLvs(const string& methodKey, Res
             if (isReadParam) {
                 // step -> param -> ...
                 addStepToParam(methodKey, read, prologLines);
-            } else {
+            } else if (read->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE) {
                 spdlog::get(ErrorManager::DebugTag)->warn("local variable {} read before write in {}", read->variableKey, methodKey);
+            }
+        }
+        if (codeBlock->isLoop) {
+            if (not codeBlock->lvToLastWrittenKeysByThisBlock.count(read->variableKey)) {
+                codeBlock->unwrittenReadOfThisBlock.insert(read);
             }
         }
     }
@@ -216,6 +241,16 @@ void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlo
         genDataFlowFromLastWrittenLvs(methodKey, codeBlock->toConditionValue, codeBlock, prologLines);
     }
     GenDataVisitor::visitCodeBlock(methodKey, codeBlock, prologLines);
+    // add feedback data flow for loops
+    if (codeBlock->isLoop) {
+        for (auto* read : codeBlock->unwrittenReadOfThisBlock) {
+            if (codeBlock->lvToLastWrittenKeysByThisBlock.count(read->variableKey)) {
+                for (auto* written : codeBlock->lvToLastWrittenKeysByThisBlock[read->variableKey]) {
+                    prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, written->runtimeKey, read->runtimeKey));
+                }
+            }
+        }
+    }
 }
 
 void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) {
@@ -226,11 +261,17 @@ void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBloc
         auto& writen = relation->writen;
         if (writen->reversedRef and writen->referencedBy) {
             auto referencedBy = writen->getRefedByRecur();
-            if (referencedBy->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or referencedBy->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
+            if (referencedBy->allowWrittenHistory()) {
                 if (not codeBlock->lvToLastWrittenKeys.count(referencedBy->variableKey)) {
                     codeBlock->lvToLastWrittenKeys[referencedBy->variableKey] = set<string>();
                 }
                 codeBlock->lvToLastWrittenKeys[referencedBy->variableKey].insert(referencedBy->runtimeKey);
+                if (codeBlock->isLoop) {
+                    if (not codeBlock->lvToLastWrittenKeysByThisBlock.count(referencedBy->variableKey)) {
+                        codeBlock->lvToLastWrittenKeysByThisBlock[referencedBy->variableKey] = set<ResolvingItem*>();
+                    }
+                    codeBlock->lvToLastWrittenKeysByThisBlock[referencedBy->variableKey].insert(referencedBy);
+                }
             }
         }
     }

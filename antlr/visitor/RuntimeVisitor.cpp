@@ -302,6 +302,7 @@ std::any StructuralVisitor::visitStatementIf(JavaParser::StatementIfContext* ctx
 std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* ctx) {
     auto* splitCodeBlocks = new Loop(outerCodeBlock, outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock);
     auto* codeBlock = new CodeBlock(splitCodeBlocks, CodeBlock::makeStructureKey(outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock, 1, false), false);
+    codeBlock->isLoop = true;
     if (ctx->forControl()->forInit() != nullptr) {
         visitUseStatementVisitor(ctx->forControl()->forInit(), codeBlock, -1);
     }
@@ -333,6 +334,7 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
 std::any StructuralVisitor::visitStatementWhile(JavaParser::StatementWhileContext* ctx) {
     auto* splitCodeBlocks = new Loop(outerCodeBlock, outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock);
     auto* codeBlock = new CodeBlock(splitCodeBlocks, CodeBlock::makeStructureKey(outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock, 1, false), false);
+    codeBlock->isLoop = true;
     visitConditionWhile(ctx->parExpression()->expression(), codeBlock);
     visitUseStatementVisitor(ctx->statement(), codeBlock);
     return 0;
@@ -341,6 +343,7 @@ std::any StructuralVisitor::visitStatementWhile(JavaParser::StatementWhileContex
 std::any StructuralVisitor::visitStatementDoWhile(JavaParser::StatementDoWhileContext* ctx) {
     auto* splitCodeBlocks = new Loop(outerCodeBlock, outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock);
     auto* codeBlock = new CodeBlock(splitCodeBlocks, CodeBlock::makeStructureKey(outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock, 1, false), false);
+    codeBlock->isLoop = true;
     visitConditionDoWhile(ctx->parExpression()->expression(), codeBlock);
     visitUseStatementVisitor(ctx->statement(), codeBlock);
     return 0;

@@ -274,6 +274,9 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     ret->addArg(arg6);
     return ret;
 }
+CompoundTerm* CompoundTerm::getLoopMoreThanOnceTerm(Term* l, Term* e) {
+    return makeTerm(HEAD_LOOP_MORE_THAN_ONCE, l, e);
+}
 
 CompoundTerm* CompoundTerm::getClassThatUseMethodAndFieldTerm(Term* methodOrField, Term* classKey) {
     return makeTerm(HEAD_CLASS_THAT_USE_METHOD_AND_FIELD, methodOrField, classKey);

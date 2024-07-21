@@ -3044,7 +3044,7 @@ void SimpleView::HalfLineTheFA::declareHalfLineI(int initState, int theNextState
                 Tail::getInstanceByElements({}),
                 intersection,
                 outputTailTerm,
-                Tail::getInstanceByElements({}), isBackward),
+                Tail::getInstanceByElements({splitTerm}), isBackward),
                 // debug purpose
                 #ifdef DEBUG_PROLOG
                 CompoundTerm::getToFileTerm(Term::getStr("-----------------------------"), Term::getStr("a.txt")),
@@ -3135,7 +3135,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         CompoundTerm::getLengthTerm(history,Term::getVar("L")),
         CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
         #endif
-        NegationTerm::getNegInstance(CompoundTerm::getMemberTerm(nextPoint,history)),
+        NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
         CompoundTerm::getFaTerm(
             lineInstanceValNameTerm, classScopeTerm,
             nextStateTerm,

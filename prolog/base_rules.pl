@@ -30,3 +30,10 @@ calledParamterInstanceOf(CalledParam, TypeKey):-
     calledParam(P,CalledParam),instanceOf(P,TypeKey).
 calledReturnInstanceOf(CalledReturn, TypeKey):-
     calledReturn(R,CalledReturn),instanceOf(R,TypeKey).
+
+count(L, E, N) :-
+    include(=(E), L, L2), length(L2, N).
+
+loopMoreThanOnce(L, E) :-
+    count(L, E, N), N>1.
+    

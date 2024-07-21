@@ -123,6 +123,10 @@ void ResolvingItem::setReversedRefRecur(bool reversedRef) {
     }
 }
 
+bool ResolvingItem::allowWrittenHistory() {
+    return keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or (keyType == GlobalInfo::KEY_TYPE_FIELD and not referencedBy);
+}
+
 void ResolvingItem::addRuntimeReadProlog(string(*act)(const string&, const string&, const string&), const string& methodKey, list<string>& prologLines) {
     if (runtimeReadAdded) {
         return;

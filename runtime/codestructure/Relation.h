@@ -57,6 +57,8 @@ public:
     void collectRefedByAndIndexedBy(std::set<ResolvingItem*> &refedByAndIndexedBy);
 
     void setReversedRefRecur(bool reversedRef);
+
+    bool allowWrittenHistory();
 };
 
 
