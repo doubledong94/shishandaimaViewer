@@ -857,7 +857,7 @@ namespace shishan {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Any##specialNodeAny", SimpleView::Node::NODE_ANY);
             ImGui::SameLine();
-            addSpecialKeyButton("Final##specialNodeFinal", SimpleView::Node::NODE_FINAL);
+            addSpecialKeyButton("Literal##specialNodeFinal", SimpleView::Node::NODE_FINAL);
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("LV##specialNodeLV", SimpleView::Node::NODE_LV);

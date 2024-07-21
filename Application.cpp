@@ -214,7 +214,7 @@ int app::Application::ApplicationMain() {
     "TimingOverride",
     "Index",
     "Local Variable",
-    "Final Value",
+    "Literal Value",
     "Default Value",
     "null/true/false",
     };
