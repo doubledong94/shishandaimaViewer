@@ -142,14 +142,15 @@ void app::Parser::parse(const string& path) {
     FileScopeAndEnv::addImportedFieldAndMethodNameScopeAndEnvForAllFile();
     Header::HierarchyPhase::addOverrideInfo();
 
+    ThreadPool threadPool2(1);
     // runtime round
     for (auto& filePath : debug_parser ? FileManager::allFiles : FileManager::updatedFiles) {
-        threadPool.submit([&]() {
+        threadPool2.submit([&]() {
             parseFile<JavaLexer, JavaParser, ClassLevelVisitor>(filePath.data(), filePath.data());
             parseTime = (absl::GetCurrentTimeNanos() - start) / 1000000000;
             });
     }
-    threadPool.wait();
+    threadPool2.wait();
     GlobalInfo::saveGlobalInfo();
     GlobalInfo::serializeGlobalInfo();
     AddressableInfo::saveAddressableInfo();
