@@ -359,6 +359,7 @@ void TimingFlowVisitor::visitToConditionSentence(const string& methodKey, CodeBl
 
 void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBlock, ResolvingItem* item, list<string>& prologLines) {
     if (
+        item->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or
         item->keyType == GlobalInfo::KEY_TYPE_FIELD or
         item->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
         item->keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN or
