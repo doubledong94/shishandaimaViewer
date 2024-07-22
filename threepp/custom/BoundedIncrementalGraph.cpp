@@ -2900,7 +2900,6 @@ void BoundedIncrementalGraph::transitiveReduction() {
 }
 
 void BoundedIncrementalGraph::transitiveReductionImpl() {
-    removeCircle();
     prepareDistance();
     list<pair<int, int>> toBeRemovedEdges;
     for (int nodeId = 0; nodeId < nodesOrderedByNodeId.size();nodeId++) {
