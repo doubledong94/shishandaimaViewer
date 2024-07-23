@@ -505,6 +505,7 @@ void NodeInfo::toFile(ofstream& f) {
     f << simpleName << "\n";
     f << runtimeClass << "\n";
     f << methodStackSize << "\n";
+    f << (isWritten ? 1 : 0) << "\n";
 }
 
 void NodeInfo::fromFile(ifstream& f) {
@@ -525,6 +526,7 @@ void NodeInfo::fromFile(ifstream& f) {
     getline(f, simpleName);
     getline(f, runtimeClass);
     methodStackSize = getInt(f);
+    isWritten = getInt(f);
 }
 
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
@@ -608,6 +610,8 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
         nodeInfo->keyType = keyType;
         nodeInfo->uniKey = uniKey;
         nodeInfo->methodStackSize = tail->headElements[6]->integer;
+        nodeInfo->isWritten = PrologWrapper::queryCount(CompoundTerm::getCountTerm(
+            CompoundTerm::getIsWriteTerm(Term::getStr(methodOfRuntime), Term::getStr(runtimeKey)), Term::getVar("C")));
         saveNodeInfo(nodeInfo);
         saveNodePosition(nodeInfo->positionInRegex.back(), nodeInfo);
     } else {
@@ -1072,6 +1076,9 @@ BoundedIncrementalGraph::BoundedIncrementalGraph(threepp::Canvas* canvas, threep
     enabledListeners->push_back(this->dragMouseListener);
     layoutState = LAYOUT_STATE_2D;
     layoutThreadPool = new ThreadPool(1);
+    layoutThreadPool->submit([&] {
+        PL_thread_attach_engine(NULL);
+        });
     textLoaderThreadPool = new ThreadPool(1);
     linesObj = FlowLine::create(0.1);
     linesObj->updateAlphaUnselected(alphaForUnselected);
@@ -1416,6 +1423,7 @@ void BoundedIncrementalGraph::resetStyledNodes() {
     nodesObj->styled3.clear();
     nodesObj->styled4.clear();
     nodesObj->styled5.clear();
+    nodesObj->styled6.clear();
     for (auto nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
@@ -1444,6 +1452,9 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
             nodesObj->styled5.insert(nodeInfo->nodeId);
+        }
+        if (nodeInfo->isWritten) {
+            nodesObj->styled6.insert(nodeInfo->nodeId);
         }
     }
 }

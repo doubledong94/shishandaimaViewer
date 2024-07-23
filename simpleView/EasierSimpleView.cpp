@@ -186,6 +186,7 @@ void EasierSimpleView::init() {
     PrologWrapper::declareFun(HEAD_UNADDRESSABLE_LOADED->atomOrVar, 1);
     PrologWrapper::declareFun(HEAD_RUNTIME_KEY->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_FLOW->atomOrVar, 3);
+    PrologWrapper::declareFun(HEAD_IS_WRITE->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_STEP_KEY->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_OVERRIDE_KEY->atomOrVar, 2);
     PrologWrapper::declareFun(HEAD_RUNTIME_READ->atomOrVar, 3);

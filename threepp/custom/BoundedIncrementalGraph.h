@@ -23,6 +23,7 @@ public:
     string uniKey;
     int methodStackSize = 0;
     int nodeId = -1;
+    bool isWritten = false;
     PositionInRegex* getExistingPositionInRegex(const string& graphName, const string& lineName, const string& regex);
     static string makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey);
     void makeSimpleName();
@@ -179,6 +180,8 @@ public:
     void onNodeColorChanged();
 
     void resetStyledNodes();
+
+    void resetStyledNodes6();
 
     void selectByKeyType(int keyType);
 

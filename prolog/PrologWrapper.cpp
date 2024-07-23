@@ -123,6 +123,7 @@ int PrologWrapper::queryCount(CompoundTerm* term) {
         easyPrint(e.as_string());
         exit(1);
     }
+    return 0;
 }
 
 void PrologWrapper::declareFun(const string& functorName, int arity) {

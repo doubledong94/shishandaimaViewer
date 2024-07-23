@@ -124,6 +124,7 @@ static Term* HEAD_FIELD = new Term("field", Term::TERM_TYPE_ATOM);
 static Term* HEAD_INSTANCE_OF = new Term("instanceOf", Term::TERM_TYPE_ATOM);
 static Term* HEAD_SIMPLE_NAME = new Term("simpleName", Term::TERM_TYPE_ATOM);
 static Term* HEAD_IS_FINAL = new Term("isFinal", Term::TERM_TYPE_ATOM);
+static Term* HEAD_IS_WRITE = new Term("isWrite", Term::TERM_TYPE_ATOM);
 
 static Term* HEAD_FLOW = new Term("flow", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CODE_ORDER = new Term("codeOrder", Term::TERM_TYPE_ATOM);
@@ -272,6 +273,10 @@ public:
     static CompoundTerm* getFlowTerm(Term* mk, Term* src, Term* dst);
 
     static string getFlowFact(const string& mk, const string& src, const string& dst);
+
+    static CompoundTerm* getIsWriteTerm(Term* mk, Term* runtimeNode);
+
+    static string getIsWriteFact(const string& mk, const string& runtimeNode);
 
     static CompoundTerm* getCodeOrderTerm(Term* mk, Term* src, Term* dst);
 

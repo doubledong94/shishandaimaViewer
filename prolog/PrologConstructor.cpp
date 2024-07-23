@@ -324,6 +324,16 @@ string CompoundTerm::getFlowFact(const string& mk, const string& src, const stri
     return ret;
 }
 
+CompoundTerm* CompoundTerm::getIsWriteTerm(Term* mk, Term* runtimeNode) {
+    return makeTerm(HEAD_IS_WRITE, mk, runtimeNode);
+}
+
+string CompoundTerm::getIsWriteFact(const string& mk, const string& runtimeNode) {
+    string ret = getIsWriteTerm(Term::getStr(mk), Term::getStr(runtimeNode))->toString(true);
+    ret.push_back('.');
+    return ret;
+}
+
 CompoundTerm* CompoundTerm::getCodeOrderTerm(Term* mk, Term* src, Term* dst) {
     return makeTerm(HEAD_CODE_ORDER, mk, src, dst);
 }

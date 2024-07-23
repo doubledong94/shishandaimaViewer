@@ -25,6 +25,7 @@ thread_local map<string, list<pair<string, string>>> DataFlowVisitor::dataStepRu
 thread_local map<string, list<pair<string, string>>> TimingFlowVisitor::timingStepRuntimes;
 thread_local map<string, list<pair<string, string>>> DataFlowVisitor::dataOverrideRuntimes;
 thread_local map<string, list<pair<string, string>>> TimingFlowVisitor::timingOverrideRuntimes;
+thread_local map<string, list<ResolvingItem*>> DataFlowVisitor::methodToWritenItem;
 
 #define ITER_ALL_METHOD(RAW_DATA,METHOD,PROLOG_LINES) for(auto &classIter: RAW_DATA){ for(auto &methodIter: classIter.second) {METHOD->visitMethod(methodIter.first, methodIter.second, PROLOG_LINES);}}
 
@@ -76,6 +77,13 @@ void PrologDataBaseGen::genPrologDataBase(list<string>& prologLines) {
     }
     timingFlowVisitor->timingOverrideRuntimes.clear();
     ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeKeyVisitor, prologLines);
+    prologLines.emplace_back("\% is write start");
+    for (auto& mkAndWriten : dataFlowVisitor->methodToWritenItem) {
+        for (auto& writen : mkAndWriten.second) {
+            prologLines.emplace_back(CompoundTerm::getIsWriteFact(mkAndWriten.first, writen->runtimeKey));
+        }
+    }
+    dataFlowVisitor->methodToWritenItem.clear();
     // prologLines.emplace_back("\% runtime read start");
     // ITER_ALL_METHOD(CodeBlock::classKey2methodKey2codeBlock, runtimeReadVisitor, prologLines);
     // prologLines.emplace_back("\% runtime write start");
@@ -86,6 +94,7 @@ void PrologDataBaseGen::genPrologDataBase(list<string>& prologLines) {
 void DataFlowVisitor::visitMethod(const string& methodKey, CodeBlock* methodBody, list<string>& prologLines) {
     dataStepRuntimes[methodKey] = list<pair<string, string>>();
     dataOverrideRuntimes[methodKey] = list<pair<string, string>>();
+    methodToWritenItem[methodKey] = list<ResolvingItem*>();
     GenDataVisitor::visitMethod(methodKey, methodBody, prologLines);
 }
 
@@ -139,6 +148,9 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
     genDataFlowFromLastWrittenLvs(methodKey, read, codeBlock, prologLines);
     // data flow of this relation
     prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, read->runtimeKey, writen->runtimeKey));
+    if (writen->keyType == GlobalInfo::KEY_TYPE_LOCAL_VARIABLE or writen->keyType == GlobalInfo::KEY_TYPE_FIELD) {
+        methodToWritenItem[methodKey].push_back(writen);
+    }
     // data flow of step
     // called param -> step/override
     if (read->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER) {
