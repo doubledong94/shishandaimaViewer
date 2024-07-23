@@ -394,6 +394,8 @@ void NodeInfo::makeSimpleName() {
         simpleName = key;
     } else if (keyType == GlobalInfo::KEY_TYPE_REFERENCE) {
         simpleName = "[reference]";
+    } else if (keyType == GlobalInfo::KEY_TYPE_VOID_REF) {
+        simpleName = "[voidRef]";
     } else if (keyType == GlobalInfo::KEY_TYPE_INDEX) {
         simpleName = "[i]";
     } else if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP) {
@@ -1441,7 +1443,8 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             ) {
             nodesObj->styled2.insert(nodeInfo->nodeId);
         }
-        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_REFERENCE) {
+        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_REFERENCE or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_VOID_REF) {
             nodesObj->styled3.insert(nodeInfo->nodeId);
         }
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_ERROR) {

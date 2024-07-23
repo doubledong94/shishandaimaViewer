@@ -116,6 +116,7 @@ namespace SimpleView {
             NODE_TYPE_FINAL,
             NODE_TYPE_CLASS,
             NODE_TYPE_REFERENCE,
+            NODE_TYPE_VOID_REF,
             NODE_TYPE_CONDITION,
             NODE_TYPE_DATA_STEP,
             NODE_TYPE_TIMING_STEP,
@@ -146,6 +147,7 @@ namespace SimpleView {
         static Node* NODE_FINAL;
         static Node* NODE_CLASS;
         static Node* NODE_REFERENCE;
+        static Node* NODE_VOID_REF;
         static Node* NODE_CONDITION;
         static Node* NODE_ELSE;
         static Node* NODE_DATA_STEP;

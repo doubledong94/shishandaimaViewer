@@ -42,6 +42,7 @@ BASIC_STYLE : 'BasicStyle';
 CLASS_SCOPE : 'ClassScope';
 NODE : 'Node';
 REFERENCE : 'Reference';
+VOID_REF : 'VoidRef';
 CONDITION : 'Condition';
 ELSE : 'Else';
 DATA_STEP : 'DataStep';
@@ -127,6 +128,7 @@ nodeExp
     | FINAL
     | CLASS
     | REFERENCE
+    | VOID_REF
     | CONDITION
     | ELSE
     | DATA_STEP

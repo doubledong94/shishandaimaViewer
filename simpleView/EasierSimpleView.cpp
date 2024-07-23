@@ -79,6 +79,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::READ);
     saveVocabulary(lexer, SimpleViewLexer::WRITE);
     saveVocabulary(lexer, SimpleViewLexer::REFERENCE);
+    saveVocabulary(lexer, SimpleViewLexer::VOID_REF);
     saveVocabulary(lexer, SimpleViewLexer::CONDITION);
     saveVocabulary(lexer, SimpleViewLexer::ELSE);
     saveVocabulary(lexer, SimpleViewLexer::DATA_STEP);
@@ -156,6 +157,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_FINAL,Images::finalIconId},
                 {SimpleView::Node::NODE_TYPE_CLASS,Images::classScopeIconId},
                 {SimpleView::Node::NODE_TYPE_REFERENCE,Images::referenceIconId},
+                {SimpleView::Node::NODE_TYPE_VOID_REF,Images::varIconId},
                 {SimpleView::Node::NODE_TYPE_CONDITION,Images::conditionIconId},
                 {SimpleView::Node::NODE_TYPE_ELSE,Images::elseIconId},
                 {SimpleView::Node::NODE_TYPE_DATA_STEP,Images::stepIconId},
@@ -212,6 +214,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_FINAL = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FINAL);
     SimpleView::Node::NODE_CLASS = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CLASS);
     SimpleView::Node::NODE_REFERENCE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_REFERENCE);
+    SimpleView::Node::NODE_VOID_REF = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_VOID_REF);
     SimpleView::Node::NODE_CONDITION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONDITION);
     SimpleView::Node::NODE_ELSE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ELSE);
     SimpleView::Node::NODE_DATA_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_STEP);
@@ -1567,6 +1570,7 @@ SimpleView::Node* SimpleView::Node::NODE_ANY = NULL;
 SimpleView::Node* SimpleView::Node::NODE_FINAL = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CLASS = NULL;
 SimpleView::Node* SimpleView::Node::NODE_REFERENCE = NULL;
+SimpleView::Node* SimpleView::Node::NODE_VOID_REF = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CONDITION = NULL;
 SimpleView::Node* SimpleView::Node::NODE_ELSE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_DATA_STEP = NULL;
@@ -1605,6 +1609,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_REFERENCE:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::REFERENCE];
         node->iconId = Images::referenceIconId;
+        break;
+    case Node::NODE_TYPE_VOID_REF:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::VOID_REF];
+        node->iconId = Images::varIconId;
         break;
     case Node::NODE_TYPE_CONDITION:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CONDITION];
@@ -1953,6 +1961,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::WRITE] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_REFERENCE:
         return voc[SimpleViewLexer::REFERENCE];
+    case NODE_TYPE_VOID_REF:
+        return voc[SimpleViewLexer::VOID_REF];
     case NODE_TYPE_CONDITION:
         return voc[SimpleViewLexer::CONDITION];
     case NODE_TYPE_ELSE:
@@ -2006,6 +2016,7 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_FINAL
         and nodeType != NODE_TYPE_CLASS
         and nodeType != NODE_TYPE_REFERENCE
+        and nodeType != NODE_TYPE_VOID_REF
         and nodeType != NODE_TYPE_CONDITION
         and nodeType != NODE_TYPE_ELSE
         and nodeType != NODE_TYPE_DATA_STEP
@@ -3120,6 +3131,12 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     } else {
         flowTerm = CompoundTerm::getFlowTerm(currentMethodKeyTerm, currentKeyTerm, expectingNextKeyTerm);
     }
+    Term* keyType1 = Term::getVar("KeyType1");
+    Term* mk1 = Term::getVar("MK1");
+    Term* runtime1 = Term::getVar("Runtime1");
+    Term* keyType2 = Term::getVar("KeyType2");
+    Term* mk2 = Term::getVar("MK2");
+    Term* runtime2 = Term::getVar("Runtime2");
     // fa impl
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
         lineInstanceValNameTerm, classScopeTerm,
@@ -3148,6 +3165,15 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
         #endif
         NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
+        // avoid loop of ref and void ref
+        NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
+            Unification::getUnificationInstance(nextPoint,Tail::getInstanceByElements({ mk1,runtime1 })),
+            Unification::getUnificationInstance(history,Tail::getTailInstance(Term::getIgnoredVar(), Tail::getInstanceByElements({ mk2,runtime2 }), Term::getIgnoredVar())),
+            CompoundTerm::getRuntimeTerm(mk1,Term::getIgnoredVar(),runtime1,keyType1),
+            CompoundTerm::getRuntimeTerm(mk2,Term::getIgnoredVar(),runtime2,keyType2),
+            Unification::getUnificationInstance(keyType1,Term::getInt(GlobalInfo::KEY_TYPE_VOID_REF)),
+            Unification::getUnificationInstance(keyType2,Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)),
+        })),
         CompoundTerm::getFaTerm(
             lineInstanceValNameTerm, classScopeTerm,
             nextStateTerm,
@@ -3422,6 +3448,9 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_REFERENCE:
         specialKeyType = GlobalInfo::KEY_TYPE_REFERENCE;
         break;
+    case Node::NODE_TYPE_VOID_REF:
+        specialKeyType = GlobalInfo::KEY_TYPE_VOID_REF;
+        break;
     case Node::NODE_TYPE_CONDITION:
         specialKeyType = GlobalInfo::KEY_TYPE_CONDITION;
         break;
@@ -3513,12 +3542,16 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
 
     } else {
         ruleBody.push_back(Unification::getUnificationInstance(nextKeyTerm, expectingNextKeyTerm));
+        // generate the next method key and next steps
+        ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
+        ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
     // value check node type/node inner name and output addressable key and key type
     switch (nodeType) {
     case Node::NODE_TYPE_ANY:
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_VOID_REF))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CONDITION))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ELSE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))));
@@ -3542,6 +3575,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR))));
         break;
     case Node::NODE_TYPE_REFERENCE:
+    case Node::NODE_TYPE_VOID_REF:
     case Node::NODE_TYPE_CONDITION:
     case Node::NODE_TYPE_ELSE:
     case Node::NODE_TYPE_DATA_STEP:
@@ -3580,11 +3614,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (isIntersection) {
         // output to intersection or checked by intersection
         ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
-    }
-    // generate the next method key and next steps
-    if (not isStep) {
-        ruleBody.push_back(Unification::getUnificationInstance(currentMethodKeyTerm, nextMethodKeyTerm));
-        ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     }
     Term* depth = Term::getVar("Depth");
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));

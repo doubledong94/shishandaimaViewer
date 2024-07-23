@@ -115,6 +115,8 @@ public:
         KEY_TYPE_OPTR_END,
         // OPTR keys ends
 
+        KEY_TYPE_VOID_REF,
+
         // error keys
         KEY_TYPE_ERROR,
     };

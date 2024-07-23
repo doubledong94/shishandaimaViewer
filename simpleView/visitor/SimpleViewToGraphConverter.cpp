@@ -225,6 +225,8 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_CLASS;
         } else if (ctx->REFERENCE() != nullptr) {
             ret = Node::NODE_REFERENCE;
+        } else if (ctx->VOID_REF() != nullptr) {
+            ret = Node::NODE_VOID_REF;
         } else if (ctx->DATA_STEP() != nullptr) {
             ret = Node::NODE_DATA_STEP;
         } else if (ctx->TIMING_STEP() != nullptr) {
