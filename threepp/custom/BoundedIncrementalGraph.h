@@ -24,6 +24,7 @@ public:
     int methodStackSize = 0;
     int nodeId = -1;
     bool isWritten = false;
+    bool isOverride = false;
     PositionInRegex* getExistingPositionInRegex(const string& graphName, const string& lineName, const string& regex);
     static string makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey);
     void makeSimpleName();

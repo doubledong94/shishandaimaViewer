@@ -508,6 +508,7 @@ void NodeInfo::toFile(ofstream& f) {
     f << runtimeClass << "\n";
     f << methodStackSize << "\n";
     f << (isWritten ? 1 : 0) << "\n";
+    f << (isOverride ? 1 : 0) << "\n";
 }
 
 void NodeInfo::fromFile(ifstream& f) {
@@ -529,6 +530,7 @@ void NodeInfo::fromFile(ifstream& f) {
     getline(f, runtimeClass);
     methodStackSize = getInt(f);
     isWritten = getInt(f);
+    isOverride = getInt(f);
 }
 
 void BoundedIncrementalGraph::removeExistingNodeRecord(int index) {
@@ -614,6 +616,17 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
         nodeInfo->methodStackSize = tail->headElements[6]->integer;
         nodeInfo->isWritten = PrologWrapper::queryCount(CompoundTerm::getCountTerm(
             CompoundTerm::getIsWriteTerm(Term::getStr(methodOfRuntime), Term::getStr(runtimeKey)), Term::getVar("C")));
+        if (keyType == GlobalInfo::KEY_TYPE_METHOD or
+            keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
+            keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN) {
+            nodeInfo->isOverride = PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getOverrideOutRecurTerm(Term::getIgnoredVar(), Term::getStr(key)), Term::getVar("C")));
+        }
+        if (
+            keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
+            keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
+            keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+            nodeInfo->isOverride = PrologWrapper::queryCount(CompoundTerm::getCountTerm(CompoundTerm::getOverrideInRecurTerm(Term::getStr(key.substr(0, key.size() - 1)), Term::getIgnoredVar()), Term::getVar("C")));
+        }
         saveNodeInfo(nodeInfo);
         saveNodePosition(nodeInfo->positionInRegex.back(), nodeInfo);
     } else {
@@ -1426,14 +1439,13 @@ void BoundedIncrementalGraph::resetStyledNodes() {
     nodesObj->styled4.clear();
     nodesObj->styled5.clear();
     nodesObj->styled6.clear();
+    nodesObj->styled7.clear();
     for (auto nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE or
-            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_STEP
             ) {
             nodesObj->styled.insert(nodeInfo->nodeId);
         }
@@ -1458,6 +1470,11 @@ void BoundedIncrementalGraph::resetStyledNodes() {
         }
         if (nodeInfo->isWritten) {
             nodesObj->styled6.insert(nodeInfo->nodeId);
+        }
+        if (nodeInfo->isOverride or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE) {
+            nodesObj->styled7.insert(nodeInfo->nodeId);
         }
     }
 }
