@@ -181,8 +181,6 @@ public:
 
     void resetStyledNodes();
 
-    void resetStyledNodes6();
-
     void selectByKeyType(int keyType);
 
     void selectAll();
