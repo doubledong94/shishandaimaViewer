@@ -846,19 +846,19 @@ std::any StatementVisitor::visitPrimaryLiteral(JavaParser::PrimaryLiteralContext
     TypeInfo* literalTypeInfo;
     int keyType = GlobalInfo::KEY_TYPE_FINAL;
     if (ctx->literal()->integerLiteral() != nullptr) {
-        key = "final:" + ctx->literal()->integerLiteral()->getText();
+        key = "literal:" + ctx->literal()->integerLiteral()->getText();
         literalTypeInfo = AddressableInfo::primitive_intTypeInfo;
     } else if (ctx->literal()->floatLiteral() != nullptr) {
-        key = "final:" + ctx->literal()->floatLiteral()->getText();
+        key = "literal:" + ctx->literal()->floatLiteral()->getText();
         literalTypeInfo = AddressableInfo::primitive_floatTypeInfo;
     } else if (ctx->literal()->CHAR_LITERAL() != nullptr) {
-        key = "final:" + REPLACE_QUOTATION_MARKS(ctx->literal()->CHAR_LITERAL()->getText());
+        key = "literal:" + REPLACE_QUOTATION_MARKS(ctx->literal()->CHAR_LITERAL()->getText());
         literalTypeInfo = AddressableInfo::primitive_charTypeInfo;
     } else if (ctx->literal()->STRING_LITERAL() != nullptr) {
-        key = "final:" + REPLACE_QUOTATION_MARKS(ctx->literal()->STRING_LITERAL()->getText());
+        key = "literal:" + REPLACE_QUOTATION_MARKS(ctx->literal()->STRING_LITERAL()->getText());
         literalTypeInfo = AddressableInfo::stringTypeInfo;
     } else if (ctx->literal()->TEXT_BLOCK() != nullptr) {
-        key = "final:" + REPLACE_QUOTATION_MARKS(ctx->literal()->TEXT_BLOCK()->getText());
+        key = "literal:" + REPLACE_QUOTATION_MARKS(ctx->literal()->TEXT_BLOCK()->getText());
         literalTypeInfo = AddressableInfo::stringTypeInfo;
     } else if (ctx->literal()->BOOL_LITERAL() != nullptr) {
         key = ctx->literal()->BOOL_LITERAL()->getText();
