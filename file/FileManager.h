@@ -92,5 +92,6 @@ public:
     static string graphSaveAndRestorePath;
     static string boundFrameDragIconPath;
     static string boundFrameResizeIconPath;
+    static string appIconPath;
 };
 

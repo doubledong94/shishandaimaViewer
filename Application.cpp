@@ -412,7 +412,7 @@ int app::Application::ApplicationMain() {
         selectByKeyTypePopupOpen = true;
         };
 
-    Canvas canvas(StringRes::singleton->getAppName(), { {"antialiasing", 4} ,{"exitOnKeyEscape", false} });
+    Canvas canvas(StringRes::singleton->getAppName(), { {"antialiasing", 4} ,{"exitOnKeyEscape", false}, {"favicon",FileManager::appIconPath} });
     GLRenderer renderer(canvas.size());
     static float colorWidgetWidth = 0.f;
 
