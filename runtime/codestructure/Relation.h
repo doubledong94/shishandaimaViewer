@@ -1,3 +1,4 @@
+class Relation;
 class ResolvingItem : public PooledItem<ResolvingItem> {
 public:
     thread_local static list<ResolvingItem*> itemsOutOfPool;
@@ -27,6 +28,13 @@ public:
     bool orderPrologAdded = false;
     bool readFromLastWriteAdded = false;
     bool reversedRef = false;
+    Relation* parent = NULL;
+
+    bool happenLaterThan(ResolvingItem* item);
+
+    vector<int> extractStenceIndex();
+
+    bool coverScope(ResolvingItem* item);
 
     void reset() override;
 
@@ -54,6 +62,8 @@ public:
 
     ResolvingItem* getRefedByRecur();
 
+    void addParentRecur(Relation* parent);
+
     void collectRefedByAndIndexedBy(std::set<ResolvingItem*> &refedByAndIndexedBy);
 
     void setReversedRefRecur(bool reversedRef);
@@ -67,6 +77,7 @@ public:
     ResolvingItem* read;
     ResolvingItem* writen;
     bool isAssignRelation = false;
+    CodeStructure* parent = NULL;
 
     Relation(CodeStructure* parent);
 

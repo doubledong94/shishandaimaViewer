@@ -11,14 +11,15 @@ public:
     string blockEndKey;
     bool closed;
     bool has_return_sentence;
-    map<string, set<string>> lvToLastWrittenKeys;
+    map<string, set<ResolvingItem*>> lvToLastWrittenKeys;
     set<string> lvKeysUpdatedByThisBlock100Percent;
     CodeStructure* parent = nullptr;
     bool isLoop = false;
-    map<string, set<ResolvingItem*>> lvToLastWrittenKeysByThisBlock;
     set<ResolvingItem*> unwrittenReadOfThisBlock;
 
     bool lvUpdatedByBlockStack100Percent(const string& lvKey);
+
+    bool coverScope(CodeBlock* codeBlock);
 
     CodeBlock(CodeStructure* parent, const string& structureKey, bool closed);
 

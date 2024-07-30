@@ -65,3 +65,20 @@ bool CodeBlock::lvUpdatedByBlockStack100Percent(const string& lvKey) {
     }
     return false;
 }
+
+bool CodeBlock::coverScope(CodeBlock* codeBlock) {
+    if (codeBlock == this) {
+        return true;
+    }
+    for (auto& sentence : sentences) {
+        if (sentence->structure_type == CodeStructure::STRUCTURE_TYPE_SPLIT_CODE_BLOCKS or sentence->structure_type == CodeStructure::STRUCTURE_TYPE_LOOP_CODE_BLOCKS) {
+            auto splits = dynamic_cast<SplitCodeBlocks*>(sentence);
+            for (auto& splitI : splits->blocks) {
+                if (splitI->coverScope(codeBlock)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}

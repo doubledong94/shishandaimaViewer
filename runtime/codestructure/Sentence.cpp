@@ -5,6 +5,10 @@
 #include "Relation.h"
 #include "Sentence.h"
 
+int Sentence::FOR_INIT_SENT_INDEX = -1000000;
+string Sentence::FOR_INIT_SENT_INDEX_STR = "-1000000";
+int Sentence::FOR_UPDATE_SENT_INDEX = 1000000;
+
 void Sentence::append_structure(CodeStructure* codeStructure) {
     relations.push_back(dynamic_cast<Relation*> (codeStructure));
 }
@@ -18,6 +22,7 @@ Sentence::Sentence(CodeStructure* parent, const string& structureKey, int index)
     if (parent != nullptr) {
         parent->append_structure(this);
     }
+    this->parent = parent;
 }
 
 void Sentence::markUnreadReturn(int calledReturnKeyType) {

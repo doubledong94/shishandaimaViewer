@@ -4,6 +4,51 @@
 #include "../../addressableInfo/AddressableInfo.h"
 #include "CodeStructure.h"
 #include "Relation.h"
+#include "Sentence.h"
+#include "CodeBlock.h"
+
+bool ResolvingItem::happenLaterThan(ResolvingItem* item) {
+    vector<int> sentenceIndex1 = extractStenceIndex();
+    vector<int> sentenceIndex2 = item->extractStenceIndex();
+    int size1 = sentenceIndex1.size();
+    int size2 = sentenceIndex2.size();
+    for (int i = 0;i < min(size1, size2);i++) {
+        if (sentenceIndex1[i] < sentenceIndex2[i]) {
+            return false;
+        }
+        if (sentenceIndex1[i] > sentenceIndex2[i]) {
+            return true;
+        }
+    }
+    if (size1 > size2) {
+        return sentenceIndex1[size2] > stoi(item->sentenceIndex);
+    }
+    if (size1 < size2) {
+        return sentenceIndex2[size1] < stoi(sentenceIndex);
+    }
+    if (size1 == size2) {
+        return stoi(sentenceIndex) >= stoi(item->sentenceIndex);
+    }
+    return false;
+}
+
+vector<int> ResolvingItem::extractStenceIndex() {
+    vector<int> ret;
+    list<string> structureParts;
+    splitStr(structureKey, ":", structureParts);
+    for (auto& structurePartI : structureParts) {
+        ret.push_back(stoi(structurePartI.substr(0, structurePartI.find(','))));
+    }
+    return ret;
+}
+
+bool ResolvingItem::coverScope(ResolvingItem* item) {
+    if (not parent or not item->parent) {
+        return false;
+    }
+    CodeBlock* scope = dynamic_cast<CodeBlock*>(dynamic_cast<Sentence*>(parent->parent)->parent);
+    return scope->coverScope(dynamic_cast<CodeBlock*>(dynamic_cast<Sentence*>(item->parent->parent)->parent));
+}
 
 void ResolvingItem::reset() {
     hasReturnValue = false;
@@ -32,6 +77,7 @@ void ResolvingItem::reset() {
     orderPrologAdded = false;
     readFromLastWriteAdded = false;
     reversedRef = false;
+    parent = NULL;
 }
 
 void ResolvingItem::set(const string& variableKey, TypeInfo* typeInfo, const string& structureKey, const string& sentenceIndex, const string& indexInsideExp, int keyType, const string& extraInfo) {
@@ -107,6 +153,16 @@ ResolvingItem* ResolvingItem::getRefedByRecur() {
         return referencedBy->getRefedByRecur();
     } else {
         return this;
+    }
+}
+
+void ResolvingItem::addParentRecur(Relation* parent) {
+    this->parent = parent;
+    if (referencedBy) {
+        referencedBy->addParentRecur(parent);
+    }
+    if (indexedBy) {
+        indexedBy->addParentRecur(parent);
     }
 }
 
@@ -208,6 +264,9 @@ Relation::Relation(CodeStructure* parent, ResolvingItem* r, ResolvingItem* w, bo
     structure_type = STRUCTURE_TYPE_RELATION;
     read = r;
     writen = w;
+    read->addParentRecur(this);
+    writen->addParentRecur(this);
+    this->parent = parent;
     this->isAssignRelation = isAssignRelation;
     writen->setReversedRefRecur(isAssignRelation);
     if (parent != nullptr) {

@@ -304,7 +304,7 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
     auto* codeBlock = new CodeBlock(splitCodeBlocks, CodeBlock::makeStructureKey(outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock, 1, false), false);
     codeBlock->isLoop = true;
     if (ctx->forControl()->forInit() != nullptr) {
-        visitUseStatementVisitor(ctx->forControl()->forInit(), codeBlock, -1);
+        visitUseStatementVisitor(ctx->forControl()->forInit(), codeBlock, Sentence::FOR_INIT_SENT_INDEX);
     }
     if (ctx->forControl()->enhancedForControl()) {
         auto* statementVisitor = StatementVisitor::getInstanceFromCopy(this);
@@ -326,7 +326,7 @@ std::any StructuralVisitor::visitStatementFor(JavaParser::StatementForContext* c
     visitConditionFor(ctx->forControl(), codeBlock);
     visitUseStatementVisitor(ctx->statement(), codeBlock, 1);
     if (ctx->forControl()->forUpdate() != nullptr) {
-        visitUseStatementVisitor(ctx->forControl()->forUpdate(), codeBlock, -2);
+        visitUseStatementVisitor(ctx->forControl()->forUpdate(), codeBlock, Sentence::FOR_UPDATE_SENT_INDEX);
     }
     return 0;
 }
