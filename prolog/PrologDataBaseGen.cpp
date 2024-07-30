@@ -262,17 +262,11 @@ void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlo
 void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBlock, Sentence* sentence, list<string>& prologLines) {
     sentence->markUnreadReturn(GlobalInfo::KEY_TYPE_CALLED_RETURN);
     GenDataVisitor::visitSentence(methodKey, codeBlock, sentence, prologLines);
-    // mark local variable and make written history for referenced
     for (auto& relation : sentence->relations) {
         auto& writen = relation->writen;
         if (writen->reversedRef and writen->referencedBy) {
             auto referencedBy = writen->getRefedByRecur();
-            if (referencedBy->allowWrittenHistory()) {
-                if (not codeBlock->lvToLastWrittenKeys.count(referencedBy->variableKey)) {
-                    codeBlock->lvToLastWrittenKeys[referencedBy->variableKey] = set<ResolvingItem*>();
-                }
-                codeBlock->lvToLastWrittenKeys[referencedBy->variableKey].insert(referencedBy);
-            }
+            genDataFlowFromLastWrittenLvs(methodKey, referencedBy, codeBlock, prologLines);
         }
     }
 }
