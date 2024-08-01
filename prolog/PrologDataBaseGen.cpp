@@ -161,7 +161,7 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
         dataOverrideRuntimes[methodKey].push_back({ overrideKey,overrideRuntime });
     }
     // step/override -> called return
-    if (writen->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+    if (read->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD and writen->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
         string stepKey = AddressableInfo::makeStepKey(writen->variableKey);
         string stepRuntime = ResolvingItem::makeRuntimeKey(stepKey, writen->structureKey, writen->sentenceIndex, writen->indexInsideStatement);
         prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, stepRuntime, writen->runtimeKey));
@@ -250,7 +250,8 @@ void DataFlowVisitor::visitCodeBlock(const string& methodKey, CodeBlock* codeBlo
         for (auto* read : codeBlock->unwrittenReadOfThisBlock) {
             if (codeBlock->lvToLastWrittenKeys.count(read->variableKey)) {
                 for (auto* written : codeBlock->lvToLastWrittenKeys[read->variableKey]) {
-                    if (written->happenLaterThan(read)) {
+                    if (not read->feedbackAdded.count(written) and written->happenLaterThan(read)) {
+                        read->feedbackAdded.insert(written);
                         prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, written->runtimeKey, read->runtimeKey));
                     }
                 }
@@ -276,6 +277,10 @@ void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBloc
 }
 
 void DataFlowVisitor::addStepToParam(const string& methodKey, ResolvingItem* paramItem, list<string>& prologLines) {
+    if (paramItem->stepAdded) {
+        return;
+    }
+    paramItem->stepAdded = true;
     string stepKey = AddressableInfo::makeStepKey(paramItem->variableKey);
     string stepRuntimeKey = ResolvingItem::makeRuntimeKey(stepKey, paramItem->structureKey, paramItem->sentenceIndex, paramItem->indexInsideStatement);
     prologLines.emplace_back(CompoundTerm::getFlowFact(methodKey, stepRuntimeKey, paramItem->runtimeKey));

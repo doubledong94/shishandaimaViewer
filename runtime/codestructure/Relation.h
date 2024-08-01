@@ -28,6 +28,8 @@ public:
     bool orderPrologAdded = false;
     bool readFromLastWriteAdded = false;
     bool reversedRef = false;
+    bool stepAdded = false;
+    std::set<ResolvingItem*> feedbackAdded;
     Relation* parent = NULL;
 
     bool happenLaterThan(ResolvingItem* item);

@@ -77,6 +77,8 @@ void ResolvingItem::reset() {
     orderPrologAdded = false;
     readFromLastWriteAdded = false;
     reversedRef = false;
+    stepAdded = false;
+    feedbackAdded.clear();
     parent = NULL;
 }
 
