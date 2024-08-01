@@ -130,11 +130,6 @@ void ResolvingItem::addRuntimeProlog(string(*act)(const string& methodKey, const
     }
     if (referencedBy != nullptr) {
         prologLines.emplace_back(act(methodKey, referencedBy->referenceKey, referencedBy->referenceRuntimeKey, GlobalInfo::KEY_TYPE_REFERENCE));
-        if (reversedRef) {
-            string voidRef = referencedBy->typeInfo->typeKey + "-voidreference";
-            string voidRefRuntime = makeRuntimeKey(voidRef, referencedBy->structureKey, referencedBy->sentenceIndex, referencedBy->indexInsideStatement);
-            prologLines.emplace_back(act(methodKey, voidRef, voidRefRuntime, GlobalInfo::KEY_TYPE_VOID_REF));
-        }
         referencedBy->addRuntimeProlog(act, methodKey, prologLines);
     }
     if (indexedBy != nullptr) {
@@ -226,10 +221,6 @@ void ResolvingItem::addReferenceProlog(string(*act)(const string&, const string&
         if (reversedRef) {
             prologLines.emplace_back(act(methodKey, runtimeKey, referencedBy->referenceRuntimeKey));
             prologLines.emplace_back(act(methodKey, referencedBy->referenceRuntimeKey, referencedBy->runtimeKey));
-            string voidRef = referencedBy->typeInfo->typeKey + "-voidreference";
-            string voidRefRuntime = makeRuntimeKey(voidRef, referencedBy->structureKey, referencedBy->sentenceIndex, referencedBy->indexInsideStatement);
-            prologLines.emplace_back(act(methodKey, referencedBy->runtimeKey, voidRefRuntime));
-            prologLines.emplace_back(act(methodKey, voidRefRuntime, runtimeKey));
         } else {
             prologLines.emplace_back(act(methodKey, referencedBy->runtimeKey, referencedBy->referenceRuntimeKey));
             prologLines.emplace_back(act(methodKey, referencedBy->referenceRuntimeKey, runtimeKey));

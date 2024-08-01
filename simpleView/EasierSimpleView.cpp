@@ -3165,15 +3165,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
         #endif
         NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
-        // avoid loop of ref and void ref
-        NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
-            Unification::getUnificationInstance(nextPoint,Tail::getInstanceByElements({ mk1,runtime1 })),
-            Unification::getUnificationInstance(history,Tail::getTailInstance(Term::getIgnoredVar(), Tail::getInstanceByElements({ mk2,runtime2 }), Term::getIgnoredVar())),
-            CompoundTerm::getRuntimeTerm(mk1,Term::getIgnoredVar(),runtime1,keyType1),
-            CompoundTerm::getRuntimeTerm(mk2,Term::getIgnoredVar(),runtime2,keyType2),
-            Unification::getUnificationInstance(keyType1,Term::getInt(GlobalInfo::KEY_TYPE_VOID_REF)),
-            Unification::getUnificationInstance(keyType2,Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)),
-        })),
         CompoundTerm::getFaTerm(
             lineInstanceValNameTerm, classScopeTerm,
             nextStateTerm,
@@ -3198,6 +3189,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
             ConjunctionTerm::getConjunctionInstance({
                 NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
                 NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
+                NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE))),
+                NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE))),
                 CompoundTerm::getFaImplTerm(
                     lineInstanceValNameTerm, classScopeTerm,
                     currentStateTerm,
@@ -3211,6 +3204,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 DisjunctionTerm::getDisjunctionInstance({
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE)),
                 }),
                 //done and success
                 CompoundTerm::getFaSuccTerm(
@@ -3224,6 +3219,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 DisjunctionTerm::getDisjunctionInstance({
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE)),
                 }),
                 // no done yet
                 NegationTerm::getNegInstance(CompoundTerm::getFaDoneTerm(

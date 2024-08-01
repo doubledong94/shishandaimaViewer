@@ -266,7 +266,11 @@ void DataFlowVisitor::visitSentence(const string& methodKey, CodeBlock* codeBloc
         auto& writen = relation->writen;
         if (writen->reversedRef and writen->referencedBy) {
             auto referencedBy = writen->getRefedByRecur();
-            genDataFlowFromLastWrittenLvs(methodKey, referencedBy, codeBlock, prologLines);
+            if (referencedBy->allowWrittenHistory()) {
+                genDataFlowFromLastWrittenLvs(methodKey, referencedBy, codeBlock, prologLines);
+                codeBlock->lvToLastWrittenKeys[referencedBy->variableKey] = set<ResolvingItem*>();
+                codeBlock->lvToLastWrittenKeys[referencedBy->variableKey].insert(referencedBy);
+            }
         }
     }
 }

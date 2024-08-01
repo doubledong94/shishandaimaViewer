@@ -407,9 +407,13 @@ void AntlrNodeToSyntaxObjectConverter::convertTypeParameters(JavaParser::TypePar
 
 void AntlrNodeToSyntaxObjectConverter::convertTypeArguments(JavaParser::TypeArgumentsContext* ctx, vector<TypeName*>& typeArguments) {
     for (auto& typeArg : ctx->typeArgument()) {
+        TypeName* typeName = new TypeName();
         if (typeArg->typeType()) {
             TypeName* typeName = new TypeName();
             convertTypeType(typeArg->typeType(), typeName);
+            typeArguments.push_back(typeName);
+        } else {
+            typeName->typeName.push_back("Object");
             typeArguments.push_back(typeName);
         }
     }
