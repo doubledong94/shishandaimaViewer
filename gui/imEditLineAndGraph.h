@@ -337,6 +337,9 @@ namespace shishan {
         if (strcmp(name, "unnamed") == 0) {
             return false;
         }
+        if (strcmp(name, "ByIntersection") == 0) {
+            return false;
+        }
         return true;
     }
 
@@ -1031,6 +1034,12 @@ namespace shishan {
 
     static void addLineInstanceArgEditItem(float fontSize) {
         static bool lineInstanceArgParamNameIsWrong = false;
+        // set intersection as argument        
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
+        if (ImGui::Button("ByIntersection")) {
+            createdString.push_back("ByIntersection");
+            lineInstanceArgEditValues[lineInstanceArgSelectedIndex] = createdString.back().data();
+        }
         ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
         // add param as argument
         if (ImGui::Button("Parameter##lineInstanceArgParam")) {
@@ -1159,7 +1168,7 @@ namespace shishan {
             graphNewInstanceNameIsWrong = not checkValName(graphNewInstanceName, 0, 7);
             if (not graphNewInstanceNameIsWrong) {
                 FOR_EACH_ITEM(graphNewInstance->paramNameToArgName,
-                    graphNewInstanceArgNameIsWrong = graphNewInstanceArgNameIsWrong or not checkValNameCommon(item.second.data());
+                    graphNewInstanceArgNameIsWrong = graphNewInstanceArgNameIsWrong or (item.second != "ByIntersection" and not checkValNameCommon(item.second.data()));
                     );
                 if (not graphNewInstanceArgNameIsWrong) {
                     changeNameOfNameOrderAndValNameTo<SimpleView::GraphInstance*>(
@@ -1185,8 +1194,12 @@ namespace shishan {
                 ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
                 string& paramName = graphNewInstance->graphTemplate->orderedParamName[i];
                 ImGui::Text("%s = ", paramName.data()); ImGui::SameLine();
-                if (ImGui::Selectable((graphNewInstance->paramNameToArgName[paramName] + "##" + paramName).data(), graphInstanceArgSelectedIndex == graphInstanceArgSelectableCount)) {
-                    graphInstanceArgSelectedIndex = graphInstanceArgSelectableCount;
+                if (paramName == "ByIntersection") {
+                    ImGui::Text(graphNewInstance->paramNameToArgName[paramName].data());
+                } else {
+                    if (ImGui::Selectable((graphNewInstance->paramNameToArgName[paramName] + "##" + paramName).data(), graphInstanceArgSelectedIndex == graphInstanceArgSelectableCount)) {
+                        graphInstanceArgSelectedIndex = graphInstanceArgSelectableCount;
+                    }
                 }
                 graphInstanceArgSelectableCount++;
             }
@@ -1666,7 +1679,12 @@ namespace shishan {
                 }
             }
             vector<string> args;
-            FOR_EACH_ITEM(graphTemplate->orderedParamName, args.push_back("click node above"););
+            FOR_EACH_ITEM(graphTemplate->orderedParamName,
+                if (item == "ByIntersection") {
+                    args.push_back("ByIntersection");
+                } else {
+                    args.push_back("click node above");
+                });
             auto graphInstance = new SimpleView::GraphInstance(graphTemplate, args);
             graphInstance->editingNew = true;
             graphInstance->valName = newInstanceName;
@@ -1904,7 +1922,7 @@ namespace shishan {
         for (int pointCount = 0;pointCount < lineTemplate->nodeAndRepeatType.size();pointCount++) {
             auto& pI = pointsInLine->seg[pointCount];
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointCount];
-            bool disalbedI = disabled or lineTemplate->isAlternation or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE);
+            bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE);
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {
             case SimpleView::LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:
@@ -2367,6 +2385,13 @@ namespace shishan {
 
         // graph window start
         if (showGraphList) {
+            static bool graphTemplateTabOpen = true;
+            static bool openGraphInstanceTab = false;
+            if (graphTemplateTabOpen) {
+                graphItem1Width = (classWindowWidth - dividerWidth * 2) * 0.3f;
+            } else {
+                graphItem1Width = classWindowWidth;
+            }
             ImGui::SetCursorPos({ childWindowPadding, graphWindowTop });
             shadow(classWindowWidth, graphWindowHeight);
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::noBgColor);
@@ -2375,9 +2400,6 @@ namespace shishan {
             // graph list start
             ImGui::SetCursorPos({ 0, 0 });
             ImGui::BeginChild("graphList", ImVec2(graphItem1Width, graphWindowHeight), ImGuiChildFlags_None, ImGuiWindowFlags_None);
-
-            static bool graphTemplateTabOpen = true;
-            static bool openGraphInstanceTab = false;
             if (ImGui::BeginTabBar("GraphTab", ImGuiTabBarFlags_None)) {
                 if (ImGui::BeginTabItem("Graph Template")) {
                     graphTemplateTabOpen = true;

@@ -221,6 +221,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_TIMING_STEP = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_STEP);
     SimpleView::Node::NODE_DATA_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_DATA_OVERRIDE);
     SimpleView::Node::NODE_TIMING_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE);
+    SimpleView::Node::NODE_BY_INTERSECTION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_BY_INTERSECTION);
     SimpleView::Node::NODE_LV = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_LV);
     SimpleView::Node::NODE_FIELD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FIELD);
     SimpleView::Node::NODE_METHOD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_METHOD);
@@ -1589,6 +1590,7 @@ SimpleView::Node* SimpleView::Node::NODE_INDEX = NULL;
 SimpleView::Node* SimpleView::Node::NODE_ERROR = NULL;
 SimpleView::Node* SimpleView::Node::NODE_DATA_OVERRIDE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_TIMING_OVERRIDE = NULL;
+SimpleView::Node* SimpleView::Node::NODE_BY_INTERSECTION = NULL;
 
 SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     auto* node = new Node();
@@ -1681,6 +1683,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_ERROR:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::ERROR];
         node->iconId = Images::elseIconId;
+        break;
+    case Node::NODE_TYPE_BY_INTERSECTION:
+        node->displayName = "ByIntersection";
+        node->iconId = 0;
         break;
     default:
         break;
@@ -2194,7 +2200,7 @@ bool SimpleView::NodeAndRepeatType::isParamNode() {
     return node and node->nodeType == Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH;
 }
 
-int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, map<Node*, char>& nodeToChar) {
+int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, map<Node*, char>& nodeToChar, IntersectionPointInLine* intersection) {
     int currentCharIndex = charIndex;
     if (seg != NULL) {
         outputRegex->encodeChar = 0;
@@ -2202,15 +2208,17 @@ int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeat
         for (int i = 0; i < seg->nodeAndRepeatType.size(); ++i) {
             auto* subRegexI = new RegexTree();
             outputRegex->subStructure.push_back(subRegexI);
-            currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI, nodeToChar);
+            currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI, nodeToChar, intersection ? intersection->seg.at(i) : NULL);
         }
     } else {
-        if (not nodeToChar.count(node)) {
+        if ((intersection and intersection->isIntersection) or not nodeToChar.count(node)) {
             char encodeChar = ALPHABET_FOR_NODE_ENCODING[currentCharIndex];
             charToNode[encodeChar] = this;
             outputRegex->encodeChar = encodeChar;
             currentCharIndex++;
-            nodeToChar[node] = encodeChar;
+            if (not nodeToChar.count(node)) {
+                nodeToChar[node] = encodeChar;
+            }
         } else {
             outputRegex->encodeChar = nodeToChar[node];
         }
@@ -2539,7 +2547,7 @@ void SimpleView::HalfLineTheFA::printGraphvizStr() {
     printf("%s\n", ret.data());
 }
 
-void SimpleView::LineTemplate::encode() {
+void SimpleView::LineTemplate::encode(IntersectionPointInLine* intersection) {
     int charIndex = 0;
     regexTree = new RegexTree();
     regexTree->isAlt = isAlternation;
@@ -2547,7 +2555,7 @@ void SimpleView::LineTemplate::encode() {
     map<Node*, char> nodeToChar;
     for (int i = 0; i < nodeAndRepeatType.size(); ++i) {
         auto subTree = new RegexTree();
-        charIndex = nodeAndRepeatType[i]->encode(charIndex, charToNodeTemplate, subTree, nodeToChar);
+        charIndex = nodeAndRepeatType[i]->encode(charIndex, charToNodeTemplate, subTree, nodeToChar, intersection ? intersection->seg.at(i) : NULL);
         regexTree->subStructure.push_back(subTree);
     }
 }
@@ -2868,9 +2876,22 @@ void SimpleView::LineInstance::removeRuntimeNode(bool downward) {
     lineTemplate->encode();
 }
 
+void SimpleView::LineInstance::encodeWithIntersectionIfFromGraph() {
+    if (not intersectionInfo.empty()) {
+        lineTemplate->encode(IntersectionPointInLine::merge(intersectionInfo));
+    }
+}
+
+void SimpleView::LineInstance::resetEncodeIfFromGraph() {
+    if (not intersectionInfo.empty()) {
+        lineTemplate->encode(NULL);
+    }
+}
+
 // only execute once for each LineInstance obj
 void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, SimpleView::ClassScope* classScope) {
     resolve(updateAddressable);
+    encodeWithIntersectionIfFromGraph();
     // declare fa rule for forward and backward line
     findSplitPoint();
     bool findClassThatUseSplitPoint = not isLineDownOrLineUp and not classScope and indexInsideGraph == 0;
@@ -2904,6 +2925,7 @@ void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const c
     lineTemplate->printNodeEncoding();
     forwardLine->printGraphvizStr();
     backwardLine->printGraphvizStr();
+    resetEncodeIfFromGraph();
 }
 
 void SimpleView::LineInstance::onQueryFinished() {
@@ -3373,6 +3395,7 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
         // split point value is not specified
         // outputing to split point is done by HalfLineTerm
         if (isIntersection and isSpecifiedIntersection) {
+            ruleBody.push_back(NegationTerm::getNegInstance(CompoundTerm::getVarTerm(lineInstance->intersectionTerms[intersectionIndex])));
             // consuming intersection point
             ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
             ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, outputKeyType));
@@ -3602,6 +3625,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE)) }),
             ConjunctionTerm::getConjunctionInstance({ CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE)),Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE)) }),
             }));
+        break;
+    case Node::NODE_TYPE_BY_INTERSECTION:
         break;
     default:
         // check by node inner name
@@ -4035,6 +4060,22 @@ void SimpleView::IntersectionPointInLine::clearEditingRecursively() {
     for (auto& item : seg) {
         item->clearEditingRecursively();
     }
+}
+
+void SimpleView::IntersectionPointInLine::accum(IntersectionPointInLine* from) {
+    isSeg = from->isSeg;
+    isIntersection |= from->isIntersection;
+    for (int i = 0;i < seg.size();i++) {
+        seg[i]->accum(from->seg[i]);
+    }
+}
+
+SimpleView::IntersectionPointInLine* SimpleView::IntersectionPointInLine::merge(vector<IntersectionPointInLine*> points) {
+    auto ret = points.at(0)->copy();
+    for (int i = 1;i < points.size();i++) {
+        ret->accum(points.at(i));
+    }
+    return ret;
 }
 
 SimpleView::GraphInstance::GraphInstance(GraphTemplate* templateGraph, const vector<string>& argumentNameForEachParam) {

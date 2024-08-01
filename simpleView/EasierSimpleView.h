@@ -137,6 +137,7 @@ namespace SimpleView {
 
             NODE_TYPE_PARAM_OF_LINE_AND_GRAPH,
             NODE_TYPE_RUNTIME,
+            NODE_TYPE_BY_INTERSECTION,
         };
 
         static map<int, int> nodeTypeToIconId;
@@ -166,6 +167,7 @@ namespace SimpleView {
         static Node* NODE_ERROR;
         static Node* NODE_DATA_OVERRIDE;
         static Node* NODE_TIMING_OVERRIDE;
+        static Node* NODE_BY_INTERSECTION;
 
         int nodeType = -1;
         string extraStr;
@@ -232,6 +234,9 @@ namespace SimpleView {
         IntersectionPointInLine* editingItem = NULL;
         void applyEditing();
         void clearEditingRecursively();
+
+        void accum(IntersectionPointInLine* from);
+        static IntersectionPointInLine* merge(vector<IntersectionPointInLine*> points);
     };
 
     class LineTemplate;
@@ -254,7 +259,7 @@ namespace SimpleView {
 
         bool isParamNode();
 
-        int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, map<Node*, char>& nodeToChar);
+        int encode(int charIndex, map<char, NodeAndRepeatType*>& charToNode, RegexTree* outputRegex, map<Node*, char>& nodeToChar, IntersectionPointInLine* intersection = NULL);
 
         void markSplitByRuntimeCount(RegexTree* splitPoint, int backwardFlg, map<string, string>& paramNameToArgName);
 
@@ -299,7 +304,7 @@ namespace SimpleView {
 
         bool containLineNameRecursive(string& lineName);
 
-        void encode();
+        void encode(IntersectionPointInLine* intersection = NULL);
 
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
 
@@ -403,6 +408,10 @@ namespace SimpleView {
         void addRuntimeNode(list<tuple<string, string, string, int, string>>& runtimeNodes, bool downward);
 
         void removeRuntimeNode(bool downward);
+
+        void encodeWithIntersectionIfFromGraph();
+
+        void resetEncodeIfFromGraph();
     };
 
     class HalfLineTheFA {
