@@ -3689,6 +3689,15 @@ SimpleView::GraphInstance* SimpleView::GraphTemplate::getNoneParamInstance() {
     return noneParamInstance;
 }
 
+void SimpleView::GraphTemplate::clearInteresctionPoint() {
+    intersectionPointsInLine.clear();
+    vector<IntersectionPointInLine*> p;
+    for (auto* line : lineInstances) {
+        p.push_back(line->lineTemplate->getPointInLine());
+    }
+    intersectionPointsInLine.push_back(p);
+}
+
 void SimpleView::GraphTemplate::reorderLineInstance(int i, int j) {
     SWAP_ELEMENT(lineInstances, i, j);
     FOR_EACH_ITEM(intersectionPointsInLine, SWAP_ELEMENT(item, i, j));
@@ -3939,17 +3948,13 @@ bool SimpleView::GraphTemplate::removePointInLineTemplateRecursively(const char*
         if (not pointsInline->editingItem) {
             pointsInline->editingItem = pointsInline->copy();
         }
-        if (pointsInline->editingItem->seg[i]->findIntersection()) {
-            return false;
-        } else {
-            pointsInline->editingItem->seg.erase(pointsInline->editingItem->seg.begin() + i);
-        }
+        pointsInline->editingItem->seg.erase(pointsInline->editingItem->seg.begin() + i);
     } else {
         for (int pointInLineIndex = 0;pointInLineIndex < lineTemplate->nodeAndRepeatType.size();pointInLineIndex++) {
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointInLineIndex];
             auto& pointInline = pointsInline->seg[pointInLineIndex];
             if (nodeAndRepeatTypeI->seg) {
-                ret = ret and removePointInLineTemplateRecursively(lineName, i, nodeAndRepeatTypeI->seg, pointInline);
+                removePointInLineTemplateRecursively(lineName, i, nodeAndRepeatTypeI->seg, pointInline);
             }
         }
     }

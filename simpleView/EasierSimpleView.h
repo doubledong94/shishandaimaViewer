@@ -470,6 +470,8 @@ namespace SimpleView {
         vector<vector<IntersectionPointInLine*>> intersectionPointsInLine;
         vector<string> orderedParamName;
 
+        void clearInteresctionPoint();
+
         void reorderLineInstance(int i, int j);
 
         GraphTemplate(const string& valName);

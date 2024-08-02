@@ -948,12 +948,10 @@ namespace shishan {
                     if (SimpleView::SimpleViewToGraphConverter::valNameToNode.count(lineEditValues[lineEditValueSelectedIndex]) == 0 or
                         SimpleView::SimpleViewToGraphConverter::valNameToNode[lineEditValues[lineEditValueSelectedIndex]]->nodeType != SimpleView::Node::NODE_TYPE_PARAM_OF_LINE_AND_GRAPH
                         or (graphDependencyConstraint.dependencyHigher.empty() and lineInstanceDependencyConstraint.dependencyHigher.empty())) {
-                        // restriction: cannot delete if the node is a intersection point
-                        if (deleteIntersectionPointInLineTemplate(lineEditValueSelectedIndex)) {
-                            lineEditValues.erase(lineEditValues.begin() + lineEditValueSelectedIndex);
-                            lineEditRepeatTypes.erase(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex);
-                            ImGui::ClearActiveID();
-                        }
+                        deleteIntersectionPointInLineTemplate(lineEditValueSelectedIndex);
+                        lineEditValues.erase(lineEditValues.begin() + lineEditValueSelectedIndex);
+                        lineEditRepeatTypes.erase(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex);
+                        ImGui::ClearActiveID();
                     }
                 }
 
