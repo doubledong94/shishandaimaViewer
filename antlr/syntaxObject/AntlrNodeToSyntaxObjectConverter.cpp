@@ -149,6 +149,19 @@ void AntlrNodeToSyntaxObjectConverter::convertLocalVariableDeclaration(JavaParse
     }
 }
 
+void AntlrNodeToSyntaxObjectConverter::convertLocalVariableFromResource(JavaParser::ResourceContext* ctx, VariableDeclaration* variableDeclarator) {
+    NameAndRelatedExp name;
+    if (ctx->classOrInterfaceType()) {
+        convertClassOrInterfaceType(ctx->classOrInterfaceType(), &(variableDeclarator->typeType));
+        name.name.push_back(ctx->variableDeclaratorId()->identifier()->getText());
+    } else {
+        variableDeclarator->typeType.typeName.push_back(ctx->VAR()->getText());
+        name.name.push_back(ctx->identifier()->getText());
+    }
+    name.initExpression = ctx->expression();
+    variableDeclarator->nameAndValueCount.push_back(name);
+}
+
 void AntlrNodeToSyntaxObjectConverter::convertFieldDeclaration(JavaParser::FieldDeclarationContext* ctx, VariableDeclaration* variableDeclarator) {
     convertTypeType(ctx->typeType(), &(variableDeclarator->typeType));
     convertVariableDeclarators(ctx->variableDeclarators(), variableDeclarator);

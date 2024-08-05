@@ -242,6 +242,8 @@ public:
 
     any visitExpressionMethodReference(JavaParser::ExpressionMethodReferenceContext* ctx) override;
 
+    std::any visitResource(JavaParser::ResourceContext* ctx) override;
+
     //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^other^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     ResolvingItem* handleNewArray(NameAndRelatedExp& methodCall);

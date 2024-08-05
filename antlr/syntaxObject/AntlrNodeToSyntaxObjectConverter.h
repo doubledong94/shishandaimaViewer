@@ -46,6 +46,8 @@ public:
 
     static void convertLocalVariableDeclaration(JavaParser::LocalVariableDeclarationContext*, VariableDeclaration*);
 
+    static void convertLocalVariableFromResource(JavaParser::ResourceContext*, VariableDeclaration*);
+
     static void convertClassOrInterfaceModifier(JavaParser::ClassOrInterfaceModifierContext* ctx, unsigned int* flag);
 
     static void convertClassOrInterfaceModifiers(const std::vector<JavaParser::ClassOrInterfaceModifierContext*>& ctx, unsigned int* flag);

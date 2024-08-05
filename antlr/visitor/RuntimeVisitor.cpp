@@ -391,6 +391,9 @@ std::any StructuralVisitor::visitStatementTry(JavaParser::StatementTryContext* c
     splitCodeBlocks->splitType = SplitCodeBlocks::SPLIT_TYPE_TRY;
     auto* firstCodeBlock = new CodeBlock(splitCodeBlocks, CodeBlock::makeStructureKey(outerCodeBlock->structure_key, sentenceIndexInOuterCodeBlock, 1, false), false);
     visitConditionTry(firstCodeBlock);
+    if (ctx->resourceSpecification()) {
+        visitUseStatementVisitor(ctx->resourceSpecification(), firstCodeBlock);
+    }
     visitUseStatementVisitor(ctx->block(), firstCodeBlock);
     int branchIndex = 2;
     for (auto* catchClause : ctx->catchClause()) {
@@ -1328,6 +1331,15 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
         }
     }
     return getErrorItem(ctx, this);
+}
+
+std::any StatementVisitor::visitResource(JavaParser::ResourceContext* ctx) {
+    if (ctx->expression()) {
+        VariableDeclaration variableDeclarator;
+        AntlrNodeToSyntaxObjectConverter::convertLocalVariableFromResource(ctx, &variableDeclarator);
+        addLocalVariable(variableDeclarator);
+    }
+    return std::any();
 }
 
 ResolvingItem* StatementVisitor::handleNewArray(NameAndRelatedExp& methodCall) {
