@@ -1343,7 +1343,6 @@ std::any StatementVisitor::visitResource(JavaParser::ResourceContext* ctx) {
 }
 
 ResolvingItem* StatementVisitor::handleNewArray(NameAndRelatedExp& methodCall) {
-    // todo init array
     auto* typeInfo = classScopeAndEnv->getTypeInfoWithFileScope(methodCall.name);
     auto* ret = ResolvingItem::getInstance2(GlobalInfo::GLOBAL_KEY_ARRAY_INIT, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ARRAY_INIT, GlobalInfo::GLOBAL_KEY_ARRAY_INIT);
     if (methodCall.arrayInitValues) {
@@ -1351,6 +1350,10 @@ ResolvingItem* StatementVisitor::handleNewArray(NameAndRelatedExp& methodCall) {
     }
     if (methodCall.initExpression) {
         ResolvingItem* valueItem = acceptAndHandleError(methodCall.initExpression, this);
+        new Relation(getSentence(), valueItem, ret);
+    }
+    for (auto exp : methodCall.dimExps) {
+        ResolvingItem* valueItem = acceptAndHandleError(exp, this);
         new Relation(getSentence(), valueItem, ret);
     }
     return ret;

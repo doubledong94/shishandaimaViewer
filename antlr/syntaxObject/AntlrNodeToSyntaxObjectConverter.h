@@ -7,6 +7,7 @@ struct NameAndRelatedExp {
     JavaParser::ExpressionListContext* arguments = nullptr;
     JavaParser::ExpressionContext* initExpression = nullptr;
     JavaParser::ArrayInitializerContext* arrayInitValues = nullptr;
+    vector<JavaParser::ExpressionContext*> dimExps;
 };
 
 struct VariableDeclaration {

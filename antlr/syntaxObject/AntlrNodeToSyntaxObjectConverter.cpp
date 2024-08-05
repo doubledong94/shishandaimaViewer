@@ -81,6 +81,7 @@ void AntlrNodeToSyntaxObjectConverter::convertCreator(JavaParser::CreatorContext
         if (ctx->arrayCreatorRest()->arrayInitializer() != nullptr) {
             convertArrayInitializerNoRecur(ctx->arrayCreatorRest()->arrayInitializer(), methodCall);
         } else {
+            methodCall->dimExps = ctx->arrayCreatorRest()->expression();
             methodCall->dim = ctx->arrayCreatorRest()->LBRACK().size();
         }
     } else if (ctx->classCreatorRest() != nullptr) {
