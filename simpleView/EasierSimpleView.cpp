@@ -3604,7 +3604,6 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_TIMING_OVERRIDE:
     case Node::NODE_TYPE_LV:
     case Node::NODE_TYPE_FIELD:
-    case Node::NODE_TYPE_METHOD:
     case Node::NODE_TYPE_CONSTRUCTOR:
     case Node::NODE_TYPE_CALLED_METHOD:
     case Node::NODE_TYPE_PARAMETER:
@@ -3616,6 +3615,16 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_CLASS:
         // check by node type
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)));
+        ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
+        break;
+    case Node::NODE_TYPE_METHOD:
+        // check by node type
+        ruleBody.push_back(
+            DisjunctionTerm::getDisjunctionInstance(
+                CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+                CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR))
+            )
+        );
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));
         break;
     case Node::NODE_TYPE_FINAL:
