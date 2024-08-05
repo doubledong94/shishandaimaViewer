@@ -139,6 +139,9 @@ void DataFlowVisitor::visitRelation(const string& methodKey, CodeBlock* codeBloc
     auto& writen = relation->writen;
     // data flow from lvToLastWrittenKeys
     genDataFlowFromLastWrittenLvs(methodKey, read, codeBlock, prologLines);
+    if (writen->indexedBy) {
+        genDataFlowFromLastWrittenLvs(methodKey, writen->indexedBy, codeBlock, prologLines);
+    }
     if (writen->referencedBy and writen->reversedRef and writen->getRefedByRecur()->keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER) {
         addStepToParam(methodKey, writen->getRefedByRecur(), prologLines);
     }
