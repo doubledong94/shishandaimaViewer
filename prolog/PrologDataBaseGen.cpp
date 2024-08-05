@@ -336,6 +336,11 @@ void TimingFlowVisitor::visitSplitCodeBlock(const string& methodKey, CodeBlock* 
     for (auto* subCodeBlock : splitCodeBlocks->blocks) {
         // super condition to sub condition
         subCodeBlock->conditionItem->addConditionToProlog(CompoundTerm::getFlowFact, methodKey, superCodeBlock->conditionItem->runtimeKey, prologLines);
+        if (subCodeBlock->toConditionSentence) {
+            for (auto& relation : subCodeBlock->toConditionSentence->relations) {
+                visitRelation(methodKey, superCodeBlock, relation, prologLines);
+            }
+        }
         visitCodeBlock(methodKey, subCodeBlock, prologLines);
     }
 }
