@@ -816,6 +816,7 @@ int app::Application::ApplicationMain() {
         if (ImGui::IsKeyReleased(ImGuiKey::ImGuiKey_Escape)) {
             if (editLineAndGraphOpen) {
                 // exit from line and graph editor
+                shishan::searchResults.clear();
                 if (prologLoaded) {
                     EasierSimpleView::saveToFile();
                 }
