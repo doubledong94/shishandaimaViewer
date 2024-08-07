@@ -55,6 +55,7 @@ struct TextLoadingItem {
 class BoundedIncrementalGraph : public threepp::Group {
 public:
 
+    bool graphIncreasing = false;
     vector<pair<int, std::function<void()>>> doOnNextFrame;
     void clearDoOnNextFrame();
     string searchingGraphName;

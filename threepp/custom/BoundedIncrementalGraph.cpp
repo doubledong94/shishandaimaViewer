@@ -640,8 +640,10 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
 
 void BoundedIncrementalGraph::updateGraph() {
     if (bufferSize() == 0) {
+        graphIncreasing = false;
         return;
     }
+    graphIncreasing = true;
     // load from buffer
     int bufferCountToLoad = bufferSize();
     if (bufferCountToLoad == 0) {
@@ -886,6 +888,7 @@ void BoundedIncrementalGraph::updateAnim(threepp::Camera& camera) {
     refreshSimpleText();
     graphGenerateAndConsumeLock.unlock();
     if (nodesOrderedByNodeId.empty() and bufferSize() == 0) {
+        graphIncreasing = false;
         return;
     }
     if (layoutAnimating and layoutThreadPool->empty()) {
@@ -1287,6 +1290,9 @@ void BoundedIncrementalGraph::onNodeLeftClicked(int nodeInstanceId) {
 }
 
 void BoundedIncrementalGraph::onNodeHover(int nodeInstanceId) {
+    if (graphIncreasing) {
+        return;
+    }
     if (nodeInstanceId < nodesOrderedByNodeId.size() and not nodesObj->hovered.count(nodeInstanceId)) {
         nodesObj->hovered.clear();
         nodesObj->hovered.insert(nodeInstanceId);
@@ -1310,6 +1316,9 @@ void BoundedIncrementalGraph::onNodeHover(int nodeInstanceId) {
 }
 
 void BoundedIncrementalGraph::onExitHover() {
+    if (graphIncreasing) {
+        return;
+    }
     if (not nodesObj->hovered.empty()) {
         nodesObj->hovered.clear();
         onNodeColorChanged();
