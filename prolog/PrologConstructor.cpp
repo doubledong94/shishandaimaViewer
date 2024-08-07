@@ -828,6 +828,18 @@ CompoundTerm* CompoundTerm::getNodeCalledReturnOf(Term* ReturnNodeValName, Term*
     return makeTerm(HEAD_NODE_CALLED_RETURN_OF, ReturnNodeValName, CalledReturn);
 }
 
+CompoundTerm* CompoundTerm::getNodeMethodUsedBy(Term* MethodNodeValName, Term* MethodUsedBy) {
+    return makeTerm(HEAD_NODE_METHOD_USED_BY, MethodNodeValName, MethodUsedBy);
+}
+
+CompoundTerm* CompoundTerm::getNodeFieldUsedBy(Term* MethodNodeValName, Term* FieldUsedBy) {
+    return makeTerm(HEAD_NODE_FIELD_USED_BY, MethodNodeValName, FieldUsedBy);
+}
+
+CompoundTerm* CompoundTerm::getNodeMethodUse(Term* MethodNodeValName, Term* MethodUse) {
+    return makeTerm(HEAD_NODE_METHOD_USE, MethodNodeValName, MethodUse);
+}
+
 CompoundTerm* CompoundTerm::getNodeSuperOf(Term* superNode, Term* subNode) {
     return makeTerm(HEAD_NODE_SUPER_OF, superNode, subNode);
 }

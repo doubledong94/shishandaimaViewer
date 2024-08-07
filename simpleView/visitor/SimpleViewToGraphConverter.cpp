@@ -189,6 +189,15 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
         } else if (ctx->CALLED_RETURN_OF() != nullptr) {
             ret->nodeType = Node::NODE_TYPE_CALLED_RETURN_OF;
             ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->returnNode));
+        } else if (ctx->METHOD_USED_BY()) {
+            ret->nodeType = Node::NODE_TYPE_METHOD_USED_BY;
+            ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->node));
+        } else if (ctx->FIELD_USED_BY()) {
+            ret->nodeType = Node::NODE_TYPE_FIELD_USED_BY;
+            ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->node));
+        } else if (ctx->METHOD_USE()) {
+            ret->nodeType = Node::NODE_TYPE_METHOD_USE;
+            ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->node));
         } else if (ctx->union_ != nullptr) {
             ret->nodeType = Node::NODE_TYPE_UNION;
             ret->operandForSetOperation = {
@@ -448,6 +457,9 @@ void SimpleView::clearAllAddedRules() {
     PrologWrapper::retractAllRule(HEAD_NODE_CALLED_METHOD_OF->toString(), 2);
     PrologWrapper::retractAllRule(HEAD_NODE_CALLED_PARAMETER_OF->toString(), 2);
     PrologWrapper::retractAllRule(HEAD_NODE_CALLED_RETURN_OF->toString(), 2);
+    PrologWrapper::retractAllRule(HEAD_NODE_METHOD_USED_BY->toString(), 2);
+    PrologWrapper::retractAllRule(HEAD_NODE_FIELD_USED_BY->toString(), 2);
+    PrologWrapper::retractAllRule(HEAD_NODE_METHOD_USE->toString(), 2);
     PrologWrapper::retractAllRule(HEAD_NODE_UNION->toString(), 3);
     PrologWrapper::retractAllRule(HEAD_NODE_INTERSECTION->toString(), 3);
     PrologWrapper::retractAllRule(HEAD_NODE_DIFFERENCE->toString(), 3);

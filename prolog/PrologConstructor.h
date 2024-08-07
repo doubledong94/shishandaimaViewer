@@ -179,6 +179,9 @@ static Term* HEAD_NODE_RETURN_OF = new Term("nodeReturnOf", Term::TERM_TYPE_ATOM
 static Term* HEAD_NODE_CALLED_METHOD_OF = new Term("nodeCalledMethodOf", Term::TERM_TYPE_ATOM);
 static Term* HEAD_NODE_CALLED_PARAMETER_OF = new Term("nodeCalledParameterOf", Term::TERM_TYPE_ATOM);
 static Term* HEAD_NODE_CALLED_RETURN_OF = new Term("nodeCalledReturnOf", Term::TERM_TYPE_ATOM);
+static Term* HEAD_NODE_METHOD_USED_BY = new Term("nodeMethodUsedBy", Term::TERM_TYPE_ATOM);
+static Term* HEAD_NODE_FIELD_USED_BY = new Term("nodeFieldUsedBy", Term::TERM_TYPE_ATOM);
+static Term* HEAD_NODE_METHOD_USE = new Term("nodeMethodUse", Term::TERM_TYPE_ATOM);
 static Term* HEAD_NODE_SUPER_OF = new Term("nodeSuperOf", Term::TERM_TYPE_ATOM);
 static Term* HEAD_NODE_SUB_OF = new Term("nodeSubOf", Term::TERM_TYPE_ATOM);
 static Term* HEAD_NODE_READ = new Term("nodeRead", Term::TERM_TYPE_ATOM);
@@ -502,6 +505,12 @@ public:
     static CompoundTerm* getNodeCalledParameterOf(Term* ParamNodeValName, Term* CalledParam);
 
     static CompoundTerm* getNodeCalledReturnOf(Term* ReturnNodeValName, Term* CalledReturn);
+
+    static CompoundTerm* getNodeMethodUsedBy(Term* MethodNodeValName, Term* MethodUsedBy);
+
+    static CompoundTerm* getNodeFieldUsedBy(Term* MethodNodeValName, Term* FieldUsedBy);
+
+    static CompoundTerm* getNodeMethodUse(Term* MethodNodeValName, Term* MethodUse);
 
     static CompoundTerm* getNodeSuperOf(Term* superNode, Term* subNode);
 

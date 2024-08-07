@@ -74,6 +74,9 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::CALLED_METHOD_OF);
     saveVocabulary(lexer, SimpleViewLexer::CALLED_PARAM_OF);
     saveVocabulary(lexer, SimpleViewLexer::CALLED_RETURN_OF);
+    saveVocabulary(lexer, SimpleViewLexer::METHOD_USED_BY);
+    saveVocabulary(lexer, SimpleViewLexer::FIELD_USED_BY);
+    saveVocabulary(lexer, SimpleViewLexer::METHOD_USE);
     saveVocabulary(lexer, SimpleViewLexer::READ);
     saveVocabulary(lexer, SimpleViewLexer::WRITE);
     saveVocabulary(lexer, SimpleViewLexer::REFERENCE);
@@ -144,6 +147,9 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF,Images::methodIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF,Images::parameterIconId},
                 {SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF,Images::returnIconId},
+                {SimpleView::Node::NODE_TYPE_METHOD_USED_BY,Images::useIconId},
+                {SimpleView::Node::NODE_TYPE_FIELD_USED_BY,Images::useIconId},
+                {SimpleView::Node::NODE_TYPE_METHOD_USE,Images::useIconId},
                 {SimpleView::Node::NODE_TYPE_INTERSECTION,Images::anyIconId},
                 {SimpleView::Node::NODE_TYPE_UNION,Images::unionIconId},
                 {SimpleView::Node::NODE_TYPE_DIFFERENCE,Images::differenceIconId},
@@ -372,6 +378,18 @@ void EasierSimpleView::declareNodeResolveRules() {
         }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeCalledReturnOf(ReturnValName, Resolved), {
             CompoundTerm::getResolveTerm(ReturnValName, Return),CompoundTerm::getReturnTerm(Term::getIgnoredVar(),Return), CompoundTerm::getCalledKeyTerm(Return, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeMethodUsedBy(MethodValName, Resolved), {
+            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getMethodUseMethodTerm(Method, Resolved)
+        }));
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeFieldUsedBy(MethodValName, Resolved), {
+            CompoundTerm::getResolveTerm(MethodValName, Method), CompoundTerm::getMethodUseFieldTerm(Method, Resolved)
+        }));
+    Term* fieldOrMethodVarName = Term::getVar("FieldOrMethodVarName");
+    Term* fieldOrMethod = Term::getVar("FieldOrMethod");
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getNodeMethodUse(fieldOrMethodVarName, Resolved), {
+            CompoundTerm::getResolveTerm(fieldOrMethodVarName, fieldOrMethod),
+            DisjunctionTerm::getDisjunctionInstance({CompoundTerm::getMethodUseMethodTerm(Resolved, fieldOrMethod),CompoundTerm::getMethodUseFieldTerm(Resolved, fieldOrMethod)})
         }));
     Term* superValName = Term::getVar("SuperValName");
     Term* superNode = Term::getVar("SuperNode");
@@ -1724,6 +1742,18 @@ void SimpleView::Node::resolve(std::function<void(int, int, const char*)>* updat
         referenceNode->resolve(update);
         PrologWrapper::queryList(CompoundTerm::getNodeCalledReturnOf(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
         break;
+    case NODE_TYPE_METHOD_USED_BY:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeMethodUsedBy(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
+    case NODE_TYPE_FIELD_USED_BY:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeFieldUsedBy(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
+    case NODE_TYPE_METHOD_USE:
+        referenceNode->resolve(update);
+        PrologWrapper::queryList(CompoundTerm::getNodeMethodUse(Term::getStr(referenceNode->innerValName), Term::getVar("N")), termListForQuery);
+        break;
     case NODE_TYPE_READ:
     case NODE_TYPE_WRITE:
         // read and write key word can only be the outermost layer
@@ -1818,6 +1848,9 @@ SimpleView::ClassScope* SimpleView::Node::runtimeScopeThatUseIt() {
         break;
     case NODE_TYPE_PARAMETER_OF:
     case NODE_TYPE_RETURN_OF:
+    case NODE_TYPE_METHOD_USED_BY:
+    case NODE_TYPE_FIELD_USED_BY:
+    case NODE_TYPE_METHOD_USE:
         paramAndReturnKeys.insert(resolvedList.begin(), resolvedList.end());
         break;
     case NODE_TYPE_CALLED_METHOD_OF:
@@ -1925,6 +1958,12 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::CALLED_PARAM_OF] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_CALLED_RETURN_OF:
         return voc[SimpleViewLexer::CALLED_RETURN_OF] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_METHOD_USED_BY:
+        return voc[SimpleViewLexer::METHOD_USED_BY] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_FIELD_USED_BY:
+        return voc[SimpleViewLexer::FIELD_USED_BY] + " ( " + referenceNode->displayName + " )";
+    case NODE_TYPE_METHOD_USE:
+        return voc[SimpleViewLexer::METHOD_USE] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_READ:
         return voc[SimpleViewLexer::READ] + " ( " + referenceNode->displayName + " )";
     case NODE_TYPE_WRITE:
@@ -2043,6 +2082,9 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
     case NODE_TYPE_CALLED_METHOD_OF:
     case NODE_TYPE_CALLED_PARAMETER_OF:
     case NODE_TYPE_CALLED_RETURN_OF:
+    case NODE_TYPE_METHOD_USED_BY:
+    case NODE_TYPE_FIELD_USED_BY:
+    case NODE_TYPE_METHOD_USE:
         values.push_back(referenceNode->displayName.data());
         break;
     case NODE_TYPE_INSTANCE_OF:
@@ -2091,6 +2133,9 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
     case NODE_TYPE_CALLED_METHOD_OF:
     case NODE_TYPE_CALLED_PARAMETER_OF:
     case NODE_TYPE_CALLED_RETURN_OF:
+    case NODE_TYPE_METHOD_USED_BY:
+    case NODE_TYPE_FIELD_USED_BY:
+    case NODE_TYPE_METHOD_USE:
         this->referenceNode = SimpleViewToGraphConverter::valNameToNode[values[0]];
         break;
     case NODE_TYPE_INSTANCE_OF:

@@ -110,7 +110,7 @@ namespace shishan {
     static int nodeEditingIndex = -1;
     static char nodeEditingName[1000];
     static int nodeEditingTypeIndex = -1;
-    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","constructorOf","parameterOf","returnOf","super","sub","calledMethod","calledParameter","calledReturn","intersection","union","difference","var" };
+    const static char* nodeTypes[] = { "full path","list","fieldOf","instanceOf","methodOf","constructorOf","parameterOf","returnOf","super","sub","calledMethod","calledParameter","calledReturn","methodUsedBy","fieldUsedBy","methodUse","intersection","union","difference","var" };
     static vector<const char*> nodeEditValues;
     static vector<const char*> typeKeyForNodeKey;
     static char* openedTypeKey;
@@ -631,6 +631,8 @@ namespace shishan {
                 nodeEditValues.push_back("Click me first, then click class you created above");
                 break;
             case SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF:
+            case SimpleView::Node::NODE_TYPE_METHOD_USED_BY:
+            case SimpleView::Node::NODE_TYPE_FIELD_USED_BY:
                 nodeEditValues.push_back("Click method you created above");
                 break;
             case SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF:
@@ -638,6 +640,9 @@ namespace shishan {
                 break;
             case SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF:
                 nodeEditValues.push_back("Click return you created above");
+                break;
+            case SimpleView::Node::NODE_TYPE_METHOD_USE:
+                nodeEditValues.push_back("Click method or field you created above");
                 break;
             case SimpleView::Node::NODE_TYPE_SUPER:
             case SimpleView::Node::NODE_TYPE_SUB:
@@ -1345,6 +1350,9 @@ namespace shishan {
             case SimpleView::Node::NODE_TYPE_CALLED_METHOD_OF: // method
             case SimpleView::Node::NODE_TYPE_CALLED_PARAMETER_OF: // parameter
             case SimpleView::Node::NODE_TYPE_CALLED_RETURN_OF: // return
+            case SimpleView::Node::NODE_TYPE_METHOD_USE:
+            case SimpleView::Node::NODE_TYPE_METHOD_USED_BY:
+            case SimpleView::Node::NODE_TYPE_FIELD_USED_BY:
                 if (type == 3) {
                     int choosenNodeType = SimpleView::SimpleViewToGraphConverter::valNameToNode[
                         SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index]
