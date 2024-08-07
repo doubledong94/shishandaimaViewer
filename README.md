@@ -106,6 +106,9 @@ git submodule update --init --remote --recursive
 9. calledMethod(M)，具体请看[时机传递方向](#时机传递方向)
 10. calledParam(P)，具体请看[数据流动方向](#数据流动方向)
 11. calledReturn(R)，具体请看[数据流动方向](#数据流动方向)
+12. methodUsedBy(M)，匹配被M使用的函数
+13. fieldUsedBy(M)，匹配被M使用的属性
+14. methodUse(A)，匹配使用A的函数，A可以是属性或者函数
 12. intersection(A1,A2)，匹配A1和A2的交集
 13. union(A1,A2)，匹配A1和A2的并集
 14. difference(A1,A2)，匹配A1和A2的差集，A1-A2
@@ -139,8 +142,6 @@ git submodule update --init --remote --recursive
 1. 类的全名，匹配这个类
 2. 类全名的数组，匹配一组类
 3. inPackage(P)，匹配包P中的所有类
-4. usedBy(C)，匹配被C类使用的所有类
-5. use(C)，匹配使用了C类的所有类
 6. super(C)，匹配C的父类，包括父类的父类，以及父类的父类的父类...
 7. sub(C)，匹配C的子类，包括子类的子类，以及子类的子类的子类...
 8. intersection(A1,A2)，匹配A1和A2的交集
