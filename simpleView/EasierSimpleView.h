@@ -51,8 +51,6 @@ namespace SimpleView {
             CLASS_SCOPE_TYPE_KEY,
             CLASS_SCOPE_TYPE_LIST,
             CLASS_SCOPE_TYPE_IN_PACKAGE,
-            CLASS_SCOPE_TYPE_USED_BY,
-            CLASS_SCOPE_TYPE_USE,
             CLASS_SCOPE_TYPE_SUPER,
             CLASS_SCOPE_TYPE_SUB,
             CLASS_SCOPE_TYPE_INTERSECTION,

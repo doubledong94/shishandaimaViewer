@@ -26,12 +26,13 @@ RETURN_OF:'ReturnOf';
 CALLED_PARAM_OF :'CalledParamOf';
 CALLED_RETURN_OF : 'CalledReturnOf';
 CALLED_METHOD_OF : 'CalledMethodOf';
+METHOD_USED_BY :'methodUsedBy';
+FIELD_USED_BY :'fieldUsedBy';
+METHOD_USE :'methodUse';
 READ : 'read';
 WRITE : 'write';
 
 IN_PACKAGE :'inPackage';
-USED_BY :'usedBy';
-USE :'use';
 CLASS_OF: 'classOf';
 SUPER : 'superOf';
 SUB : 'subOf';
@@ -91,8 +92,6 @@ classScopeExp
     : classKey=STRING
     | classKeyList='[' STRING (',' STRING)* ']'
     | IN_PACKAGE '(' packageStr=STRING ')'
-    | USED_BY '(' classScopeExp ')'
-    | USE '(' classScopeExp ')'
     | SUPER '(' classScopeExp ')'
     | SUB '(' classScopeExp ')'
     | classScopeExp union='|' classScopeExp
@@ -118,6 +117,9 @@ nodeExp
     | CALLED_METHOD_OF '(' methodNode=nodeExp ')'
     | CALLED_PARAM_OF '(' paramNode=nodeExp ')'
     | CALLED_RETURN_OF '(' returnNode=nodeExp ')'
+    | METHOD_USED_BY '(' node=nodeExp ')'
+    | FIELD_USED_BY '(' node=nodeExp ')'
+    | METHOD_USE '(' node=nodeExp ')'
     | nodeExp intersection='&' nodeExp
     | nodeExp union='|' nodeExp
     | nodeExp difference='-' nodeExp

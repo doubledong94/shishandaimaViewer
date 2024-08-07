@@ -20,18 +20,18 @@ public:
     POSITION_Z = 28, BASIC_NODE_SIZE = 29, BASIC_LABEL_SIZE = 30, BASIC_POSITION_Z = 31, 
     ANY = 32, FINAL = 33, CLASS = 34, FIELD_OF = 35, INSTANCE_OF = 36, METHOD_OF = 37, 
     CREATOR = 38, PARAMETER_OF = 39, RETURN_OF = 40, CALLED_PARAM_OF = 41, 
-    CALLED_RETURN_OF = 42, CALLED_METHOD_OF = 43, READ = 44, WRITE = 45, 
-    IN_PACKAGE = 46, USED_BY = 47, USE = 48, CLASS_OF = 49, SUPER = 50, 
-    SUB = 51, STYLE = 52, DEFAULT_STYLE = 53, BASIC_STYLE = 54, CLASS_SCOPE = 55, 
-    NODE = 56, REFERENCE = 57, VOID_REF = 58, CONDITION = 59, ELSE = 60, 
-    DATA_STEP = 61, TIMING_STEP = 62, DATA_OVERRIDE = 63, TIMING_OVERRIDE = 64, 
-    LV = 65, FIELD = 66, METHOD = 67, CONSTRUCTOR = 68, CALLED_METHOD = 69, 
-    PARAMETER = 70, CALLED_PARAMETER = 71, RETURN = 72, CALLED_RETURN = 73, 
-    INDEX = 74, ERROR = 75, SEGMENT = 76, LINE = 77, LINE_INSTANCE = 78, 
-    GLUE = 79, GLUE_RUNTIME = 80, GLULE_MEMBER_OF = 81, GLUE_INSTANCE_OF = 82, 
-    GLUE_OVERRIDE = 83, GLUE_HIERARCHY = 84, GRAPH = 85, GRAPH_INSTANCE = 86, 
-    CODE_ORDER = 87, SHOW = 88, STRING = 89, IDENTIFIER = 90, FLOAT = 91, 
-    INT = 92, WS = 93, LINE_COMMENT = 94
+    CALLED_RETURN_OF = 42, CALLED_METHOD_OF = 43, METHOD_USED_BY = 44, FIELD_USED_BY = 45, 
+    METHOD_USE = 46, READ = 47, WRITE = 48, IN_PACKAGE = 49, CLASS_OF = 50, 
+    SUPER = 51, SUB = 52, STYLE = 53, DEFAULT_STYLE = 54, BASIC_STYLE = 55, 
+    CLASS_SCOPE = 56, NODE = 57, REFERENCE = 58, VOID_REF = 59, CONDITION = 60, 
+    ELSE = 61, DATA_STEP = 62, TIMING_STEP = 63, DATA_OVERRIDE = 64, TIMING_OVERRIDE = 65, 
+    LV = 66, FIELD = 67, METHOD = 68, CONSTRUCTOR = 69, CALLED_METHOD = 70, 
+    PARAMETER = 71, CALLED_PARAMETER = 72, RETURN = 73, CALLED_RETURN = 74, 
+    INDEX = 75, ERROR = 76, SEGMENT = 77, LINE = 78, LINE_INSTANCE = 79, 
+    GLUE = 80, GLUE_RUNTIME = 81, GLULE_MEMBER_OF = 82, GLUE_INSTANCE_OF = 83, 
+    GLUE_OVERRIDE = 84, GLUE_HIERARCHY = 85, GRAPH = 86, GRAPH_INSTANCE = 87, 
+    CODE_ORDER = 88, SHOW = 89, STRING = 90, IDENTIFIER = 91, FLOAT = 92, 
+    INT = 93, WS = 94, LINE_COMMENT = 95
   };
 
   enum {
@@ -124,11 +124,9 @@ public:
     std::vector<antlr4::tree::TerminalNode *> STRING();
     antlr4::tree::TerminalNode* STRING(size_t i);
     antlr4::tree::TerminalNode *IN_PACKAGE();
-    antlr4::tree::TerminalNode *USED_BY();
+    antlr4::tree::TerminalNode *SUPER();
     std::vector<ClassScopeExpContext *> classScopeExp();
     ClassScopeExpContext* classScopeExp(size_t i);
-    antlr4::tree::TerminalNode *USE();
-    antlr4::tree::TerminalNode *SUPER();
     antlr4::tree::TerminalNode *SUB();
     antlr4::tree::TerminalNode *IDENTIFIER();
 
@@ -175,6 +173,9 @@ public:
     antlr4::tree::TerminalNode *CALLED_METHOD_OF();
     antlr4::tree::TerminalNode *CALLED_PARAM_OF();
     antlr4::tree::TerminalNode *CALLED_RETURN_OF();
+    antlr4::tree::TerminalNode *METHOD_USED_BY();
+    antlr4::tree::TerminalNode *FIELD_USED_BY();
+    antlr4::tree::TerminalNode *METHOD_USE();
     antlr4::tree::TerminalNode *READ();
     antlr4::tree::TerminalNode *WRITE();
     antlr4::tree::TerminalNode *ANY();

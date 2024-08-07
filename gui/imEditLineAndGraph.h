@@ -100,7 +100,7 @@ namespace shishan {
     static int classScopeEditingIndex = -1;
     static char classScopeEditingName[1000];
     static int classScopeEditingTypeIndex = -1;
-    const static char* classScopeTypes[] = { "full path","list","in package","used by","use","super","sub","intersection","union","difference","var" };
+    const static char* classScopeTypes[] = { "full path","list","in package", "super","sub","intersection","union","difference","var" };
     static vector<const char*> classScopeEditValues;
     static int classScopeEditValueSelectedIndex = 0;
 
@@ -523,8 +523,6 @@ namespace shishan {
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_IN_PACKAGE:
                 classScopeEditValues.push_back("Click class on the right to choose package");
                 break;
-            case SimpleView::ClassScope::CLASS_SCOPE_TYPE_USED_BY:
-            case SimpleView::ClassScope::CLASS_SCOPE_TYPE_USE:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUPER:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUB:
                 classScopeEditValues.push_back("Click class you created above to choose");
@@ -1281,8 +1279,6 @@ namespace shishan {
                     }
                 }
                 break;
-            case SimpleView::ClassScope::CLASS_SCOPE_TYPE_USED_BY:
-            case SimpleView::ClassScope::CLASS_SCOPE_TYPE_USE:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUPER:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUB:
                 if (type == 2) {

@@ -428,26 +428,6 @@ string CompoundTerm::getOverrideFact(const string& key, const string& subKey) {
     return ret;
 }
 
-string CompoundTerm::getRelatedTypeFact(const string& typeKey, const string& typeKeyItUsed) {
-    string ret = getRelatedTypeTerm(Term::getStr(typeKey), Term::getStr(typeKeyItUsed))->toString(true);
-    ret.push_back('.');
-    return ret;
-}
-
-CompoundTerm* CompoundTerm::getRelatedTypeTerm(Term* typeKey, Term* typeKeyUsedByFirstParam) {
-    return makeTerm(HEAD_RELATED_TYPE, typeKey, typeKeyUsedByFirstParam);
-}
-
-string CompoundTerm::getRelatedTypeAndMethodFact(const string& typeKey, const string& methodKeyItUsed) {
-    string ret = getRelatedTypeAndMethodTerm(Term::getStr(typeKey), Term::getStr(methodKeyItUsed))->toString(true);
-    ret.push_back('.');
-    return ret;
-}
-
-CompoundTerm* CompoundTerm::getRelatedTypeAndMethodTerm(Term* typeKey, Term* methodKeyUsedByFirstParam) {
-    return makeTerm(HEAD_RELATED_TYPE_AND_METHOD, typeKey, methodKeyUsedByFirstParam);
-}
-
 string CompoundTerm::getMethodUseMethodFact(const string& mk, const string& usedMk) {
     string ret = getMethodUseMethodTerm(Term::getStr(mk), Term::getStr(usedMk))->toString(true);
     ret.push_back('.');
@@ -790,14 +770,6 @@ void CompoundTerm::retractAllTransitionTerm(bool isBackward, int intersectionCou
         PrologWrapper::retractAllFact(HEAD_FORWARD_TRANSITION->toString(), 11 + intersectionCount);
         PrologWrapper::retractAllFact(HEAD_FORWARD_ENDING_TRANSITION->toString(), 4);
     }
-}
-
-CompoundTerm* CompoundTerm::getClassScopeUsedBy(Term* typeKey, Term* typeKeyUsedByFirstParam) {
-    return makeTerm(HEAD_CLASS_SCOPE_USED_BY, typeKey, typeKeyUsedByFirstParam);
-}
-
-CompoundTerm* CompoundTerm::getClassScopeUse(Term* typeKeyUsedBySecondParam, Term* typeKey) {
-    return makeTerm(HEAD_CLASS_SCOPE_USE, typeKeyUsedBySecondParam, typeKey);
 }
 
 CompoundTerm* CompoundTerm::getClassScopeSuper(Term* typeKey, Term* superTypeKey) {

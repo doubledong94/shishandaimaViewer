@@ -85,14 +85,6 @@ any SimpleView::SimpleViewToGraphConverter::visitClassScopeExp(SimpleViewParser:
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_IN_PACKAGE;
             classScope->extraStr = REMOVE_QUOTATION(ctx->packageStr->getText());
         }
-        if (ctx->USED_BY() != nullptr) {
-            classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_USED_BY;
-            classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0)));
-        }
-        if (ctx->USE() != nullptr) {
-            classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_USE;
-            classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0)));
-        }
         if (ctx->SUPER() != nullptr) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_SUPER;
             classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0)));
@@ -442,8 +434,6 @@ void SimpleView::clearAllAddedFacts() {
 }
 
 void SimpleView::clearAllAddedRules() {
-    PrologWrapper::retractAllRule(HEAD_CLASS_SCOPE_USED_BY->toString(), 2);
-    PrologWrapper::retractAllRule(HEAD_CLASS_SCOPE_USE->toString(), 2);
     PrologWrapper::retractAllRule(HEAD_CLASS_SCOPE_SUPER->toString(), 2);
     PrologWrapper::retractAllRule(HEAD_CLASS_SCOPE_SUB->toString(), 2);
     PrologWrapper::retractAllRule(HEAD_CLASS_SCOPE_UNION->toString(), 3);

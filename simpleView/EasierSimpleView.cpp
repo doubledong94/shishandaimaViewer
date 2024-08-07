@@ -57,8 +57,6 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     // class scope
     saveVocabulary(lexer, SimpleViewLexer::CLASS_SCOPE);
     saveVocabulary(lexer, SimpleViewLexer::IN_PACKAGE);
-    saveVocabulary(lexer, SimpleViewLexer::USED_BY);
-    saveVocabulary(lexer, SimpleViewLexer::USE);
     saveVocabulary(lexer, SimpleViewLexer::SUPER);
     saveVocabulary(lexer, SimpleViewLexer::SUB);
     saveVocabulary(lexer, SimpleViewLexer::CLASS_OF);
@@ -125,8 +123,6 @@ void EasierSimpleView::init() {
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_KEY,Images::keyIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_LIST,Images::listIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_IN_PACKAGE,Images::inPackageIconId},
-            {SimpleView::ClassScope::CLASS_SCOPE_TYPE_USED_BY,Images::useIconId},
-            {SimpleView::ClassScope::CLASS_SCOPE_TYPE_USE,Images::useIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUPER,Images::superAndSubIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_SUB,Images::superAndSubIconId},
             {SimpleView::ClassScope::CLASS_SCOPE_TYPE_INTERSECTION,Images::intersectionIconId},
@@ -285,12 +281,6 @@ void EasierSimpleView::declareClassResolveRules() {
     Term* ClassScopeName2 = Term::getVar("ClassScopeName2");
     Term* ResolvedClass = Term::getVar("ResolvedClass");
     vector<Rule*> rules;
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeUsedBy(ClassScopeName1, ClassToBeResolved), {
-            CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getRelatedTypeTerm(ResolvedClass, ClassToBeResolved)
-        }));
-    rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeUse(ClassScopeName1, ClassToBeResolved), {
-            CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getRelatedTypeTerm(ClassToBeResolved, ResolvedClass)
-        }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getClassScopeSuper(ClassScopeName1, ClassToBeResolved), {
             CompoundTerm::getResolveTerm(ClassScopeName1, ResolvedClass), CompoundTerm::getSubTypeUpRecurTerm(ClassToBeResolved, ResolvedClass)
         }));
@@ -1310,18 +1300,6 @@ string SimpleView::ClassScope::toString(map<int, string>& voc) const {
     }
     case CLASS_SCOPE_TYPE_IN_PACKAGE:
         return voc[SimpleViewLexer::IN_PACKAGE] + " ( \"" + extraStr + "\" )";
-    case CLASS_SCOPE_TYPE_USED_BY:
-        if (referenceClassScope->displayName.empty()) {
-            return voc[SimpleViewLexer::USED_BY] + " ( " + referenceClassScope->toString(voc) + " )";
-        } else {
-            return voc[SimpleViewLexer::USED_BY] + " ( " + referenceClassScope->displayName + " )";
-        }
-    case CLASS_SCOPE_TYPE_USE:
-        if (referenceClassScope->displayName.empty()) {
-            return voc[SimpleViewLexer::USE] + " ( " + referenceClassScope->toString(voc) + " )";
-        } else {
-            return voc[SimpleViewLexer::USE] + " ( " + referenceClassScope->displayName + " )";
-        }
     case CLASS_SCOPE_TYPE_SUPER:
         if (referenceClassScope->displayName.empty()) {
             return voc[SimpleViewLexer::SUPER] + " ( " + referenceClassScope->toString(voc) + " )";
@@ -1382,16 +1360,6 @@ void SimpleView::ClassScope::resolve(std::function<void(int, int, const char*)>*
         break;
     case CLASS_SCOPE_TYPE_IN_PACKAGE:
         PrologWrapper::queryList(CompoundTerm::getPackageTerm(Term::getStr(extraStr), Term::getVar("C")), termListForQuery);
-        break;
-    case CLASS_SCOPE_TYPE_USED_BY:
-        referenceClassScope->resolve(update);
-        PrologWrapper::queryList(CompoundTerm::getClassScopeUsedBy(
-            Term::getStr(referenceClassScope->innerValName), Term::getVar("C")), termListForQuery);
-        break;
-    case CLASS_SCOPE_TYPE_USE:
-        referenceClassScope->resolve(update);
-        PrologWrapper::queryList(CompoundTerm::getClassScopeUse(
-            Term::getStr(referenceClassScope->innerValName), Term::getVar("C")), termListForQuery);
         break;
     case CLASS_SCOPE_TYPE_SUPER:
         referenceClassScope->resolve(update);
@@ -1486,8 +1454,6 @@ void SimpleView::ClassScope::loadValueToUI(vector<const char*>& values) {
     case CLASS_SCOPE_TYPE_LIST:
         FOR_EACH_ITEM(classList, values.push_back(item.data()););
         break;
-    case CLASS_SCOPE_TYPE_USED_BY:
-    case CLASS_SCOPE_TYPE_USE:
     case CLASS_SCOPE_TYPE_SUPER:
     case CLASS_SCOPE_TYPE_SUB:
         values.push_back(referenceClassScope->displayName.data());
@@ -1520,8 +1486,6 @@ void SimpleView::ClassScope::resetValue(const char* name, int type, vector<const
         FOR_EACH_ITEM(values, classList.push_back(item););
         break;
     }
-    case CLASS_SCOPE_TYPE_USED_BY:
-    case CLASS_SCOPE_TYPE_USE:
     case CLASS_SCOPE_TYPE_SUPER:
     case CLASS_SCOPE_TYPE_SUB:
         referenceClassScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[0]];

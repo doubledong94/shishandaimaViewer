@@ -109,8 +109,6 @@ static Term* HEAD_SUB_TYPE_UP_RECUR = new Term("subTypeUpRecur", Term::TERM_TYPE
 static Term* HEAD_OVERRIDE = new Term("override", Term::TERM_TYPE_ATOM);
 static Term* HEAD_OVERRIDE_IN_RECUR = new Term("overrideInRecur", Term::TERM_TYPE_ATOM);
 static Term* HEAD_OVERRIDE_OUT_RECUR = new Term("overrideOutRecur", Term::TERM_TYPE_ATOM);
-static Term* HEAD_RELATED_TYPE = new Term("related_type", Term::TERM_TYPE_ATOM);
-static Term* HEAD_RELATED_TYPE_AND_METHOD = new Term("relatedTypeAndMethod", Term::TERM_TYPE_ATOM);
 static Term* HEAD_METHOD_USE_METHOD = new Term("methodUseMethod", Term::TERM_TYPE_ATOM);
 static Term* HEAD_METHOD_USE_FIELD = new Term("methodUseField", Term::TERM_TYPE_ATOM);
 static Term* HEAD_METHOD = new Term("method", Term::TERM_TYPE_ATOM);
@@ -167,8 +165,6 @@ static Term* HEAD_BACKWARD_ENDING_TRANSITION = new Term("backwardEndingTransitio
 static Term* HEAD_RESOLVE = new Term("resolve", Term::TERM_TYPE_ATOM);
 static Term* HEAD_RESOLVE_RUNTIME = new Term("resolveRuntime", Term::TERM_TYPE_ATOM);
 static Term* HEAD_RESOLVE_RUNTIME_CHECK = new Term("resolveRuntimeCheck", Term::TERM_TYPE_ATOM);
-static Term* HEAD_CLASS_SCOPE_USED_BY = new Term("classScopeUsedBy", Term::TERM_TYPE_ATOM);
-static Term* HEAD_CLASS_SCOPE_USE = new Term("classScopeUse", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CLASS_SCOPE_SUPER = new Term("classScopeSuper", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CLASS_SCOPE_SUB = new Term("classScopeSub", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CLASS_SCOPE_UNION = new Term("classScopeUnion", Term::TERM_TYPE_ATOM);
@@ -313,14 +309,6 @@ public:
     static CompoundTerm* getOverrideOutRecurTerm(Term* superKey, Term* key);
 
     static string getOverrideFact(const string& key, const string& subKey);
-
-    static string getRelatedTypeFact(const string& typeKey, const string& typeKeyItUsed);
-
-    static CompoundTerm* getRelatedTypeTerm(Term* typeKey, Term* typeKeyUsedByFirstParam);
-
-    static string getRelatedTypeAndMethodFact(const string& typeKey, const string& methodKeyItUsed);
-
-    static CompoundTerm* getRelatedTypeAndMethodTerm(Term* typeKey, Term* methodKeyUsedByFirstParam);
 
     static string getMethodUseMethodFact(const string& mk, const string& usedMk);
 
@@ -486,10 +474,6 @@ public:
         bool isBackward);
 
     static void retractAllTransitionTerm(bool isBackward, int intersectionCount);
-
-    static CompoundTerm* getClassScopeUsedBy(Term* typeKey, Term* typeKeyUsedByFirstParam);
-
-    static CompoundTerm* getClassScopeUse(Term* typeKeyUsedBySecondParam, Term* typeKey);
 
     static CompoundTerm* getClassScopeSuper(Term* typeKey, Term* superTypeKey);
 
