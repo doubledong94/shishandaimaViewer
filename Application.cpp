@@ -515,6 +515,9 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[SELECT_PATH_IN_BETWEEN] = [&]() {
         boundedGraph->selectPathInBetween();
         };
+    HotkeyConfig::functionEnumToFunction[SELECT_SHORTEST_PATH_IN_BETWEEN] = [&]() {
+        boundedGraph->selectShortestPathInBetween();
+        };
     HotkeyConfig::functionEnumToFunction[SELECT_PATH_UPWARD] = [&]() {
         boundedGraph->selectPathUpward();
         };

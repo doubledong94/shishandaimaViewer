@@ -199,6 +199,8 @@ public:
 
     void reverseSelect();
 
+    void selectShortestPathInBetween();
+
     void selectPathInBetween();
 
     void selectPathUpward();
@@ -216,6 +218,10 @@ public:
     void lookEachOtherForPath(int i, int j, set<int>& visited, set<int>& selected);
 
     void lookEachOtherForPath(int i, set<int>& otherNodes, set<int>& selected);
+
+    void lookEachOtherForShortestPath(int i, int j, set<int>& visited, set<int>& selected);
+
+    void lookEachOtherForShortestPath(int i, set<int>& otherNodes, set<int>& selected);
 
     void select(set<int>& s);
 

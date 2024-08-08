@@ -1577,6 +1577,19 @@ void BoundedIncrementalGraph::reverseSelect() {
     onNodeColorChanged();
 }
 
+void BoundedIncrementalGraph::selectShortestPathInBetween() {
+    prepareDistance();
+    set<int> newNodes;
+    for (int i : nodesObj->selected) {
+        set<int> otherNodes;
+        otherNodes.insert(nodesObj->selected.begin(), nodesObj->selected.end());
+        otherNodes.erase(i);
+        lookEachOtherForShortestPath(i, otherNodes, newNodes);
+    }
+    nodesObj->selected.insert(newNodes.begin(), newNodes.end());
+    onNodeColorChanged();
+}
+
 void BoundedIncrementalGraph::selectPathInBetween() {
     prepareDistance();
     set<int> newNodes;
@@ -1708,6 +1721,37 @@ void BoundedIncrementalGraph::lookEachOtherForPath(int i, set<int>& otherNodes, 
     for (int j : otherNodes) {
         set<int> visited;
         lookEachOtherForPath(i, j, visited, selected);
+    }
+}
+
+void BoundedIncrementalGraph::lookEachOtherForShortestPath(int i, int j, set<int>& visited, set<int>& selected) {
+    visited.insert(i);
+
+    if (not std::isinf(MATRIX(distance.data, i, j)) and i != j) {
+        selected.insert(i);
+        igraph_vector_int_t neighbors;
+        igraph_vector_int_init(&neighbors, 0);
+        igraph_neighbors(theOriginalGraph, &neighbors, i, IGRAPH_OUT);
+        int minDistance = std::numeric_limits<float>::infinity();
+        int minDistanceNeighbor = -1;
+        for (int index = 0; index < igraph_vector_int_size(&neighbors); index++) {
+            igraph_integer_t neighbor = VECTOR(neighbors)[index];
+            int neighborDistance = MATRIX(distance.data, neighbor, j);
+            if (not std::isinf(neighborDistance) and neighborDistance < minDistance) {
+                minDistance = neighborDistance;
+                minDistanceNeighbor = neighbor;
+            }
+        }
+        if (minDistanceNeighbor > -1 and visited.find(minDistanceNeighbor) == visited.end()) {
+            lookEachOtherForShortestPath(minDistanceNeighbor, j, visited, selected);
+        }
+    }
+}
+
+void BoundedIncrementalGraph::lookEachOtherForShortestPath(int i, set<int>& otherNodes, set<int>& selected) {
+    for (int j : otherNodes) {
+        set<int> visited;
+        lookEachOtherForShortestPath(i, j, visited, selected);
     }
 }
 

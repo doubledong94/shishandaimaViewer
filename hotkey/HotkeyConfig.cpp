@@ -101,6 +101,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SELECT_DOWNWARD, "select downward", 0xffffff6d,SINGLE_CLICK},
     {SELECT_DOWNWARD_TO_THE_BOTTOM, "select downward", 0xffff6d03,SINGLE_CLICK},
     {SELECT_PATH_IN_BETWEEN, "select path in between", 0xffff403b,SINGLE_CLICK},
+    {SELECT_SHORTEST_PATH_IN_BETWEEN, "select shortest path in between", 0xffff3b34,SINGLE_CLICK},
     {SELECT_PATH_UPWARD, "select path upward", 0xffff3b2f,SINGLE_CLICK},
     {SELECT_PATH_DOWNWARD, "select path downward", 0xffff3b35,SINGLE_CLICK},
     {SHOW_SEARCHED_LINE_AND_GRAPH,"show searched line and graph",0xffffff2c,SINGLE_CLICK},
@@ -265,6 +266,7 @@ void HotkeyConfig::init() {
     hotkeyMap[SELECT_DOWNWARD_TO_THE_BOTTOM]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeDownwardToTheBottom();
     hotkeyMap[REVERSE_SELECT]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeBackward();
     hotkeyMap[SELECT_PATH_IN_BETWEEN]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeInBetween();
+    hotkeyMap[SELECT_SHORTEST_PATH_IN_BETWEEN]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeShortestInBetween();
     hotkeyMap[SELECT_PATH_UPWARD]->functionName = StringRes::singleton->getHotKeyTitle_selectPathUpward();
     hotkeyMap[SELECT_PATH_DOWNWARD]->functionName = StringRes::singleton->getHotKeyTitle_selectPathDownward();
     hotkeyMap[SELECT_BY_IN_DEGREE]->functionName = StringRes::singleton->getHotKeyTitle_selectNodeByInDegree();
