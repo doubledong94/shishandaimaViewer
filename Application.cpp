@@ -512,6 +512,9 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[REVERSE_SELECT] = [&]() {
         boundedGraph->reverseSelect();
         };
+    HotkeyConfig::functionEnumToFunction[SELECT_LOOP] = [&]() {
+        boundedGraph->selectLoop();
+        };
     HotkeyConfig::functionEnumToFunction[SELECT_PATH_IN_BETWEEN] = [&]() {
         boundedGraph->selectPathInBetween();
         };

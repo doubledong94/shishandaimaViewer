@@ -42,6 +42,7 @@ public:
     virtual char* getHotKeyTitle_selectNodeUpwardToTheTop() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeDownwardToTheBottom() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeBackward() { return NULL; };
+    virtual char* getHotKeyTitle_selectLoop() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeInBetween() { return NULL; };
     virtual char* getHotKeyTitle_selectNodeShortestInBetween() { return NULL; };
     virtual char* getHotKeyTitle_selectPathUpward() { return NULL; };
@@ -157,6 +158,7 @@ private:
     string hotKeyTitle_selectNodeUpwardToTheTop = "向上选择到顶";
     string hotKeyTitle_selectNodeDownwardToTheBottom = "向下选择到底";
     string hotKeyTitle_selectNodeBackward = "反向选择";
+    string hotKeyTitle_selectLoop = "选择环";
     string hotKeyTitle_selectNodeInBetween = "选择连线";
     string hotKeyTitle_selectNodeShortestInBetween = "选择最短连线";
     string hotKeyTitle_selectPathUpward = "向上选择连线";
@@ -270,6 +272,7 @@ public:
     char* getHotKeyTitle_selectNodeUpwardToTheTop() override;
     char* getHotKeyTitle_selectNodeDownwardToTheBottom() override;
     char* getHotKeyTitle_selectNodeBackward() override;
+    char* getHotKeyTitle_selectLoop() override;
     char* getHotKeyTitle_selectNodeInBetween() override;
     char* getHotKeyTitle_selectNodeShortestInBetween() override;
     char* getHotKeyTitle_selectPathUpward() override;
@@ -385,6 +388,7 @@ private:
     string hotKeyTitle_selectNodeUpwardToTheTop = "向上选择到顶";
     string hotKeyTitle_selectNodeDownwardToTheBottom = "向下选择到底";
     string hotKeyTitle_selectNodeBackward = "反向选择";
+    string hotKeyTitle_selectLoop = "选择环";
     string hotKeyTitle_selectNodeInBetween = "选择连线";
     string hotKeyTitle_selectNodeShortestInBetween = "选择最短连线";
     string hotKeyTitle_selectPathUpward = "向上选择连线";
@@ -498,6 +502,7 @@ public:
     char* getHotKeyTitle_selectNodeUpwardToTheTop() override;
     char* getHotKeyTitle_selectNodeDownwardToTheBottom() override;
     char* getHotKeyTitle_selectNodeBackward() override;
+    char* getHotKeyTitle_selectLoop() override;
     char* getHotKeyTitle_selectNodeInBetween() override;
     char* getHotKeyTitle_selectNodeShortestInBetween() override;
     char* getHotKeyTitle_selectPathUpward() override;

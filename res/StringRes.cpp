@@ -94,6 +94,7 @@ char* ChineseStringRes::getHotKeyTitle_selectNodeDownward() { return hotKeyTitle
 char* ChineseStringRes::getHotKeyTitle_selectNodeUpwardToTheTop() { return hotKeyTitle_selectNodeUpwardToTheTop.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeDownwardToTheBottom() { return hotKeyTitle_selectNodeDownwardToTheBottom.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeBackward() { return hotKeyTitle_selectNodeBackward.data(); }
+char* ChineseStringRes::getHotKeyTitle_selectLoop() { return hotKeyTitle_selectLoop.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeInBetween() { return hotKeyTitle_selectNodeInBetween.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeShortestInBetween() { return hotKeyTitle_selectNodeShortestInBetween.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectPathUpward() { return hotKeyTitle_selectPathUpward.data(); }
@@ -246,6 +247,7 @@ char* EnglishStringRes::getHotKeyTitle_selectNodeDownward() { return hotKeyTitle
 char* EnglishStringRes::getHotKeyTitle_selectNodeUpwardToTheTop() { return hotKeyTitle_selectNodeUpwardToTheTop.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeDownwardToTheBottom() { return hotKeyTitle_selectNodeDownwardToTheBottom.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeBackward() { return hotKeyTitle_selectNodeBackward.data(); }
+char* EnglishStringRes::getHotKeyTitle_selectLoop() { return hotKeyTitle_selectLoop.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeInBetween() { return hotKeyTitle_selectNodeInBetween.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeShortestInBetween() { return hotKeyTitle_selectNodeShortestInBetween.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectPathUpward() { return hotKeyTitle_selectPathUpward.data(); }

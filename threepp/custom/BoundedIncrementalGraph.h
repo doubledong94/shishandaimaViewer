@@ -227,6 +227,8 @@ public:
 
     void select(set<const char*>& uniKeys);
 
+    void selectLoop();
+
     void prepareInDegreeMap();
 
     void prepareOutDegreeMap();

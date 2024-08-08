@@ -1779,6 +1779,28 @@ void BoundedIncrementalGraph::select(set<const char*>& uniKeys) {
     onNodeColorChanged();
 }
 
+void BoundedIncrementalGraph::selectLoop() {
+    prepareDistance();
+    set<int> s;
+    for (int nodeId = 0;nodeId < nodesOrderedByNodeId.size();nodeId++) {
+        if (s.count(nodeId)) {
+            continue;
+        }
+        igraph_vector_int_t nextIds;
+        igraph_vector_int_init(&nextIds, 0);
+        igraph_neighbors(theOriginalGraph, &nextIds, nodeId, IGRAPH_OUT);
+        for (int i = 0; i < igraph_vector_int_size(&nextIds); i++) {
+            igraph_integer_t nextId = VECTOR(nextIds)[i];
+            if (not std::isinf(MATRIX(distance.data, nextId, nodeId))) {
+                s.insert(nodeId);
+                s.insert(nextId);
+            }
+        }
+    }
+    select(s);
+    onNodeColorChanged();
+}
+
 void BoundedIncrementalGraph::prepareInDegreeMap() {
     if (not inDegreeToNodes.needUpdate) {
         return;
