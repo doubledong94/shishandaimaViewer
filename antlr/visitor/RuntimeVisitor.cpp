@@ -1286,12 +1286,14 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
     }
     TypeInfo* typeInfo = NULL;
     string methodName = "";
+    bool staticRef = false;
     if (ctx->expression()) {
         auto* item = acceptAndHandleError(ctx->expression(), this);
         typeInfo = item->typeInfo;
         if (ctx->identifier()) {
             methodName = ctx->identifier()->getText();
         }
+        staticRef = item->keyType == GlobalInfo::KEY_TYPE_CLASS;
     } else if (ctx->typeType()) {
         TypeName typeName;
         AntlrNodeToSyntaxObjectConverter::convertTypeType(ctx->typeType(), &typeName);
@@ -1299,6 +1301,7 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
         if (ctx->identifier()) {
             methodName = ctx->identifier()->getText();
         }
+        staticRef = true;
     } else if (ctx->classType()) {
         TypeName typeName;
         AntlrNodeToSyntaxObjectConverter::convertClassOrInterfaceType(ctx->classType()->classOrInterfaceType(), &typeName);
@@ -1306,6 +1309,7 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
             typeName.typeName.push_back(ctx->classType()->identifier()->getText());
         }
         typeInfo = classScopeAndEnv->getTypeInfoWithFileScope(typeName.typeName);
+        staticRef = true;
     }
     bool isConstructor = ctx->NEW() != NULL;
     if (typeInfo and typeInfo->classScopeAndEnv) {
@@ -1323,6 +1327,16 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
                     typeInfo->classScopeAndEnv->getMethodInfoFromSelf(typeInfo->simpletypeName, paramCount, methods);
                 } else {
                     typeInfo->classScopeAndEnv->getMethodInfoFromSelf(methodName, paramCount, methods);
+                    if (staticRef) {
+                        // remove instance method, because instance method should have one less param count than the interface method
+                        methods.remove_if([](MethodInfo* m) {return not Modifier::isStatic(m->flag);});
+                    }
+                    // static method not found, then find instance method
+                    if (staticRef and methods.empty()) {
+                        typeInfo->classScopeAndEnv->getMethodInfoFromSelf(methodName, paramCount - 1, methods);
+                        // make sure it is not static method
+                        methods.remove_if([](MethodInfo* m) {return Modifier::isStatic(m->flag);});
+                    }
                 }
                 if (not methods.empty()) {
                     return ResolvingItem::getInstance2(methods.front()->methodKey, interaceI, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_REFERENCE);
