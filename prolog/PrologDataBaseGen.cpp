@@ -377,6 +377,7 @@ void TimingFlowVisitor::addTimingFlow(const string& methodKey, CodeBlock* codeBl
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
         item->keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
+        item->keyType == GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS or
         item->keyType == GlobalInfo::KEY_TYPE_ERROR
         ) {
         item->addConditionToProlog(CompoundTerm::getFlowFact, methodKey, codeBlock->conditionItem->runtimeKey, prologLines);

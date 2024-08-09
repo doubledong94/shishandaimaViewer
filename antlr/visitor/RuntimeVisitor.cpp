@@ -1316,8 +1316,8 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
         for (auto& expectedInterface : expectingTypeInfo) {
             list<TypeInfo*> interfaceInfos;
             getAllInterfaceRecurSuper(expectedInterface, interfaceInfos);
-            for (auto* interaceI : interfaceInfos) {
-                MethodInfo* expectedMethod = interaceI->getOnlyMethodFromInterface();
+            for (auto* interfaceI : interfaceInfos) {
+                MethodInfo* expectedMethod = interfaceI->getOnlyMethodFromInterface();
                 if (not expectedMethod) {
                     continue;
                 }
@@ -1338,8 +1338,28 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
                         methods.remove_if([](MethodInfo* m) {return Modifier::isStatic(m->flag);});
                     }
                 }
-                if (not methods.empty()) {
-                    return ResolvingItem::getInstance2(methods.front()->methodKey, interaceI, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_METHOD_REFERENCE);
+                auto constructors = interfaceI->getConstructor(0);
+                // found the right interface and method
+                if (not constructors.empty() and not methods.empty()) {
+                    AnonymousVisitor* anonymousVisitor = AnonymousVisitor::getInstance();
+                    anonymousVisitor->copyFrom(this);
+                    anonymousVisitor->outerMethodScopeAndEnv = methodScopeAndEnv;
+                    anonymousVisitor->superTypeInfo = interfaceI;
+                    anonymousVisitor->positionKey = methodScopeAndEnv->methodKey + codeBlock->structure_key + ";" + to_string(sentenceIndex) + ";" + getIncreasedIndexInsideExp();
+                    anonymousVisitor->makeTypeInfo();
+                    anonymousVisitor->visitMethodReference(expectedMethod, methods.front());
+
+                    ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance2();
+                    ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
+                    handleMethodInfo(constructors.front(), {}, calledReturnResolvingItem, calledMethodResolvingItem);
+
+                    auto anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
+                        codeBlock->structure_key, getSentence()->sentenceIndexStr,
+                        getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
+                    );
+                    new Relation(getSentence(), calledReturnResolvingItem, anonymousItem);
+                    AnonymousVisitor::returnToPool(anonymousVisitor);
+                    return anonymousItem;
                 }
             }
         }
@@ -1925,6 +1945,45 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
     CodeBlock::classKey2methodKey2codeBlock[typeInfo->typeKey][pStatementVisitor->methodScopeAndEnv->methodKey] = pStatementVisitor->codeBlock;
     StatementVisitor::returnToPool(pStatementVisitor);
 
+    return NULL;
+}
+
+std::any AnonymousVisitor::visitMethodReference(MethodInfo* superMethodInfo, MethodInfo* methodReferencedInfo) {
+    MethodInfo* methodInfo = new MethodInfo();
+    methodInfo->name = superMethodInfo->name;
+    methodInfo->methodKey = AddressableInfo::makeMethodKey(typeInfo->typeKey, methodInfo->name, methodInfo->getParamPartOfKey());
+    methodInfo->calledMethodKey = AddressableInfo::makeCalledKey(methodInfo->methodKey);
+    typeInfo->methodInfos.insert(methodInfo);
+    auto* returnInfo = new FieldInfo();
+    methodInfo->returnInfo = returnInfo;
+    returnInfo->name = "return";
+    returnInfo->fieldKey = AddressableInfo::makeReturnKey(methodInfo->methodKey);
+    returnInfo->typeInfo = superMethodInfo->returnInfo->typeInfo;
+    AddressableInfo::fieldKey2fieldInfo[returnInfo->fieldKey] = returnInfo;
+    auto* calledReturnFieldInfo = new FieldInfo();
+    methodInfo->calledReturnInfo = calledReturnFieldInfo;
+    calledReturnFieldInfo->name = AddressableInfo::makeCalledKey("return");
+    calledReturnFieldInfo->fieldKey = AddressableInfo::makeCalledKey(returnInfo->fieldKey);
+    calledReturnFieldInfo->typeInfo = returnInfo->typeInfo;
+    AddressableInfo::fieldKey2fieldInfo[calledReturnFieldInfo->fieldKey] = calledReturnFieldInfo;
+    AddressableInfo::methodKey2MethodInfo[methodInfo->methodKey] = methodInfo;
+
+    CodeBlock* codeBlock = new CodeBlock(NULL, MethodScopeAndEnv::rootStructureKey, false);
+    codeBlock->conditionItem = ResolvingItem::getInstance2(methodInfo->methodKey, NULL, codeBlock->structure_key, "-1", "-1", GlobalInfo::KEY_TYPE_CONDITION);
+    Sentence* sentence = new Sentence(codeBlock, codeBlock->structure_key, 1);
+    // put relation
+    ResolvingItem* calledMethod = ResolvingItem::getInstance2(methodReferencedInfo->calledMethodKey, NULL, codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_CALLED_METHOD);
+    ResolvingItem* calledReturn = ResolvingItem::getInstance2(methodReferencedInfo->calledReturnInfo->fieldKey, methodReferencedInfo->calledReturnInfo->typeInfo, codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_CALLED_RETURN);
+    new Relation(sentence, calledMethod, calledReturn);
+    ResolvingItem* returnItem = ResolvingItem::getInstance2(methodInfo->returnInfo->fieldKey,methodInfo->returnInfo->typeInfo,codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_METHOD_RETURN);
+    new Relation(sentence, calledReturn, returnItem);
+
+    GlobalInfo::addUsageLock.lock();
+    GlobalInfo::NAME_FILE_TO(MethodUseMethods)[outerMethodScopeAndEnv->getFileScope()->filePath][methodInfo->methodKey].insert(methodReferencedInfo->methodKey);
+    GlobalInfo::addUsageLock.unlock();
+
+    Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo, superMethodInfo);
+    CodeBlock::classKey2methodKey2codeBlock[typeInfo->typeKey][methodInfo->methodKey] = codeBlock;
     return NULL;
 }
 

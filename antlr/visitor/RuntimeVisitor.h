@@ -307,6 +307,8 @@ public:
 
     std::any visitLambda(JavaParser::LambdaExpressionContext* ctx, MethodInfo* superMethodInfo, list<string>& paramNames);
 
+    std::any visitMethodReference(MethodInfo* superMethodInfo, MethodInfo* methodReferencedInfo);
+
     std::any visitMethodDeclaration(JavaParser::MethodDeclarationContext* ctx) override;
 
     void reset() override;

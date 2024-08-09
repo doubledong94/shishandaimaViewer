@@ -79,7 +79,6 @@ public:
         KEY_TYPE_DEFAULT_VALUE,
         KEY_TYPE_KEY_WORD_VALUE, // null, true, false
         KEY_TYPE_ANONYMOUS_CLASS, // todo what is the simple name for this
-        KEY_TYPE_METHOD_REFERENCE, // todo what is the simple name for this
         KEY_TYPE_ENUM_INSTANCE,
         KEY_TYPE_ARRAY_INIT, // todo what is the simple name for this
 

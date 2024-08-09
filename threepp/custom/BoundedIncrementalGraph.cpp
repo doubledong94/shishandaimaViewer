@@ -72,7 +72,6 @@ static set<int> AllKeyTypes = {
         GlobalInfo::KEY_TYPE_DEFAULT_VALUE,
         GlobalInfo::KEY_TYPE_KEY_WORD_VALUE,
         GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS,
-        GlobalInfo::KEY_TYPE_METHOD_REFERENCE,
         GlobalInfo::KEY_TYPE_ENUM_INSTANCE,
         GlobalInfo::KEY_TYPE_ARRAY_INIT,
         GlobalInfo::KEY_TYPE_OPTR_START,
