@@ -32,8 +32,8 @@ namespace app {
         ThreadPool* textLoaderThreadPool = NULL;
         vector<ReactiveMouseListener*> listeners;
         threepp::Raycaster raycaster;
-        std::shared_ptr<BoundedIncrementalGraph> boundedGraph;
     public:
+        std::shared_ptr<BoundedIncrementalGraph> boundedGraph;
         Application(Parser* parser1);
 
         int ApplicationMain();
@@ -43,4 +43,5 @@ namespace app {
         static std::function<void(set<const char*>&, vector<const char*>&)> searchNodeByAddressableKey;
         static std::function<void(map<string, map<string, set<string>>>&, vector<const char*>&)> searchNodeByPositionInRegex;
     };
+    static Application* appPtr;
 };

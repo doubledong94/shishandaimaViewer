@@ -59,6 +59,7 @@
 #include "gui/imEditLineAndGraph.h"
 #include "gui/imGraphSelector.h"
 #include "gui/imDimControl.h"
+#include "gui/imSelectedNodeTextWindow.h"
 #include "file/FileManager.h"
 #include "threepp/helpers/AxesHelper.hpp"
 #include "absl/time/clock.h"
@@ -156,6 +157,7 @@ int app::Application::ApplicationMain() {
     static bool hotkeyPopupOpen = false;
     static bool editLineAndGraphOpen = false;
     static bool editDimControlOpen = false;
+    static bool showSelectedNodeText = false;
     static bool searchedLineAndGraphOpen = false;
     static bool chooseClassScopePopupOpen = false;
     static bool chooseLineInstancePopupOpen = false;
@@ -491,6 +493,12 @@ int app::Application::ApplicationMain() {
         shishan::dimControlLastWindowSize = { 0,0 };
         editDimControlOpen = !editDimControlOpen;
         };
+    HotkeyConfig::functionEnumToFunction[SHOW_SELECTED_NODE_TEXT] = [&]() {
+        showTooltip = false;
+        boundedGraph->printSelectedNode({}, shishan::selectedNodeText);
+        shishan::dimControlLastWindowSize = { 0,0 };
+        showSelectedNodeText = !showSelectedNodeText;
+        };
     HotkeyConfig::functionEnumToFunction[SELECT_ALL_NODE] = [&]() {
         boundedGraph->selectAll();
         };
@@ -700,13 +708,13 @@ int app::Application::ApplicationMain() {
             return;
         }
         boundedGraph->applyLayoutTreeUpAndDown(true);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[TREE_DOWN] = [&]() {
         if (searchingInProgress) {
             return;
         }
         boundedGraph->applyLayoutTreeUpAndDown(false);
-    };
+        };
     HotkeyConfig::functionEnumToFunction[AUTO_GROUP_X] = [&]() {
         boundedGraph->grid(boundedGraph->xCoordFixed);
         };
@@ -766,6 +774,7 @@ int app::Application::ApplicationMain() {
         if (!hotkeyPopupOpen and
             !editLineAndGraphOpen and
             !editDimControlOpen and
+            !showSelectedNodeText and
             !searchedLineAndGraphOpen and
             !aboutToParseFile and
             !aboutToDeleteGraph and
@@ -845,6 +854,7 @@ int app::Application::ApplicationMain() {
             hotkeyPopupOpen = false;
             editLineAndGraphOpen = false;
             editDimControlOpen = false;
+            showSelectedNodeText = false;
             searchedLineAndGraphOpen = false;
             showColorSelectorWindow = false;
             aboutToParseFile = false;
@@ -871,6 +881,7 @@ int app::Application::ApplicationMain() {
         shishan::editLineAndGraph(editLineAndGraphOpen);
         shishan::showGraphSelectorWindow(searchedLineAndGraphOpen, methodOfRuntimeForNodeSelection, graphNameToLineNameToRegex);
         shishan::showDimControlWindow(editDimControlOpen);
+        shishan::showSelectedNodeTextWindow(showSelectedNodeText);
 
         if (selectByInDegreePopupOpen) {
             ImGui::OpenPopup("selectByInDegreePopupOpen");
@@ -1436,6 +1447,7 @@ int main(int argc, char** argv) {
     BoundedIncrementalGraph::getDimControl = shishan::getDimControl;
     BoundedIncrementalGraph::deserializeFilePath();
     app::Application app(&parser);
+    app::appPtr = &app;
     app.ApplicationMain();
     if (prologLoaded) {
         EasierSimpleView::saveToFile();

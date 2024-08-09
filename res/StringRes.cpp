@@ -106,6 +106,7 @@ char* ChineseStringRes::getHotKeyTitle_selectNodeByMethodStackSize() { return ho
 char* ChineseStringRes::getHotKeyTitle_selectNodeByComponent() { return hotKeyTitle_selectNodeByComponent.data(); }
 char* ChineseStringRes::getHotKeyTitle_selectNodeByGroup() { return hotKeyTitle_selectNodeByGroup.data(); }
 char* ChineseStringRes::getHotKeyTitle_dimControlEditor() { return hotKeyTitle_dimControlEditor.data(); }
+char* ChineseStringRes::getHotKeyTitle_showSelectedNodeText() { return hotKeyTitle_showSelectedNodeText.data(); }
 char* ChineseStringRes::getHotKeyTitle_2DLayout() { return hotKeyTitle_2DLayout.data(); }
 char* ChineseStringRes::getHotKeyTitle_3DLayout() { return hotKeyTitle_3DLayout.data(); }
 char* ChineseStringRes::getHotKeyTitle_LayoutOnAndOff() { return hotKeyTitle_LayoutOnAndOff.data(); }
@@ -259,6 +260,7 @@ char* EnglishStringRes::getHotKeyTitle_selectNodeByMethodStackSize() { return ho
 char* EnglishStringRes::getHotKeyTitle_selectNodeByComponent() { return hotKeyTitle_selectNodeByComponent.data(); }
 char* EnglishStringRes::getHotKeyTitle_selectNodeByGroup() { return hotKeyTitle_selectNodeByGroup.data(); }
 char* EnglishStringRes::getHotKeyTitle_dimControlEditor() { return hotKeyTitle_dimControlEditor.data(); }
+char* EnglishStringRes::getHotKeyTitle_showSelectedNodeText() { return hotKeyTitle_showSelectedNodeText.data(); }
 char* EnglishStringRes::getHotKeyTitle_2DLayout() { return hotKeyTitle_2DLayout.data(); }
 char* EnglishStringRes::getHotKeyTitle_3DLayout() { return hotKeyTitle_3DLayout.data(); }
 char* EnglishStringRes::getHotKeyTitle_LayoutOnAndOff() { return hotKeyTitle_LayoutOnAndOff.data(); }

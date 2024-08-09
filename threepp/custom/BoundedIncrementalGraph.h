@@ -353,6 +353,8 @@ public:
 
     void applyLayout(bool force = false);
 
+    void printSelectedNode(const set<int>& excludeTypes, string& ret);
+
     static std::function<void(int, set<int>&)> getDimControl;
     // tested property start
     bool isDag();

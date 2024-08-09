@@ -3287,3 +3287,21 @@ void BoundedIncrementalGraph::prepareSelectByMethodStackSize() {
 }
 
 std::function<void(int, set<int>&)> BoundedIncrementalGraph::getDimControl;
+
+void BoundedIncrementalGraph::printSelectedNode(const set<int>& excludeTypes, string& ret) {
+    ret.clear();
+    prepareInDegreeMap();
+    prepareOutDegreeMap();
+    vector<int> orderNode;
+    FOR_EACH_ITEM(nodesObj->selected,
+        if (not excludeTypes.count(nodesOrderedByNodeId[item]->keyType)) {
+            orderNode.push_back(item);
+        });
+    std::sort(orderNode.begin(), orderNode.end(), [&](int a, int b) {
+        return getNodeRelativePosition(a) < getNodeRelativePosition(b);
+        });
+    for (auto& node : orderNode) {
+        ret.append(nodesOrderedByNodeId[node]->key);
+        ret.push_back('\n');
+    }
+}

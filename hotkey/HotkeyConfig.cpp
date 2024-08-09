@@ -115,6 +115,7 @@ vector<HotKey> HotkeyConfig::hotkeys = {
     {SELECT_BY_GROUP, "select by group", 0xffff3201,SINGLE_CLICK},
     {SELECT_FROM_ALL, "select from all or from selected", 0xffffff36,SINGLE_CLICK},
     {DIM_CONTROL_EDITOR, "dim control editor", 0xffffff2f,SINGLE_CLICK},
+    {SHOW_SELECTED_NODE_TEXT, "show selected node text", 0xffffff6b,SINGLE_CLICK},
     // layout
     {START_OR_STOP_LAYOUT_ANIM, "start/stop layout animiation", 0xffffff3c,SINGLE_CLICK},
     {TO_2D_LAYOUT,"2D layout",0xffffff52, SINGLE_CLICK},
@@ -256,6 +257,7 @@ void HotkeyConfig::init() {
     hotkeyMap[DECREASE_ALPHA_FOR_SELECTED]->functionName = StringRes::singleton->getHotKeyTitle_SelectedNodeAlphaDecr();
     hotkeyMap[SELECT_FROM_ALL]->functionName = StringRes::singleton->getHotKeyTitle_selectFromAll();
     hotkeyMap[DIM_CONTROL_EDITOR]->functionName = StringRes::singleton->getHotKeyTitle_dimControlEditor();
+    hotkeyMap[SHOW_SELECTED_NODE_TEXT]->functionName = StringRes::singleton->getHotKeyTitle_showSelectedNodeText();
     hotkeyMap[SELECT_ALL_NODE]->functionName = StringRes::singleton->getHotKeyTitle_selectAllNode();
     hotkeyMap[UNSELECT_ALL]->functionName = StringRes::singleton->getHotKeyTitle_unselectAllNode();
     hotkeyMap[REMOVE_SELECTED_NODES]->functionName = StringRes::singleton->getHotKeyTitle_deleteNode();

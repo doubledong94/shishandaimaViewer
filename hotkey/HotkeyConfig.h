@@ -156,6 +156,7 @@ enum HotkeyFunction {
     TREE_UP,
     TREE_DOWN,
     DIM_CONTROL_EDITOR,
+    SHOW_SELECTED_NODE_TEXT,
     CHANGE_MAX_SEARCH_DEPTH,
 };
 

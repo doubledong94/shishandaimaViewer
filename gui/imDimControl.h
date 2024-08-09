@@ -45,12 +45,12 @@ namespace shishan {
             dimControlMainWindowWidth = windowSize.x;
             dimControlMainWindowHeight = windowSize.y;
 
-            dimControlPanelWindowWidth = dimControlMainWindowWidth * 0.8;
+            dimControlPanelWindowWidth = dimControlMainWindowWidth * 0.9;
             dimControlPanelWindowHeight = dimControlMainWindowHeight * 0.8;
 
             dimControlPadding = dimControlPanelWindowWidth * 0.01;
-            dimControlSelectorWindowWidth = (dimControlPanelWindowWidth - dimControlPadding) / 3;
-            dimControlEditWindowWidth = (dimControlPanelWindowWidth - dimControlPadding) / 3 * 2;
+            dimControlSelectorWindowWidth = (dimControlPanelWindowWidth - dimControlPadding) / 4;
+            dimControlEditWindowWidth = (dimControlPanelWindowWidth - dimControlPadding) / 4 * 3;
         }
     }
 
