@@ -680,7 +680,7 @@ void BoundedIncrementalGraph::updateGraph() {
                 nodesOrderedByNodeId.push_back(nodeInfo);
             }
             // all edge
-            if (lastNode) {
+            if (lastNode and (lastNode->nodeId != nodeInfo->nodeId)) {
                 if (lastNode->nodeId >= existingNodeCount or nodeInfo->nodeId >= existingNodeCount) {
                     if (not newEdges.count(lastNode->nodeId)) {
                         newEdges[lastNode->nodeId] = set<int>();
