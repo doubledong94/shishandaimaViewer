@@ -495,7 +495,7 @@ int app::Application::ApplicationMain() {
         };
     HotkeyConfig::functionEnumToFunction[SHOW_SELECTED_NODE_TEXT] = [&]() {
         showTooltip = false;
-        boundedGraph->printSelectedNode({}, shishan::selectedNodeText);
+        boundedGraph->printSelectedNode(shishan::excludedTypes, shishan::selectedNodeText);
         shishan::dimControlLastWindowSize = { 0,0 };
         showSelectedNodeText = !showSelectedNodeText;
         };
