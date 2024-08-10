@@ -2349,9 +2349,15 @@ string SimpleView::RegexTree::maxRecurDepthStr = "*";
 
 void SimpleView::RegexTree::changeMaxRecurDepth() {
     if (maxRecurDepth == -1) {
+        maxRecurDepth = 5;
+        maxRecurDepthStr = "5";
+    } else if (maxRecurDepth == 5) {
         maxRecurDepth = 10;
         maxRecurDepthStr = "10";
     } else if (maxRecurDepth == 10) {
+        maxRecurDepth = 15;
+        maxRecurDepthStr = "15";
+    } else if (maxRecurDepth == 15) {
         maxRecurDepth = 20;
         maxRecurDepthStr = "20";
     } else if (maxRecurDepth == 20) {
