@@ -1597,6 +1597,7 @@ namespace shishan {
             clearAllDependency();
         }
         void onNewInstance() {
+            lineFinalInstanceArgSelectedIndex = 0;
             auto& lineTemplate = SimpleView::SimpleViewToGraphConverter::valNameToLine[
                 SimpleView::SimpleViewToGraphConverter::lineNameOrder[lineSelectedIndex]
             ];
@@ -1670,6 +1671,7 @@ namespace shishan {
             clearAllDependency();
         }
         void onNewInstance() {
+            graphInstanceArgSelectedIndex = 0;
             auto& graphTemplate = SimpleView::SimpleViewToGraphConverter::valNameToGraph[
                 SimpleView::SimpleViewToGraphConverter::graphNameOrder[graphSelectedIndex]
             ];
