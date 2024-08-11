@@ -1558,102 +1558,100 @@ std::any InitializerVisitor::visitClassBody(JavaParser::ClassBodyContext* ctx) {
 
 std::any InitializerVisitor::visitConstructorDeclaration(JavaParser::ConstructorDeclarationContext* ctx) {
     if (ctx->constructorBody) {
-        if (ctx->constructorBody->blockStatement().size() > 0) {
-            Method method;
-            AntlrNodeToSyntaxObjectConverter::convertConstructorDeclaration(ctx, &method);
-            set<string> typeParameters;
-            FOR_EACH_ITEM(method.typeParams, typeParameters.insert(item->name););
+        Method method;
+        AntlrNodeToSyntaxObjectConverter::convertConstructorDeclaration(ctx, &method);
+        set<string> typeParameters;
+        FOR_EACH_ITEM(method.typeParams, typeParameters.insert(item->name););
 
-            list<string> parameterTypes;
-            int paramIndex = 0;
-            for (auto& item : method.parameters) {
-                TypeInfo* parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
-                string paramTypeName;
-                int dim = item->typeName->dim;
-                if (method.isVariableParameter and paramIndex == method.parameters.size() - 1) {
-                    dim += 1;
-                }
-                string arrayPostFix = getArrayPostFix(dim);
-                if (parameterTypeInfo) {
-                    if (parameterTypeInfo->typeKey.size() == joinList(item->typeName->typeName, ".").size()) {
-                        paramTypeName = parameterTypeInfo->typeKey + arrayPostFix;
-                    } else {
-                        paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
-                    }
-                } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
-                    paramTypeName = item->typeName->typeName.back() + arrayPostFix;
-                }
-                if (paramTypeName.empty()) {
-                    paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
-                    spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
-                }
-                parameterTypes.push_back(paramTypeName);
-                paramIndex++;
+        list<string> parameterTypes;
+        int paramIndex = 0;
+        for (auto& item : method.parameters) {
+            TypeInfo* parameterTypeInfo = classScopeAndEnv->getTypeInfoWithFileScope(item->typeName->typeName);
+            string paramTypeName;
+            int dim = item->typeName->dim;
+            if (method.isVariableParameter and paramIndex == method.parameters.size() - 1) {
+                dim += 1;
             }
-            const string& methodKey = AddressableInfo::makeMethodKey(
-                classLevelVisitor->typeKeyStack.back(), ctx->identifier()->getText(), joinList(parameterTypes, ","));
-            auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
-            pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
-            pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_CONSTRUCTOR);
-            pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
-            stateVisitorForCurrentMethod = pStatementVisitor;
-
-            // default super constructor
-            auto* firstStatement = ctx->constructorBody->blockStatement(0);
-            if (firstStatement->statement()) {
-                JavaParser::StatementExpContext* firstExpState = dynamic_cast<JavaParser::StatementExpContext*>(firstStatement->statement());
-                JavaParser::MethodCallContext* superCall = NULL;
-                JavaParser::MethodCallContext* thisCall = NULL;
-                if (firstExpState) {
-                    JavaParser::ExpressionMethodCallContext* methodCall = dynamic_cast<JavaParser::ExpressionMethodCallContext*>(firstExpState->expression());
-                    if (methodCall and methodCall->methodCall()->SUPER()) {
-                        superCall = methodCall->methodCall();
-                    }
-                    if (methodCall and methodCall->methodCall()->THIS()) {
-                        thisCall = methodCall->methodCall();
-                    }
+            string arrayPostFix = getArrayPostFix(dim);
+            if (parameterTypeInfo) {
+                if (parameterTypeInfo->typeKey.size() == joinList(item->typeName->typeName, ".").size()) {
+                    paramTypeName = parameterTypeInfo->typeKey + arrayPostFix;
+                } else {
+                    paramTypeName = parameterTypeInfo->typeName + arrayPostFix;
                 }
-                pStatementVisitor->sentenceIndex = 1;
-                if (superCall) {
-                    NameAndRelatedExp methodCall;
-                    AntlrNodeToSyntaxObjectConverter::convertMethodCall(superCall, &methodCall);
-                    const FieldInfo* superFieldInfo = classScopeAndEnv->name2fieldInfo["super"];
-                    if (superFieldInfo) {
-                        const TypeInfo* superTypeInfo = superFieldInfo->typeInfo;
-                        methodCall.name.clear();
-                        splitStr(superTypeInfo->typeName, ".", methodCall.name);
-                        pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
-                    } else {
-                        spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find super for {}", classScopeAndEnv->typeInfo->typeKey);
-                    }
-                }
-                if (thisCall) {
-                    NameAndRelatedExp methodCall;
-                    AntlrNodeToSyntaxObjectConverter::convertMethodCall(thisCall, &methodCall);
-                    methodCall.name.clear();
-                    methodCall.name.emplace_back(classScopeAndEnv->typeInfo->simpletypeName);
-                    pStatementVisitor->resolveMethod(methodCall, classScopeAndEnv, true);
-                }
-                if (not superCall and not thisCall) {
-                    // call super constructor without parameter
-                    NameAndRelatedExp methodCall;
-                    const FieldInfo* superFieldInfo = classScopeAndEnv->name2fieldInfo["super"];
-                    if (superFieldInfo) {
-                        const TypeInfo* superTypeInfo = superFieldInfo->typeInfo;
-                        splitStr(superTypeInfo->typeName, ".", methodCall.name);
-                        pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
-                    } else {
-                        spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find default super for {}", classScopeAndEnv->typeInfo->typeKey);
-                    }
-                }
+            } else if (item->typeName->typeName.size() == 1 and typeParameters.count(item->typeName->typeName.back())) {
+                paramTypeName = item->typeName->typeName.back() + arrayPostFix;
             }
-            // initiaze block
-            visitFieldDeclarationOfClassBody(classBody);
-            // code block
-            pStatementVisitor->visitBlock(ctx->constructorBody);
-            CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
-            StatementVisitor::returnToPool(pStatementVisitor);
+            if (paramTypeName.empty()) {
+                paramTypeName = joinList(item->typeName->typeName, ".") + arrayPostFix;
+                spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find param type name: {} for param: {} in method: {} in type: {}", paramTypeName, item->name, method.name, classScopeAndEnv->typeInfo->typeKey);
+            }
+            parameterTypes.push_back(paramTypeName);
+            paramIndex++;
         }
+        const string& methodKey = AddressableInfo::makeMethodKey(
+            classLevelVisitor->typeKeyStack.back(), ctx->identifier()->getText(), joinList(parameterTypes, ","));
+        auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
+        pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
+        pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_CONSTRUCTOR);
+        pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
+        stateVisitorForCurrentMethod = pStatementVisitor;
+
+        // default super constructor
+        auto* firstStatement = ctx->constructorBody->blockStatement().size() ? ctx->constructorBody->blockStatement(0) : NULL;
+        if (firstStatement and firstStatement->statement()) {
+            JavaParser::StatementExpContext* firstExpState = dynamic_cast<JavaParser::StatementExpContext*>(firstStatement->statement());
+            JavaParser::MethodCallContext* superCall = NULL;
+            JavaParser::MethodCallContext* thisCall = NULL;
+            if (firstExpState) {
+                JavaParser::ExpressionMethodCallContext* methodCall = dynamic_cast<JavaParser::ExpressionMethodCallContext*>(firstExpState->expression());
+                if (methodCall and methodCall->methodCall()->SUPER()) {
+                    superCall = methodCall->methodCall();
+                }
+                if (methodCall and methodCall->methodCall()->THIS()) {
+                    thisCall = methodCall->methodCall();
+                }
+            }
+            pStatementVisitor->sentenceIndex = 1;
+            if (superCall) {
+                NameAndRelatedExp methodCall;
+                AntlrNodeToSyntaxObjectConverter::convertMethodCall(superCall, &methodCall);
+                const FieldInfo* superFieldInfo = classScopeAndEnv->name2fieldInfo["super"];
+                if (superFieldInfo) {
+                    const TypeInfo* superTypeInfo = superFieldInfo->typeInfo;
+                    methodCall.name.clear();
+                    splitStr(superTypeInfo->typeName, ".", methodCall.name);
+                    pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
+                } else {
+                    spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find super for {}", classScopeAndEnv->typeInfo->typeKey);
+                }
+            }
+            if (thisCall) {
+                NameAndRelatedExp methodCall;
+                AntlrNodeToSyntaxObjectConverter::convertMethodCall(thisCall, &methodCall);
+                methodCall.name.clear();
+                methodCall.name.emplace_back(classScopeAndEnv->typeInfo->simpletypeName);
+                pStatementVisitor->resolveMethod(methodCall, classScopeAndEnv, true);
+            }
+            if (not superCall and not thisCall) {
+                // call super constructor without parameter
+                NameAndRelatedExp methodCall;
+                const FieldInfo* superFieldInfo = classScopeAndEnv->name2fieldInfo["super"];
+                if (superFieldInfo) {
+                    const TypeInfo* superTypeInfo = superFieldInfo->typeInfo;
+                    splitStr(superTypeInfo->typeName, ".", methodCall.name);
+                    pStatementVisitor->resolveMethod(methodCall, superTypeInfo->classScopeAndEnv, true);
+                } else {
+                    spdlog::get(ErrorManager::DebugTag)->warn("visitConstructorDeclaration: did not find default super for {}", classScopeAndEnv->typeInfo->typeKey);
+                }
+            }
+        }
+        // initiaze block
+        visitFieldDeclarationOfClassBody(classBody);
+        // code block
+        pStatementVisitor->visitBlock(ctx->constructorBody);
+        CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
+        StatementVisitor::returnToPool(pStatementVisitor);
     }
     return 0;
 }
@@ -1975,7 +1973,7 @@ std::any AnonymousVisitor::visitMethodReference(MethodInfo* superMethodInfo, Met
     ResolvingItem* calledMethod = ResolvingItem::getInstance2(methodReferencedInfo->calledMethodKey, NULL, codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_CALLED_METHOD);
     ResolvingItem* calledReturn = ResolvingItem::getInstance2(methodReferencedInfo->calledReturnInfo->fieldKey, methodReferencedInfo->calledReturnInfo->typeInfo, codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_CALLED_RETURN);
     new Relation(sentence, calledMethod, calledReturn);
-    ResolvingItem* returnItem = ResolvingItem::getInstance2(methodInfo->returnInfo->fieldKey,methodInfo->returnInfo->typeInfo,codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_METHOD_RETURN);
+    ResolvingItem* returnItem = ResolvingItem::getInstance2(methodInfo->returnInfo->fieldKey, methodInfo->returnInfo->typeInfo, codeBlock->structure_key, "1", "1", GlobalInfo::KEY_TYPE_METHOD_RETURN);
     new Relation(sentence, calledReturn, returnItem);
 
     GlobalInfo::addUsageLock.lock();

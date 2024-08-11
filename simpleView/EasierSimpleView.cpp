@@ -536,7 +536,10 @@ void EasierSimpleView::declareStepRules() {
     // method -> step -> step -> called method (current steps == [])
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getBackwardTimingStepTerm(innerMethod, point, outerMethod, nextStepKey, Tail::getInstanceByElements({}), Tail::getInstanceByElements({})), {
         // get addressable key and check type
-        CompoundTerm::getRuntimeTerm(innerMethod,method,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+        DisjunctionTerm::getDisjunctionInstance({
+            CompoundTerm::getRuntimeTerm(innerMethod,method,point,Term::getInt(GlobalInfo::KEY_TYPE_METHOD)),
+            CompoundTerm::getRuntimeTerm(innerMethod,method,point,Term::getInt(GlobalInfo::KEY_TYPE_CONSTRUCTOR)),
+        }),
         // load
         CompoundTerm::getLoadUseMethodRuntimeTerm(innerMethod),
         // to called key and to step key and to runtime key
