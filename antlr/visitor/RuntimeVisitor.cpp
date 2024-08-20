@@ -204,34 +204,34 @@ string ClassLevelVisitor::makeMethodKeyFromMethodInf(Method& method) {
 
 any ClassLevelVisitor::visitInterfaceMethodDeclaration(JavaParser::InterfaceMethodDeclarationContext* ctx) {
     // ctx->interfaceCommonBodyDeclaration()->methodBody() == nullptr is parsing error
+    Method method;
+    AntlrNodeToSyntaxObjectConverter::convertInterfaceMethodDeclaration(ctx, &method);
+    string methodKey = makeMethodKeyFromMethodInf(method);
+    auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
+    pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
+    pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
+    pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
     if (ctx->interfaceCommonBodyDeclaration()->methodBody() != nullptr && ctx->interfaceCommonBodyDeclaration()->methodBody()->block() != nullptr) {
-        Method method;
-        AntlrNodeToSyntaxObjectConverter::convertInterfaceMethodDeclaration(ctx, &method);
-        string methodKey = makeMethodKeyFromMethodInf(method);
-        auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
-        pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
-        pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
-        pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
         pStatementVisitor->visitBlock(ctx->interfaceCommonBodyDeclaration()->methodBody()->block());
-        CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
-        StatementVisitor::returnToPool(pStatementVisitor);
     }
+    CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
+    StatementVisitor::returnToPool(pStatementVisitor);
     return 0;
 }
 
 std::any ClassLevelVisitor::visitMethodDeclaration(JavaParser::MethodDeclarationContext* ctx) {
+    Method method;
+    AntlrNodeToSyntaxObjectConverter::convertMethodDeclaration(ctx, &method);
+    string methodKey = makeMethodKeyFromMethodInf(method);
+    auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
+    pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
+    pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
+    pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
     if (ctx->methodBody()->block() != nullptr) {
-        Method method;
-        AntlrNodeToSyntaxObjectConverter::convertMethodDeclaration(ctx, &method);
-        string methodKey = makeMethodKeyFromMethodInf(method);
-        auto* pStatementVisitor = StatementVisitor::getInstanceFromCopy(this);
-        pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
-        pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
-        pStatementVisitor->methodScopeAndEnv = MethodScopeAndEnv::createMethodScopeAndEnv(methodKey, classScopeAndEnv);
         pStatementVisitor->visitBlock(ctx->methodBody()->block());
-        CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
-        StatementVisitor::returnToPool(pStatementVisitor);
     }
+    CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][methodKey] = pStatementVisitor->codeBlock;
+    StatementVisitor::returnToPool(pStatementVisitor);
     return 0;
 }
 
