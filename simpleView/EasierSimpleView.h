@@ -336,6 +336,7 @@ namespace SimpleView {
 
     class Searcher {
     public:
+        static std::function<void(set<string>&)> getExcludePkg;
         PlQuery* plQuerie;
         PlTermv* result = NULL;
         int outputIndex = -1;
@@ -346,6 +347,7 @@ namespace SimpleView {
         void startSearching(ClassScope* classScope, std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable);
         vector<Tail*> queryNext(ClassScope* classScope);
         void endSearching(ClassScope* classScope);
+        void onStart();
     };
 
     class HalfLineTheFA;
@@ -543,6 +545,7 @@ class EasierSimpleView {
 public:
     static list<string> typeKeyInOrder;
     static map<string, string> typeToPackage;
+    static map<string, list<string>> packageToTypes;
     static map<string, list<string>> classToField;
     static map<string, list<string>> classToMethod;
     static map<string, list<string>> classToParameter;
@@ -557,6 +560,7 @@ public:
     static void declareStepRules();
     static void declareOverrideRules();
     static void declareLoadWhileSearching();
+    static void declareExcludeMethod();
     static void searchClass(char* searchStr, vector<const char*>& searchResult);
     static void searchNode(const char* classKey, vector<const char*>& searchResult);
     static void filterSearchResults(char* searchStr, vector<const char*>& searchResult);

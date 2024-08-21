@@ -21,6 +21,7 @@
 
 list<string> EasierSimpleView::typeKeyInOrder;
 map<string, string> EasierSimpleView::typeToPackage;
+map<string, list<string>> EasierSimpleView::packageToTypes;
 map<string, list<string>> EasierSimpleView::classToField;
 map<string, list<string>> EasierSimpleView::classToMethod;
 map<string, list<string>> EasierSimpleView::classToParameter;
@@ -183,8 +184,15 @@ void EasierSimpleView::init() {
     PrologWrapper::queryList(CompoundTerm::getPackageTerm(Term::getVar("A"), Term::getVar("B")), [&](vector<Term*>& retList) {
         typeKeyInOrder.push_back(retList[1]->atomOrVar);
         typeToPackage[retList[1]->atomOrVar] = retList[0]->atomOrVar;
+        if (not packageToTypes.count(retList[0]->atomOrVar)) {
+            packageToTypes[retList[0]->atomOrVar] = list<string>();
+        }
+        packageToTypes[retList[0]->atomOrVar].push_back(retList[1]->atomOrVar);
         });
     typeKeyInOrder.sort();
+    for (auto& item : packageToTypes) {
+        item.second.sort();
+    }
 
     PrologWrapper::declareFun(HEAD_ADDRESSABLE_LOADED->atomOrVar, 1);
     PrologWrapper::declareFun(HEAD_UNADDRESSABLE_LOADED->atomOrVar, 1);
@@ -200,12 +208,15 @@ void EasierSimpleView::init() {
     PrologWrapper::declareFun(HEAD_BACKWARD_FA_SUCC->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_FORWARD_FA_DONE->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_BACKWARD_FA_DONE->atomOrVar, 4);
+    PrologWrapper::declareFun(HEAD_EXCLUDE_PACKAGE->atomOrVar, 1);
+    PrologWrapper::declareFun(HEAD_EXCLUDE_METHOD->atomOrVar, 1);
     declareKeyConvertion();
     declareClassResolveRules();
     declareNodeResolveRules();
     declareLoadWhileSearching();
     declareStepRules();
     declareOverrideRules();
+    declareExcludeMethod();
 
     spdlog::get(ErrorManager::TimerTag)->info("simple init started.");
     std::ifstream stream(FileManager::simpleViewConfig);
@@ -832,6 +843,7 @@ void EasierSimpleView::declareLoadWhileSearching() {
         }));
     // step in runtime
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadStepInRuntimeTerm(method), {
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(method)),
         CompoundTerm::getMethodTerm(classKey,method),
         CompoundTerm::getLoadAddressableTerm(classKey),
         CompoundTerm::getLoadRuntimeTerm(classKey),
@@ -840,6 +852,7 @@ void EasierSimpleView::declareLoadWhileSearching() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadUseMethodRuntimeTerm(usedMethod), {
         NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
             CompoundTerm::getMethodUseMethodTerm(method,usedMethod),
+            NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(method)),
             CompoundTerm::getMethodTerm(classKey,method),
             CompoundTerm::getLoadAddressableTerm(classKey),
             CompoundTerm::getLoadRuntimeTerm(classKey),
@@ -868,6 +881,7 @@ void EasierSimpleView::declareLoadWhileSearching() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadOverrideInRuntimeTerm(method), {
         NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
             CompoundTerm::getOverrideInRecurTerm(method,subMethod),
+            NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(subMethod)),
             CompoundTerm::getLoadStepInRuntimeTerm(subMethod),
             failTerm,
         }))
@@ -877,9 +891,26 @@ void EasierSimpleView::declareLoadWhileSearching() {
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadUseOverrideMethodRuntimeTerm(method), {
         NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
             CompoundTerm::getOverrideOutRecurTerm(superMethod,method),
+            NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(superMethod)),
             CompoundTerm::getLoadUseMethodRuntimeTerm(superMethod),
             failTerm,
         }))
+        }));
+    for (auto& rule : rules) {
+        PrologWrapper::addRule(rule->toString());
+    }
+    for (auto& rule : rules) {
+        rule->returnThisToPool();
+    }
+}
+
+void EasierSimpleView::declareExcludeMethod() {
+    vector<Rule*> rules;
+    Term* method = Term::getVar("Method");
+    Term* claz = Term::getVar("Class");
+    Term* pkg = Term::getVar("Package");
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getExcludeMethodTerm(method), {
+        CompoundTerm::getMethodTerm(claz,method),CompoundTerm::getPackageTerm(pkg,claz),CompoundTerm::getExcludePackageTerm(pkg)
         }));
     for (auto& rule : rules) {
         PrologWrapper::addRule(rule->toString());
@@ -4235,6 +4266,7 @@ void SimpleView::Searcher::startSearching(ClassScope* classScope, std::function<
         classScope->unResolve();
     }
     onQueryFinished();
+    onStart();
     if (classScope) {
         classScope->resolve(updateAddressable);
         classScope->loadRuntime(updateUnaddressable);
@@ -4262,4 +4294,15 @@ void SimpleView::Searcher::endSearching(ClassScope* classScope) {
         plQuerie = NULL;
     }
     onQueryFinished();
+}
+
+std::function<void(set<string>&)> SimpleView::Searcher::getExcludePkg;
+
+void SimpleView::Searcher::onStart() {
+    PrologWrapper::retractAllFact(HEAD_EXCLUDE_PACKAGE->toString(), 1);
+    set<string> excludePkg;
+    getExcludePkg(excludePkg);
+    for (auto& p : excludePkg) {
+        PrologWrapper::addFact(CompoundTerm::getExcludePackageTerm(Term::getStr(p))->toString(true));
+    }
 }

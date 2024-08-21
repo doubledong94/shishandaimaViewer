@@ -212,6 +212,8 @@ static Term* HEAD_UNADDRESSABLE_LOADED = new Term("unaddressableLoaded", Term::T
 static Term* HEAD_STRING_CONCAT = new Term("string_concat", Term::TERM_TYPE_ATOM);
 static Term* HEAD_CLASS_THAT_USE_METHOD_AND_FIELD = new Term("classThatUseMethodAndField", Term::TERM_TYPE_ATOM);
 static Term* HEAD_LOOP_MORE_THAN_ONCE = new Term("loopMoreThanOnce", Term::TERM_TYPE_ATOM);
+static Term* HEAD_EXCLUDE_PACKAGE = new Term("excludePackage", Term::TERM_TYPE_ATOM);
+static Term* HEAD_EXCLUDE_METHOD = new Term("excludeMethod", Term::TERM_TYPE_ATOM);
 
 class CompoundTerm : public Term, public PooledItem<CompoundTerm> {
 public:
@@ -238,6 +240,10 @@ public:
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5);
 
     static CompoundTerm* makeTerm(Term* head, Term* arg1, Term* arg2, Term* arg3, Term* arg4, Term* arg5, Term* arg6);
+
+    static CompoundTerm* getExcludePackageTerm(Term* pkg);
+
+    static CompoundTerm* getExcludeMethodTerm(Term* method);
 
     static CompoundTerm* getLoopMoreThanOnceTerm(Term* l, Term* e);
 

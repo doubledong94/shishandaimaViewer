@@ -77,6 +77,7 @@ char* ChineseStringRes::getHotKeyTitle_changeMaxSearchDepth() { return hotKeyTit
 char* ChineseStringRes::getHotKeyTitle_chooseClass() { return hotKeyTitle_chooseClass.data(); }
 char* ChineseStringRes::getHotKeyTitle_chooseLine() { return hotKeyTitle_chooseLine.data(); }
 char* ChineseStringRes::getHotKeyTitle_chooseGraph() { return hotKeyTitle_chooseGraph.data(); }
+char* ChineseStringRes::getHotKeyTitle_excludePackage() { return hotKeyTitle_excludePackage.data(); }
 char* ChineseStringRes::getHotKeyTitle_unchooseClass() { return hotKeyTitle_unchooseClass.data(); }
 char* ChineseStringRes::getHotKeyTitle_unchooseLine() { return hotKeyTitle_unchooseLine.data(); }
 char* ChineseStringRes::getHotKeyTitle_unchooseGraph() { return hotKeyTitle_unchooseGraph.data(); }
@@ -231,6 +232,7 @@ char* EnglishStringRes::getHotKeyTitle_changeMaxSearchDepth() { return hotKeyTit
 char* EnglishStringRes::getHotKeyTitle_chooseClass() { return hotKeyTitle_chooseClass.data(); }
 char* EnglishStringRes::getHotKeyTitle_chooseLine() { return hotKeyTitle_chooseLine.data(); }
 char* EnglishStringRes::getHotKeyTitle_chooseGraph() { return hotKeyTitle_chooseGraph.data(); }
+char* EnglishStringRes::getHotKeyTitle_excludePackage() { return hotKeyTitle_excludePackage.data(); }
 char* EnglishStringRes::getHotKeyTitle_unchooseClass() { return hotKeyTitle_unchooseClass.data(); }
 char* EnglishStringRes::getHotKeyTitle_unchooseLine() { return hotKeyTitle_unchooseLine.data(); }
 char* EnglishStringRes::getHotKeyTitle_unchooseGraph() { return hotKeyTitle_unchooseGraph.data(); }

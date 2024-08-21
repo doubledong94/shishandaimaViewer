@@ -274,6 +274,15 @@ CompoundTerm* CompoundTerm::makeTerm(Term* head, Term* arg1, Term* arg2, Term* a
     ret->addArg(arg6);
     return ret;
 }
+
+CompoundTerm* CompoundTerm::getExcludePackageTerm(Term* pkg) {
+    return makeTerm(HEAD_EXCLUDE_PACKAGE, pkg);
+}
+
+CompoundTerm* CompoundTerm::getExcludeMethodTerm(Term* method) {
+    return makeTerm(HEAD_EXCLUDE_METHOD, method);
+}
+
 CompoundTerm* CompoundTerm::getLoopMoreThanOnceTerm(Term* l, Term* e) {
     return makeTerm(HEAD_LOOP_MORE_THAN_ONCE, l, e);
 }
