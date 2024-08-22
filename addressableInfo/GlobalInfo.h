@@ -118,6 +118,7 @@ public:
 
         // error keys
         KEY_TYPE_ERROR,
+        KEY_TYPE_FIELD_CONNECTION,
     };
 
     static bool isOptrKeyType(int keyType);

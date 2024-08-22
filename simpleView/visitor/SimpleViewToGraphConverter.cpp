@@ -242,6 +242,8 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_ELSE;
         } else if (ctx->LV()) {
             ret = Node::NODE_LV;
+        } else if (ctx->FIELD_CONNECTION()) {
+            ret = Node::NODE_FIELD_CONNECTION;
         } else if (ctx->FIELD()) {
             ret = Node::NODE_FIELD;
         } else if (ctx->METHOD()) {

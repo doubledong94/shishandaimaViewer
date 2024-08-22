@@ -87,6 +87,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::DATA_STEP);
     saveVocabulary(lexer, SimpleViewLexer::TIMING_STEP);
     saveVocabulary(lexer, SimpleViewLexer::LV);
+    saveVocabulary(lexer, SimpleViewLexer::FIELD_CONNECTION);
     saveVocabulary(lexer, SimpleViewLexer::FIELD);
     saveVocabulary(lexer, SimpleViewLexer::METHOD);
     saveVocabulary(lexer, SimpleViewLexer::CONSTRUCTOR);
@@ -168,6 +169,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_DATA_OVERRIDE,Images::overrideIcondId},
                 {SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE,Images::overrideIcondId},
                 {SimpleView::Node::NODE_TYPE_LV,Images::listIconId},
+                {SimpleView::Node::NODE_TYPE_FIELD_CONNECTION,Images::fieldIconId},
                 {SimpleView::Node::NODE_TYPE_FIELD,Images::fieldIconId},
                 {SimpleView::Node::NODE_TYPE_METHOD,Images::methodIconId},
                 {SimpleView::Node::NODE_TYPE_CONSTRUCTOR,Images::creatorIconId},
@@ -236,6 +238,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_TIMING_OVERRIDE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_TIMING_OVERRIDE);
     SimpleView::Node::NODE_BY_INTERSECTION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_BY_INTERSECTION);
     SimpleView::Node::NODE_LV = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_LV);
+    SimpleView::Node::NODE_FIELD_CONNECTION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FIELD_CONNECTION);
     SimpleView::Node::NODE_FIELD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FIELD);
     SimpleView::Node::NODE_METHOD = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_METHOD);
     SimpleView::Node::NODE_CONSTRUCTOR = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONSTRUCTOR);
@@ -851,7 +854,7 @@ void EasierSimpleView::declareLoadWhileSearching() {
     // step out runtime
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getLoadUseMethodRuntimeTerm(usedMethod), {
         NegationTerm::getNegInstance(ConjunctionTerm::getConjunctionInstance({
-            CompoundTerm::getMethodUseMethodTerm(method,usedMethod),
+            DisjunctionTerm::getDisjunctionInstance(CompoundTerm::getMethodUseMethodTerm(method,usedMethod),CompoundTerm::getMethodUseFieldTerm(method,usedMethod)),
             NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(method)),
             CompoundTerm::getMethodTerm(classKey,method),
             CompoundTerm::getLoadAddressableTerm(classKey),
@@ -1594,6 +1597,7 @@ SimpleView::Node* SimpleView::Node::NODE_DATA_STEP = NULL;
 SimpleView::Node* SimpleView::Node::NODE_TIMING_STEP = NULL;
 
 SimpleView::Node* SimpleView::Node::NODE_LV = NULL;
+SimpleView::Node* SimpleView::Node::NODE_FIELD_CONNECTION = NULL;
 SimpleView::Node* SimpleView::Node::NODE_FIELD = NULL;
 SimpleView::Node* SimpleView::Node::NODE_METHOD = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CONSTRUCTOR = NULL;
@@ -1659,6 +1663,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
     case Node::NODE_TYPE_LV:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::LV];
         node->iconId = Images::listIconId;
+        break;
+    case Node::NODE_TYPE_FIELD_CONNECTION:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::FIELD_CONNECTION];
+        node->iconId = Images::fieldIconId;
         break;
     case Node::NODE_TYPE_FIELD:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::FIELD];
@@ -2020,6 +2028,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::TIMING_OVERRIDE];
     case NODE_TYPE_LV:
         return voc[SimpleViewLexer::LV];
+    case NODE_TYPE_FIELD_CONNECTION:
+        return voc[SimpleViewLexer::FIELD_CONNECTION];
     case NODE_TYPE_FIELD:
         return voc[SimpleViewLexer::FIELD];
     case NODE_TYPE_METHOD:
@@ -2076,7 +2086,8 @@ bool SimpleView::Node::isLimitedCount() {
         and nodeType != NODE_TYPE_RETURN
         and nodeType != NODE_TYPE_CALLED_RETURN
         and nodeType != NODE_TYPE_INDEX
-        and nodeType != NODE_TYPE_ERROR;
+        and nodeType != NODE_TYPE_ERROR
+        and nodeType != NODE_TYPE_FIELD_CONNECTION;
 }
 
 void SimpleView::Node::release() {
@@ -3208,6 +3219,51 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     Term* keyType2 = Term::getVar("KeyType2");
     Term* mk2 = Term::getVar("MK2");
     Term* runtime2 = Term::getVar("Runtime2");
+    Term* regexChar = Term::getVar("RegexChar");
+    Term* fieldConnection = Term::getVar("FieldConnection");
+    // fa impl for field connection
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
+        lineInstanceValNameTerm, classScopeTerm,
+        currentStateTerm,
+        currentPoint,
+        currentStepsTerm,
+        intersection,
+        Tail::getTailInstance(
+            getOutputItem(regexChar, currentMethodKeyTerm, fieldConnection, fieldConnection, Term::getInt(GlobalInfo::KEY_TYPE_FIELD_CONNECTION), Term::getInt(0), false),
+            getOutputItem(regexChar, nextMethodKeyTerm, nextKeyTerm, fieldConnection, Term::getInt(GlobalInfo::KEY_TYPE_FIELD), Term::getInt(0), false),
+            outputTailTerm),
+        history, isBackward), {
+            CompoundTerm::getTransitionTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                currentStateTerm,
+                nextStateTerm,
+                regexChar,
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                intersection,
+                Term::getStr("FieldConnectionMarker"), isBackward),
+            CompoundTerm::getRuntimeTerm(currentMethodKeyTerm,fieldConnection,currentKeyTerm,Term::getInt(GlobalInfo::KEY_TYPE_FIELD)),
+            CompoundTerm::getLoadUseMethodRuntimeTerm(fieldConnection),
+            CompoundTerm::getRuntimeTerm(nextMethodKeyTerm,fieldConnection,nextKeyTerm,Term::getInt(GlobalInfo::KEY_TYPE_FIELD)),
+                // debug purpose
+                #ifdef DEBUG_PROLOG
+                CompoundTerm::getLengthTerm(history,Term::getVar("L")),
+                CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
+                #endif
+                NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
+                CompoundTerm::getFaTerm(
+                    lineInstanceValNameTerm, classScopeTerm,
+                    nextStateTerm,
+                    nextPoint,
+                    Tail::getInstanceByElements({}),
+                    intersection,
+                    outputTailTerm,
+                    Tail::getTailInstance(nextPoint, history), isBackward),
+        }));
+
     // fa impl
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
         lineInstanceValNameTerm, classScopeTerm,
@@ -3217,6 +3273,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
+            NegationTerm::getNegInstance(CompoundTerm::getTransitionTerm(lineInstanceValNameTerm, classScopeTerm,currentStateTerm,nextStateTerm,Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),intersection,Term::getStr("FieldConnectionMarker"), isBackward)),
             flowTerm,
             CompoundTerm::getTransitionTerm(
                 lineInstanceValNameTerm, classScopeTerm,
@@ -3513,6 +3570,22 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     bool isStep = nodeType == Node::NODE_TYPE_DATA_STEP or nodeType == Node::NODE_TYPE_TIMING_STEP
         or nodeType == Node::NODE_TYPE_DATA_OVERRIDE or nodeType == Node::NODE_TYPE_TIMING_OVERRIDE;
     int specialKeyType = -1;
+    if (nodeType == Node::NODE_TYPE_FIELD_CONNECTION) {
+        PrologWrapper::addFact(CompoundTerm::getTransitionTerm(
+            lineInstanceValNameTerm, classScopeTerm,
+            currentStateTerm,
+            nextStateTerm,
+            regexCharTerm,
+            Term::getIgnoredVar(),
+            Term::getIgnoredVar(),
+            Term::getIgnoredVar(),
+            Term::getIgnoredVar(),
+            Term::getIgnoredVar(),
+            lineInstance->intersectionTerms,
+            Term::getStr("FieldConnectionMarker"), isBackward
+        )->toString(true));
+        return;
+    }
     switch (nodeType) {
     case Node::NODE_TYPE_REFERENCE:
         specialKeyType = GlobalInfo::KEY_TYPE_REFERENCE;
@@ -3727,8 +3800,11 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     expectingNextKeyTerm->returnThisToPool();
 }
 
-Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth) {
-    Term* detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
+Tail* SimpleView::HalfLineTheFA::getOutputItem(Term* regexCharTerm, Term* nextMethodKeyTerm, Term* nextKeyTerm, Term* outputAddressableKey, Term* keyType, Term* depth, bool detailedRegex) {
+    Term* detailedRegexTerm = regexCharTerm;
+    if (detailedRegex) {
+        detailedRegexTerm = Term::getStr(regexCharTerm->atomOrVar + ": " + lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName);
+    }
     return Tail::getInstanceByElements({
         Term::getStr(to_string(lineInstance->indexInsideGraph) + ": " + lineInstance->valName),
         detailedRegexTerm,
@@ -4163,7 +4239,7 @@ void SimpleView::GraphInstance::prepareQuery(std::function<void(int, int, const 
     for (auto& lineInstance : lineInstances) {
         for (auto& paramToArg : lineInstance->paramNameToArgName) {
             if (paramNameToArgName.count(paramToArg.second)) {
-                paramToArg.second = paramNameToArgName[paramToArg.first];
+                lineInstance->paramNameToArgName[paramToArg.first] = paramNameToArgName[paramToArg.second];
             }
         }
     }

@@ -61,6 +61,7 @@ RETURN: 'Return';
 CALLED_RETURN: 'CalledReturn';
 INDEX: 'Index';
 ERROR: 'Error';
+FIELD_CONNECTION: 'FieldConnection';
 SEGMENT : 'Seg';
 LINE : 'Line';
 LINE_INSTANCE: 'LineInstance';
@@ -148,6 +149,7 @@ nodeExp
     | CALLED_RETURN
     | INDEX
     | ERROR
+    | FIELD_CONNECTION
     | '(' bracket=nodeExp ')'
     | refOtherNode=IDENTIFIER
     | varNode='{' IDENTIFIER '}'

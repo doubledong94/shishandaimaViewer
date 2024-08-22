@@ -377,7 +377,8 @@ void NodeInfo::makeSimpleName() {
         keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN or
         keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
         keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
-        keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN) {
+        keyType == GlobalInfo::KEY_TYPE_CALLED_RETURN or
+        keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
         CompoundTerm* simpleNameTerm = CompoundTerm::getSimpleNameTerm(Term::getStr(key), Term::getVar("S"));
         auto* result = PrologWrapper::query(simpleNameTerm);
         if (result) {
@@ -444,7 +445,8 @@ string& NodeInfo::getDeclaredInType() {
 void NodeInfo::makeTypeKey() {
     if (keyType == GlobalInfo::KEY_TYPE_FIELD or
         keyType == GlobalInfo::KEY_TYPE_METHOD_PARAMETER or
-        keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN) {
+        keyType == GlobalInfo::KEY_TYPE_METHOD_RETURN or
+        keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
         auto* instanceOfTerm = CompoundTerm::getInstanceOfTerm(Term::getStr(key), Term::getVar("T"));
         auto* result = PrologWrapper::query(instanceOfTerm);
         if (result) {
@@ -1298,7 +1300,9 @@ void BoundedIncrementalGraph::onNodeHover(int nodeInstanceId) {
         onNodeColorChanged();
         auto& nodeInfo = nodesOrderedByNodeId[nodeInstanceId];
         string info;
-        info += "method:  " + nodeInfo->methodOfRuntime + "\n";
+        if (nodeInfo->keyType != GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
+            info += "method:  " + nodeInfo->methodOfRuntime + "\n";
+        }
         if (not nodeInfo->getTypeKey().empty()) {
             info += "type:         " + nodeInfo->getTypeKey() + "\n";
         }
@@ -1448,6 +1452,7 @@ void BoundedIncrementalGraph::resetStyledNodes() {
     nodesObj->styled5.clear();
     nodesObj->styled6.clear();
     nodesObj->styled7.clear();
+    nodesObj->styled8.clear();
     for (auto nodeInfo : nodesOrderedByNodeId) {
         if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_PARAMETER or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_CALLED_METHOD or
@@ -1483,6 +1488,9 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE or
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE) {
             nodesObj->styled7.insert(nodeInfo->nodeId);
+        }
+        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
+            nodesObj->styled8.insert(nodeInfo->nodeId);
         }
     }
 }

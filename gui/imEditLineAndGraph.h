@@ -921,6 +921,9 @@ namespace shishan {
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("Error##specialNodeError", SimpleView::Node::NODE_ERROR);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("FieldConnection##specialFieldConnection", SimpleView::Node::NODE_FIELD_CONNECTION);
 
             for (int i = 0;i < lineEditValues.size();i++) {
                 if (not nodeInLineIdMap.count(i)) {
@@ -1926,7 +1929,7 @@ namespace shishan {
         for (int pointCount = 0;pointCount < lineTemplate->nodeAndRepeatType.size();pointCount++) {
             auto& pI = pointsInLine->seg[pointCount];
             auto& nodeAndRepeatTypeI = lineTemplate->nodeAndRepeatType[pointCount];
-            bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE);
+            bool disalbedI = disabled or (nodeAndRepeatTypeI->repeatType != SimpleView::LineTemplate::REPEAT_TYPE_ONE) or (nodeAndRepeatTypeI->node and nodeAndRepeatTypeI->node->nodeType == SimpleView::Node::NODE_TYPE_FIELD_CONNECTION);
             string repeatTypeStr = " ";
             switch (nodeAndRepeatTypeI->repeatType) {
             case SimpleView::LineTemplate::REPEAT_TYPE_ZERO_OR_ONE:
@@ -2408,7 +2411,8 @@ namespace shishan {
                 if (ImGui::BeginTabItem("Graph Template")) {
                     graphTemplateTabOpen = true;
                     int graphSelectableCount = 0;
-                    for (auto graphName : SimpleView::SimpleViewToGraphConverter::graphNameOrder) {
+                    for (int i = 0; i < SimpleView::SimpleViewToGraphConverter::graphNameOrder.size();i++) {
+                        string graphName = SimpleView::SimpleViewToGraphConverter::graphNameOrder[i];
                         if (graphSelectableCount >= SimpleView::SimpleViewToGraphConverter::graphNameOrder.size()) {
                             continue;
                         }

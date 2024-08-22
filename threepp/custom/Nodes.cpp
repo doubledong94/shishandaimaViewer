@@ -162,6 +162,11 @@ void Nodes::applyColor() {
         encodedColor.b = encodeIntoRgb(encodedColor.b, 0.002);
         setColorAt(i, encodedColor);
     }
+    for (int i : styled8) {
+        getColorAt(i, encodedColor);
+        encodedColor.b = encodeIntoRgb(encodedColor.b, 0.004);
+        setColorAt(i, encodedColor);
+    }
     instanceColor()->needsUpdate();
 }
 
@@ -285,6 +290,7 @@ std::string Nodes::vertexSource() {
                out float vStyled5;
                out float vStyled6;
                out float vStyled7;
+               out float vStyled8;
                void main() {
                     uv_frag = position.xy;
                     vColor = instanceColor;
@@ -309,6 +315,7 @@ std::string Nodes::vertexSource() {
                     vStyled6 = statePartStyleG > 0.3 && statePartStyleG < 0.5 ? 1 : 0;
                     float statePartStyleB = fract(fract(fract(instanceColor.b) * 100) * 100);
                     vStyled7 = statePartStyleB > 0.1 && statePartStyleB < 0.3 ? 1 : 0;
+                    vStyled8 = statePartStyleB > 0.3 && statePartStyleB < 0.5 ? 1 : 0;
 
                     gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4( position, 1.0 );
                })";
@@ -329,6 +336,7 @@ std::string Nodes::fragmentSource() {
                 in float vStyled5;
                 in float vStyled6;
                 in float vStyled7;
+                in float vStyled8;
                 out vec4 pc_fragColor;
                 void main() {
                     vec3 color = vColor;
@@ -339,7 +347,9 @@ std::string Nodes::fragmentSource() {
                     }
                     if (vFixed < 0.5 || (abs(uv_frag.x) < 0.9 && abs(uv_frag.y) < 0.9)){
                         float l = length(uv_frag);
-                        if (vStyled5>0.5 && (uv_frag.y>0 && uv_frag.y<0.7 && uv_frag.x>0.0 && uv_frag.x<0.7)) {
+                        if (vStyled8>0.5 && l<0.5){
+                            alpha = 0;
+                        } else if (vStyled5>0.5 && (uv_frag.y>0 && uv_frag.y<0.7 && uv_frag.x>0.0 && uv_frag.x<0.7)) {
 
                         } else if (l>0.7){
                             alpha = 0;
