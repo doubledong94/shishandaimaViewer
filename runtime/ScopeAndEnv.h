@@ -66,7 +66,7 @@ public:
 
     virtual void getMethodInfoFromSelf(const string& name, int paramCount, list<MethodInfo*>& methodInfos) {};
 
-    virtual bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL, MethodScopeAndEnv* runtimeMethod = NULL) { return false; };
+    virtual bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs = NULL) { return false; };
 
     TypeInfo* getTypeInfoRecurOuterScope(const string& typeName);
 
@@ -74,7 +74,7 @@ public:
 
     void getMethodInfoRecurOuterScope(const string& name, int paramCount, list<MethodInfo*>& methodInfos);
 
-    bool findIdRecurOuterScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL);
+    bool findIdRecurOuterScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs = NULL);
 
     virtual PackageScopeAndEnv* getPackageScope() { return NULL; };
 
@@ -120,7 +120,7 @@ public:
 
     void getMethodInfoWithFileScope(const list<string>& names, int paramCount, list<MethodInfo*>& methodInfos, bool creator = false);
 
-    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL, MethodScopeAndEnv* runtimeMethod = NULL) override;
+    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs = NULL) override;
 
     TypeInfo* getTypeInfoFromSelf(const string& typeName) override;
 
@@ -177,9 +177,9 @@ public:
 
     void getMethodInfoFromSelf(const string& name, int paramCount, list<MethodInfo*>& methodInfos) override;
 
-    bool findIdWithFileScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL);
+    bool findIdWithFileScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs = NULL);
 
-    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs = NULL, MethodScopeAndEnv* runtimeMethod = NULL) override;
+    bool findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs = NULL) override;
 
     TypeInfo* getTypeInfoWithFileScope(const list<string>& typeNames);
 

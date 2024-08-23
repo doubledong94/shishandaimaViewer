@@ -214,12 +214,12 @@ void OuterScopeAndEnv::getMethodInfoRecurOuterScope(const string& name, int para
     }
 }
 
-bool OuterScopeAndEnv::findIdRecurOuterScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs) {
+bool OuterScopeAndEnv::findIdRecurOuterScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs) {
     if (outerScopeAndEnv) {
-        if (outerScopeAndEnv->findIdFromSelf(name, key, typeInfo, keyType, typeArgs)) {
+        if (outerScopeAndEnv->findIdFromSelf(name, key, typeInfo, keyType, runtimeMethod, typeArgs)) {
             return true;
         }
-        if (outerScopeAndEnv->findIdRecurOuterScope(name, key, typeInfo, keyType, typeArgs)) {
+        if (outerScopeAndEnv->findIdRecurOuterScope(name, key, typeInfo, keyType, runtimeMethod, typeArgs)) {
             return true;
         }
     }
@@ -392,15 +392,13 @@ void ClassScopeAndEnv::getMethodInfoWithFileScope(const list<string>& names, int
     }
 }
 
-bool ClassScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs, MethodScopeAndEnv* runtimeMethod) {
+bool ClassScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs) {
     auto* fieldInfo = getFieldInfoFromSelf(name);
     if (fieldInfo != nullptr) {
         key = fieldInfo->fieldKey;
         typeInfo = fieldInfo->typeInfo;
         keyType = GlobalInfo::KEY_TYPE_FIELD;
-        if (runtimeMethod) {
-            runtimeMethod->addUsage(fieldInfo);
-        }
+        runtimeMethod->addUsage(fieldInfo);
         return true;
     }
     TypeInfo* pTypeInfo = getTypeInfoFromSelf(name);
@@ -571,13 +569,13 @@ MethodScopeAndEnv* MethodScopeAndEnv::createMethodScopeAndEnv(const string& meth
     return pMethodScopeAndEnv;
 }
 
-bool MethodScopeAndEnv::findIdWithFileScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs) {
+bool MethodScopeAndEnv::findIdWithFileScope(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs) {
     // found in this method
-    if (findIdFromSelf(name, key, typeInfo, keyType, typeArgs)) {
+    if (findIdFromSelf(name, key, typeInfo, keyType, runtimeMethod, typeArgs)) {
         return true;
     }
     // found in outer scope
-    if (findIdRecurOuterScope(name, key, typeInfo, keyType, typeArgs)) {
+    if (findIdRecurOuterScope(name, key, typeInfo, keyType, runtimeMethod, typeArgs)) {
         return true;
     }
     // found in imported
@@ -600,7 +598,7 @@ bool MethodScopeAndEnv::findIdWithFileScope(const string& name, string& key, Typ
     return false;
 }
 
-bool MethodScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, map<TypeInfo*, TypeInfo*>* typeArgs, MethodScopeAndEnv* runtimeMethod) {
+bool MethodScopeAndEnv::findIdFromSelf(const string& name, string& key, TypeInfo*& typeInfo, int& keyType, MethodScopeAndEnv* runtimeMethod, map<TypeInfo*, TypeInfo*>* typeArgs) {
     for (CodeBlockScopeAndEnv* codeBlockScopeAndEnv : codeBlockScopeAndEnvs) {
         if (key.empty() && codeBlockScopeAndEnv->LVName2LVKey.count(name) > 0) {
             key = codeBlockScopeAndEnv->LVName2LVKey[name];

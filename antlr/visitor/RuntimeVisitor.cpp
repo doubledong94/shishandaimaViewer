@@ -880,7 +880,7 @@ std::any StatementVisitor::visitPrimaryIdentifier(JavaParser::PrimaryIdentifierC
     TypeInfo* typeInfo = NULL;
     int keyType;
     map<TypeInfo*, TypeInfo*> typeArgs;
-    if (methodScopeAndEnv->findIdWithFileScope(ctx->identifier()->getText(), key, typeInfo, keyType, &typeArgs)) {
+    if (methodScopeAndEnv->findIdWithFileScope(ctx->identifier()->getText(), key, typeInfo, keyType, methodScopeAndEnv, &typeArgs)) {
         auto item = ResolvingItem::getInstance2(key, typeInfo, codeBlock->structure_key, getSentence()->sentenceIndexStr, getIncreasedIndexInsideExp(), keyType);
         item->typeArgs = typeArgs;
         return item;
@@ -916,7 +916,7 @@ std::any StatementVisitor::visitExpressionReference(JavaParser::ExpressionRefere
     auto* referencedScope = referencedBy->typeInfo->classScopeAndEnv;
     auto* resolvingItem = ResolvingItem::getInstance2();
     if (ctx->identifier() != nullptr) {
-        if (!referencedScope or !referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType, NULL, methodScopeAndEnv)) {
+        if (!referencedScope or !referencedScope->findIdFromSelf(ctx->identifier()->getText(), resolvingItem->variableKey, resolvingItem->typeInfo, resolvingItem->keyType, methodScopeAndEnv)) {
             spdlog::get(ErrorManager::DebugTag)->warn("visitExpressionReference: did not find id for name: {} referenced by {} in method: {}", ctx->identifier()->getText(), referencedBy->typeInfo->typeKey, methodScopeAndEnv->methodKey);
             resolvingItem = getErrorItem(ctx->identifier(), this);
         } else {
