@@ -817,6 +817,8 @@ void EasierSimpleView::declareLoadWhileSearching() {
             #ifdef DEBUG_PROLOG
             CompoundTerm::getToFileTerm(filePath,Term::getStr("c.txt")),
             #endif
+            CompoundTerm::getPrintTerm(filePath),
+            TERM_NEXT_LINE,
             CompoundTerm::getTypeToPLFileTerm(allClassKey,fileName),
             AssertTerm::getAssertInstance(CompoundTerm::getUnaddressableLoadedTerm(allClassKey)),
             Term::getAtom("fail"),
