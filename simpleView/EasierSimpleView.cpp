@@ -3252,6 +3252,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
             CompoundTerm::getRuntimeTerm(nextMethodKeyTerm,fieldConnection,nextKeyTerm,Term::getInt(GlobalInfo::KEY_TYPE_FIELD)),
                 // debug purpose
                 #ifdef DEBUG_PROLOG
+                CompoundTerm::getToFileTerm(nextPoint, Term::getStr("a.txt")),
                 CompoundTerm::getLengthTerm(history,Term::getVar("L")),
                 CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
                 #endif
@@ -3275,7 +3276,6 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
         intersection,
         Tail::getTailInstance(outputItemTerm, outputTailTerm),
         history, isBackward), {
-            NegationTerm::getNegInstance(CompoundTerm::getTransitionTerm(lineInstanceValNameTerm, classScopeTerm,currentStateTerm,nextStateTerm,Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),Term::getIgnoredVar(),intersection,Term::getStr("FieldConnectionMarker"), isBackward)),
             flowTerm,
             CompoundTerm::getTransitionTerm(
                 lineInstanceValNameTerm, classScopeTerm,
@@ -3289,6 +3289,19 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 nextStepsTerm,
                 intersection,
                 outputItemTerm, isBackward),
+            NegationTerm::getNegInstance(CompoundTerm::getTransitionTerm(
+                lineInstanceValNameTerm,
+                classScopeTerm,
+                currentStateTerm,
+                nextStateTerm,
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                Term::getIgnoredVar(),
+                intersection,
+                Term::getStr("FieldConnectionMarker"), isBackward)),
         // debug purpose
         #ifdef DEBUG_PROLOG
         CompoundTerm::getLengthTerm(history,Term::getVar("L")),
