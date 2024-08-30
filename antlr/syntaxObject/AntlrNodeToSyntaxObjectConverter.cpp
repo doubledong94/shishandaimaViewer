@@ -467,3 +467,17 @@ void AntlrNodeToSyntaxObjectConverter::convertLambdaParameters(JavaParser::Lambd
         }
     }
 }
+
+list<FieldOrParameter*> AntlrNodeToSyntaxObjectConverter::convertVariableObj(VariableDeclaration* variableDeclaration) {
+    list<FieldOrParameter*> fields;
+    for (auto& nameAndValueCount : variableDeclaration->nameAndValueCount) {
+        FieldOrParameter* fieldOrParameter = new FieldOrParameter();
+        fieldOrParameter->flag = variableDeclaration->flag;
+        fieldOrParameter->name = nameAndValueCount.name.back();
+        fieldOrParameter->typeName = new TypeName();
+        fieldOrParameter->typeName->copy(&(variableDeclaration->typeType));
+        fieldOrParameter->typeName->dim += nameAndValueCount.dim;
+        fields.push_back(fieldOrParameter);
+    }
+    return fields;
+}

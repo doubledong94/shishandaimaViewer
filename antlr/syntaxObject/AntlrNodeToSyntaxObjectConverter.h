@@ -109,6 +109,7 @@ public:
 
     static void convertLambdaParameters(JavaParser::LambdaParametersContext* ctx, list<string>& paramName);
 
+    static list<FieldOrParameter*> convertVariableObj(VariableDeclaration* variableDeclaration);
 };
 
 #endif //JPARSER_ANTLRNODETOSYNTAXOBJECTCONVERTER_H

@@ -6,6 +6,7 @@ debug_prolog.pl
 /simpleView/.antlr
 /antlr/javaParser/.antlr
 /antlr/javaHeaderParser/.antlr
+/antlr/aidlParser/.antlr
 antlr-4.13.1-complete.jar
 dup_addressable.txt
 dup_unaddressable.txt

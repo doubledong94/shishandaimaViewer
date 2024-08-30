@@ -7,9 +7,14 @@
 #include "file/FileManager.h"
 #include "antlr/javaParser/JavaLexer.h"
 #include "antlr/javaParser/JavaParserBaseVisitor.h"
+#include "antlr/aidlParser/AIDLLexer.h"
+#include "antlr/aidlParser/AIDLParser.h"
+#include "antlr/aidlParser/AIDLParserBaseVisitor.h"
+#include "antlr/visitor/ParseTreeToHeaderObjVisitor.h"
+#include "antlr/visitor/AIDLParseTreeToHeaderObjVisitor.h"
+#include "antlr/visitor/JavaParseTreeToHeaderObjVisitor.h"
 #include "addressableInfo/AddressableInfo.h"
 #include "antlr/visitor/HeaderEnterVisitor.h"
-#include "antlr/visitor/ParseTreeToHeaderObjVisitor.h"
 #include "runtime/codestructure/CodeStructure.h"
 #include "runtime/codestructure/Relation.h"
 #include "runtime/codestructure/Sentence.h"
@@ -43,7 +48,15 @@ ErrorListener::ErrorListener(const char* filePath1, const char* filePath2) {
     this->filePath2 = filePath2;
 }
 
-void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, ParseTreeToHeaderObjVisitor* visitor) {
+void app::Parser::visit(const char* originSrcFilePath, AIDLParser* parser, AIDLParseTreeToHeaderObjVisitor* visitor) {
+    parser->compilationUnit()->accept(visitor);
+    visitor->setSrcFilePath(originSrcFilePath);
+    counterLock.lock();
+    currentCountPass1++;
+    counterLock.unlock();
+}
+
+void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, JavaParseTreeToHeaderObjVisitor* visitor) {
     parser->compilationUnit()->accept(visitor);
     visitor->setSrcFilePath(originSrcFilePath);
     counterLock.lock();
@@ -85,7 +98,7 @@ void app::Parser::visit(const char* originSrcFilePath, JavaParser* parser, Class
     oldData	    allFiles	updatedFiles				                restore	    parse
     1	        1	        1		        updated		                0	        1
     1	        1	        0		        unchanged		            1	        0
-    1	        0	        1		        impossible                              
+    1	        0	        1		        impossible
     1	        0	        0		        delete file                 0 	        0
                                             parse dir changed           1           0
     0	        1	        1		        new file from same dir      0	        1
@@ -99,23 +112,35 @@ void app::Parser::parse(const string& path) {
     PrologDataBaseGen::init();
     int64_t start = absl::GetCurrentTimeNanos();
     PL_thread_attach_engine(NULL);
-    FileManager::getFiles(path, ".java");
-
-    spdlog::get(ErrorManager::DebugTag)->info("all file count: {}", FileManager::allFiles.size());
-    spdlog::get(ErrorManager::DebugTag)->info("updated file count: {}", FileManager::updatedFiles.size());
 
     AddressableInfo::beforeParseAll();
     AddressableInfo::deserializeHeader();
     GlobalInfo::deserialize();
 
-    totalCountPass = FileManager::allFiles.size();
-    currentCountPass1 = 0;
-    currentCountPass2 = 0;
     ThreadPool threadPool(debug_parser ? 1 : 4);
+    totalCountPass = 0;
+    currentCountPass1 = 0;
+    FileManager::getFiles(path, ".aidl");
+    totalCountPass = FileManager::allFiles.size();
+    for (auto& filePath : FileManager::updatedFiles) {
+        threadPool.submit([&]() {
+            parseFile<AIDLLexer, AIDLParser, AIDLParseTreeToHeaderObjVisitor>(filePath.data(), filePath.data());
+            parseTime = (absl::GetCurrentTimeNanos() - start) / 1000000000;
+            });
+    }
+    threadPool.wait();
+
+    FileManager::getFiles(path, ".java");
+
+    spdlog::get(ErrorManager::DebugTag)->info("all file count: {}", FileManager::allFiles.size());
+    spdlog::get(ErrorManager::DebugTag)->info("updated file count: {}", FileManager::updatedFiles.size());
+
+    totalCountPass += FileManager::allFiles.size();
+    currentCountPass2 = 0;
 
     for (auto& filePath : FileManager::updatedFiles) {
         threadPool.submit([&]() {
-            parseFile<JavaLexer, JavaParser, ParseTreeToHeaderObjVisitor>(filePath.data(), filePath.data());
+            parseFile<JavaLexer, JavaParser, JavaParseTreeToHeaderObjVisitor>(filePath.data(), filePath.data());
             parseTime = (absl::GetCurrentTimeNanos() - start) / 1000000000;
             });
     }
@@ -129,6 +154,7 @@ void app::Parser::parse(const string& path) {
     for (auto& filePath : enterClassPhase.duplicateTypeFile) {
         FileManager::updatedFiles.erase(filePath);
         FileManager::allFiles.erase(filePath);
+        spdlog::get(ErrorManager::DebugTag)->warn("skip duplicate file: {}", filePath.data());
     }
 
     AddressableInfo::afterFirstRound();

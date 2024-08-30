@@ -21,7 +21,9 @@ namespace app {
         int totalCountPass = 0;
         int parseTime = 0;
 
-        void visit(const char* originSrcFilePath, JavaParser* parser, ParseTreeToHeaderObjVisitor* visitor);
+        void visit(const char* originSrcFilePath, AIDLParser* parser, AIDLParseTreeToHeaderObjVisitor* visitor);
+
+        void visit(const char* originSrcFilePath, JavaParser* parser, JavaParseTreeToHeaderObjVisitor* visitor);
 
         void visit(const char* originSrcFilePath, JavaParser* parser, ClassLevelVisitor* visitor);
 
