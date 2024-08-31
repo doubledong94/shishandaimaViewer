@@ -3224,6 +3224,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
     Term* regexChar = Term::getVar("RegexChar");
     Term* fieldConnection = Term::getVar("FieldConnection");
     // fa impl for field connection
+    Term* nextNextStateTerm = Term::getVar("NextNextState");
+    Term* nextRegexChar = Term::getVar("NextRegexChar");
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getFaImplTerm(
         lineInstanceValNameTerm, classScopeTerm,
         currentStateTerm,
@@ -3257,9 +3259,21 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
                 #endif
                 NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
+            CompoundTerm::getTransitionTerm(
+                lineInstanceValNameTerm, classScopeTerm,
+                nextStateTerm,
+                nextNextStateTerm,
+                nextRegexChar,
+                Term::getIgnoredVar(),
+                Tail::getInstanceByElements({}),
+                nextKeyTerm,
+                nextPoint,
+                Term::getIgnoredVar(),
+                intersection,
+                Term::getIgnoredVar(), isBackward),
                 CompoundTerm::getFaTerm(
                     lineInstanceValNameTerm, classScopeTerm,
-                    nextStateTerm,
+                    nextNextStateTerm,
                     nextPoint,
                     Tail::getInstanceByElements({}),
                     intersection,
@@ -3332,6 +3346,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
             ConjunctionTerm::getConjunctionInstance({
                 NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP))),
                 NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP))),
+                NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE))),
+                NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE))),
                 NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE))),
                 NegationTerm::getNegInstance(CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE))),
                 CompoundTerm::getFaImplTerm(
@@ -3347,6 +3363,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 DisjunctionTerm::getDisjunctionInstance({
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE)),
                 }),
@@ -3362,6 +3380,8 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 DisjunctionTerm::getDisjunctionInstance({
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_DATA_OVERRIDE)),
+                    CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_TIMING_OVERRIDE)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_REFERENCE)),
                     CompoundTerm::getRuntimeTerm(currentMethodKeyTerm, Term::getIgnoredVar(), currentKeyTerm, Term::getInt(GlobalInfo::KEY_TYPE_LOCAL_VARIABLE)),
                 }),
