@@ -222,6 +222,7 @@ namespace SimpleView {
         bool isAlt = false;
         RegexTree* copy();
         string getRepeatTypeString();
+        void markSplit(bool backward);
     };
 
     class IntersectionPointInLine {
@@ -253,6 +254,8 @@ namespace SimpleView {
         Node* node = nullptr;
         int repeatType;
         NodeStyle* nodeStyleSpec;
+        LineTemplate* backwardFaCheck = NULL;
+        LineTemplate* forwardFaCheck = NULL;
 
         void resolve(std::function<void(int, int, const char*)>* updateAddressable) override;
 
@@ -327,13 +330,15 @@ namespace SimpleView {
 
         bool checkValidation(vector<const char*>& values, vector<int>& repeatTypes);
 
-        bool resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes, bool isAlt);
+        bool resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes, vector<const char*>& valuesBackwardCheck, vector<const char*>& valuesForwardCheck, bool isAlt);
 
-        void loadValueToUI(vector<const char*>& values, vector<int>& repeatTypes);
+        void loadValueToUI(vector<const char*>& values, vector<int>& repeatTypes, vector<const char*>& valuesBackwardCheck, vector<const char*>& valuesForwardCheck);
 
         IntersectionPointInLine* getPointInLine();
 
         void printNodeEncoding();
+
+        void prepareFaCheck(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope);
     };
 
     class Searcher {
@@ -394,6 +399,8 @@ namespace SimpleView {
         LineInstance* copy();
 
         void prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope) override;
+
+        void prepareQueryBackwardAndForward(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope, bool backward);
 
         void onQueryFinished() override;
 

@@ -127,9 +127,13 @@ namespace shishan {
     // todo ,"code order"
     const static char* lineTypes[] = { "segment","line" };
     static vector<const char*> lineEditValues;
+    static vector<const char*> lineEditValuesBackwardCheck;
+    static vector<const char*> lineEditValuesForwardCheck;
     static map<int, int> nodeInLineIdMap;
     static vector<int> lineEditRepeatTypes;
     static int lineEditValueSelectedIndex = 0;
+    static bool editBackwardCheck = false;
+    static bool editForwardCheck = false;
 
     // graph
     static int graphSelectedIndex = 0;
@@ -727,6 +731,8 @@ namespace shishan {
         if (isEditValueIsActuallyHint(lineEditValues)) {
             lineEditValues.clear();
             lineEditRepeatTypes.clear();
+            lineEditValuesBackwardCheck.clear();
+            lineEditValuesForwardCheck.clear();
             lineEditValueSelectedIndex = -1;
         }
         if (lineEditValueSelectedIndex >= lineEditValues.size()) {
@@ -758,6 +764,8 @@ namespace shishan {
             cleanLineEditIfItIsHint();
             lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, specialNode->displayName.data());
             lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
+            lineEditValuesBackwardCheck.insert(lineEditValuesBackwardCheck.begin() + lineEditValueSelectedIndex + 1, NULL);
+            lineEditValuesForwardCheck.insert(lineEditValuesForwardCheck.begin() + lineEditValueSelectedIndex + 1, NULL);
             insertIntersectionPointInLineTemplate(specialNode->displayName.data(), false, lineEditValueSelectedIndex + 1);
             lineEditValueSelectedIndex++;
         };
@@ -771,18 +779,26 @@ namespace shishan {
         if (ImGui::Combo("##linegNodeType", &lineEditingTypeIndex, lineTypes, IM_ARRAYSIZE(lineTypes))) {
             lineEditValues.clear();
             lineEditRepeatTypes.clear();
+            lineEditValuesBackwardCheck.clear();
+            lineEditValuesForwardCheck.clear();
             switch (lineEditingTypeIndex) {
             case SimpleView::LineTemplate::LINE_TYPE_SEGMENT:
                 lineEditValues.push_back("Click field/method/param/return you created above");
                 lineEditRepeatTypes.push_back(0);
+                lineEditValuesBackwardCheck.push_back(NULL);
+                lineEditValuesForwardCheck.push_back(NULL);
                 break;
             case SimpleView::LineTemplate::LINE_TYPE_DATA_FLOW:
                 lineEditValues.push_back("Click field/method/param/return you created above");
                 lineEditRepeatTypes.push_back(0);
+                lineEditValuesBackwardCheck.push_back(NULL);
+                lineEditValuesForwardCheck.push_back(NULL);
                 break;
             case SimpleView::LineTemplate::LINE_TYPE_CODE_ORDER:
                 lineEditValues.push_back("Click field/method/param/return you created above");
                 lineEditRepeatTypes.push_back(0);
+                lineEditValuesBackwardCheck.push_back(NULL);
+                lineEditValuesForwardCheck.push_back(NULL);
                 break;
             }
         }
@@ -802,7 +818,7 @@ namespace shishan {
                 auto line = changeNameOfNameOrderAndValNameTo<SimpleView::LineTemplate*>(
                     SimpleView::SimpleViewToGraphConverter::lineNameOrder, SimpleView::SimpleViewToGraphConverter::valNameToLine, lineEditingIndex, lineEditingName
                 );
-                if (line->resetValue(lineEditingName, lineEditingTypeIndex, lineEditValues, lineEditRepeatTypes, lineIsAlternation)) {
+                if (line->resetValue(lineEditingName, lineEditingTypeIndex, lineEditValues, lineEditRepeatTypes, lineEditValuesBackwardCheck, lineEditValuesForwardCheck, lineIsAlternation)) {
                     if (line->editingNew) {
                         line->editingNew = false;
                     }
@@ -814,6 +830,8 @@ namespace shishan {
                     lineEditingIndex = -1;
                     lineEditValues.clear();
                     lineEditRepeatTypes.clear();
+                    lineEditValuesBackwardCheck.clear();
+                    lineEditValuesForwardCheck.clear();
                     onExitEditMode();
                 } else {
                     lineInvalid = true;
@@ -831,6 +849,10 @@ namespace shishan {
             lineEditingIndex = -1;
             lineEditValues.clear();
             lineEditRepeatTypes.clear();
+            lineEditValuesBackwardCheck.clear();
+            lineEditValuesForwardCheck.clear();
+            editBackwardCheck = false;
+            editForwardCheck = false;
             onExitEditMode();
         } else {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + fontSize);
@@ -846,6 +868,8 @@ namespace shishan {
                             createdString.push_back(paraName);
                             lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1, createdString.back().data());
                             lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
+                            lineEditValuesBackwardCheck.push_back(NULL);
+                            lineEditValuesForwardCheck.push_back(NULL);
                             insertIntersectionPointInLineTemplate(createdString.back().data(), false, lineEditValueSelectedIndex + 1);
                             lineEditValueSelectedIndex++;
                         }
@@ -925,6 +949,30 @@ namespace shishan {
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("FieldConnection##specialFieldConnection", SimpleView::Node::NODE_FIELD_CONNECTION);
 
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            bool oldEditBackwardCheck = editBackwardCheck;
+            if (oldEditBackwardCheck) {
+                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(100, 100, 250, 255));
+            }
+            if (ImGui::Button("BackwardCheck")) {
+                editBackwardCheck = not editBackwardCheck;
+            }
+            if (oldEditBackwardCheck) {
+                ImGui::PopStyleColor();
+            }
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            bool oldEditForwardCheck = editForwardCheck;
+            if (oldEditForwardCheck) {
+                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(100, 100, 250, 255));
+            }
+            if (ImGui::Button("ForwardCheck")) {
+                editForwardCheck = not editForwardCheck;
+            }
+            if (oldEditForwardCheck) {
+                ImGui::PopStyleColor();
+            }
+
             for (int i = 0;i < lineEditValues.size();i++) {
                 if (not nodeInLineIdMap.count(i)) {
                     nodeInLineIdMap[i] = i;
@@ -945,7 +993,26 @@ namespace shishan {
                     repeatTypeStr.push_back('+');
                     break;
                 }
-                if (ImGui::Selectable((lineEditValues[i] + repeatTypeStr).data(), lineEditValueSelectedIndex == i)) {
+                string checkString = "";
+                if (lineEditValuesBackwardCheck[i] or lineEditValuesForwardCheck[i]) {
+                    checkString.push_back('{');
+                    if (lineEditValuesBackwardCheck[i]) {
+                        checkString.push_back(' ');
+                        checkString.append(lineEditValuesBackwardCheck[i]);
+                        checkString.push_back(' ');
+                    } else {
+                        checkString += " NULL ";
+                    }
+                    if (lineEditValuesForwardCheck[i]) {
+                        checkString.push_back(' ');
+                        checkString.append(lineEditValuesForwardCheck[i]);
+                        checkString.push_back(' ');
+                    } else {
+                        checkString += " NULL ";
+                    }
+                    checkString.push_back('}');
+                }
+                if (ImGui::Selectable((lineEditValues[i] + checkString + repeatTypeStr).data(), lineEditValueSelectedIndex == i)) {
                     lineEditValueSelectedIndex = i;
                 }
                 // delete node in line
@@ -957,6 +1024,8 @@ namespace shishan {
                         deleteIntersectionPointInLineTemplate(lineEditValueSelectedIndex);
                         lineEditValues.erase(lineEditValues.begin() + lineEditValueSelectedIndex);
                         lineEditRepeatTypes.erase(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex);
+                        lineEditValuesBackwardCheck.erase(lineEditValuesBackwardCheck.begin() + lineEditValueSelectedIndex);
+                        lineEditValuesForwardCheck.erase(lineEditValuesForwardCheck.begin() + lineEditValueSelectedIndex);
                         ImGui::ClearActiveID();
                     }
                 }
@@ -974,6 +1043,8 @@ namespace shishan {
                         SWAP_ELEMENT(lineEditValues, i, n_next);
                         SWAP_ELEMENT(nodeInLineIdMap, i, n_next);
                         SWAP_ELEMENT(lineEditRepeatTypes, i, n_next);
+                        SWAP_ELEMENT(lineEditValuesBackwardCheck, i, n_next);
+                        SWAP_ELEMENT(lineEditValuesForwardCheck, i, n_next);
                         for (auto& graphTemplateName : SimpleView::SimpleViewToGraphConverter::graphNameOrder) {
                             auto& depHighGraph = SimpleView::SimpleViewToGraphConverter::valNameToGraph[graphTemplateName];
                             depHighGraph->swapIntersectionForLineTemplate(SimpleView::SimpleViewToGraphConverter::lineNameOrder[lineEditingIndex].data(), i, n_next);
@@ -1395,18 +1466,33 @@ namespace shishan {
             }
             if (type == 3 or (type == 4 and SimpleView::SimpleViewToGraphConverter::valNameToLine[
                 SimpleView::SimpleViewToGraphConverter::lineNameOrder[index]]->lineType == SimpleView::LineTemplate::LINE_TYPE_SEGMENT)) {
-                cleanLineEditIfItIsHint();
-                if (type == 3) {
-                    lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1,
-                        SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data());
-                    insertIntersectionPointInLineTemplate(SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data(), false, lineEditValueSelectedIndex + 1);
+                if (editBackwardCheck or editForwardCheck) {
+                    if (lineEditValueSelectedIndex > -1) {
+                        if (editBackwardCheck) {
+                            lineEditValuesBackwardCheck[lineEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::lineNameOrder[index].data();
+                            editBackwardCheck = false;
+                        }
+                        if (editForwardCheck) {
+                            lineEditValuesForwardCheck[lineEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::lineNameOrder[index].data();
+                            editForwardCheck = false;
+                        }
+                    }
                 } else {
-                    lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1,
-                        SimpleView::SimpleViewToGraphConverter::lineNameOrder[index].data());
-                    insertIntersectionPointInLineTemplate(SimpleView::SimpleViewToGraphConverter::lineNameOrder[index].data(), true, lineEditValueSelectedIndex + 1);
+                    cleanLineEditIfItIsHint();
+                    if (type == 3) {
+                        lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1,
+                            SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data());
+                        insertIntersectionPointInLineTemplate(SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data(), false, lineEditValueSelectedIndex + 1);
+                    } else {
+                        lineEditValues.insert(lineEditValues.begin() + lineEditValueSelectedIndex + 1,
+                            SimpleView::SimpleViewToGraphConverter::lineNameOrder[index].data());
+                        insertIntersectionPointInLineTemplate(SimpleView::SimpleViewToGraphConverter::lineNameOrder[index].data(), true, lineEditValueSelectedIndex + 1);
+                    }
+                    lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
+                    lineEditValuesBackwardCheck.push_back(NULL);
+                    lineEditValuesForwardCheck.push_back(NULL);
+                    lineEditValueSelectedIndex++;
                 }
-                lineEditRepeatTypes.insert(lineEditRepeatTypes.begin() + lineEditValueSelectedIndex + 1, 0);
-                lineEditValueSelectedIndex++;
             }
         }
         if (lineInstanceEditingIndex > -1) {
@@ -1590,6 +1676,8 @@ namespace shishan {
             lineIsAlternation = false;
             lineEditValues.push_back("Click field/method/param/return above");
             lineEditRepeatTypes.push_back(0);
+            lineEditValuesBackwardCheck.push_back(NULL);
+            lineEditValuesForwardCheck.push_back(NULL);
             auto* newLine = new SimpleView::LineTemplate(lineEditingName, lineEditingTypeIndex);
             newLine->editingNew = true;
             newLine->iconId = Images::lineIconId;
@@ -1646,7 +1734,9 @@ namespace shishan {
             lineIsAlternation = line->isAlternation;
             lineEditValues.clear();
             lineEditRepeatTypes.clear();
-            line->loadValueToUI(lineEditValues, lineEditRepeatTypes);
+            lineEditValuesBackwardCheck.clear();
+            lineEditValuesForwardCheck.clear();
+            line->loadValueToUI(lineEditValues, lineEditRepeatTypes, lineEditValuesBackwardCheck, lineEditValuesForwardCheck);
             for (int depHighGraphIndex : graphDependencyConstraint.dependencyHigher) {
                 SimpleView::SimpleViewToGraphConverter::valNameToGraph[
                     SimpleView::SimpleViewToGraphConverter::graphNameOrder[depHighGraphIndex]

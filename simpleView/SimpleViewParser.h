@@ -29,15 +29,15 @@ public:
     PARAMETER = 70, CALLED_PARAMETER = 71, RETURN = 72, CALLED_RETURN = 73, 
     INDEX = 74, ERROR = 75, FIELD_CONNECTION = 76, SEGMENT = 77, LINE = 78, 
     LINE_INSTANCE = 79, GRAPH = 80, GRAPH_INSTANCE = 81, CODE_ORDER = 82, 
-    SHOW = 83, STRING = 84, IDENTIFIER = 85, FLOAT = 86, INT = 87, WS = 88, 
-    LINE_COMMENT = 89
+    NULL_ = 83, SHOW = 84, STRING = 85, IDENTIFIER = 86, FLOAT = 87, INT = 88, 
+    WS = 89, LINE_COMMENT = 90
   };
 
   enum {
     RuleCompilationUnit = 0, RuleClassScopeExp = 1, RuleNodeExp = 2, RuleParamList = 3, 
-    RuleLineExp = 4, RuleLineSegOrNodeExp = 5, RuleLineArgumentList = 6, 
-    RuleGraphElement = 7, RuleGraphBody = 8, RulePointInLine = 9, RuleIntersectionPoint = 10, 
-    RuleDeclaration = 11, RuleShowCommand = 12
+    RuleLineExp = 4, RuleIdOrNull = 5, RuleLineSegOrNodeExp = 6, RuleLineArgumentList = 7, 
+    RuleGraphElement = 8, RuleGraphBody = 9, RulePointInLine = 10, RuleIntersectionPoint = 11, 
+    RuleDeclaration = 12, RuleShowCommand = 13
   };
 
   explicit SimpleViewParser(antlr4::TokenStream *input);
@@ -62,6 +62,7 @@ public:
   class NodeExpContext;
   class ParamListContext;
   class LineExpContext;
+  class IdOrNullContext;
   class LineSegOrNodeExpContext;
   class LineArgumentListContext;
   class GraphElementContext;
@@ -219,14 +220,32 @@ public:
 
   LineExpContext* lineExp();
 
+  class  IdOrNullContext : public antlr4::ParserRuleContext {
+  public:
+    IdOrNullContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *NULL_();
+    antlr4::tree::TerminalNode *IDENTIFIER();
+
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  IdOrNullContext* idOrNull();
+
   class  LineSegOrNodeExpContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *segName = nullptr;
+    SimpleViewParser::IdOrNullContext *backward = nullptr;
+    SimpleViewParser::IdOrNullContext *forward = nullptr;
     antlr4::Token *wildcard = nullptr;
     LineSegOrNodeExpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     NodeExpContext *nodeExp();
     antlr4::tree::TerminalNode *IDENTIFIER();
+    std::vector<IdOrNullContext *> idOrNull();
+    IdOrNullContext* idOrNull(size_t i);
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;

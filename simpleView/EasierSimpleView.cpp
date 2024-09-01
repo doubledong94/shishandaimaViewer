@@ -2260,7 +2260,18 @@ int SimpleView::NodeAndRepeatType::encode(int charIndex, map<char, NodeAndRepeat
             currentCharIndex = seg->nodeAndRepeatType[i]->encode(currentCharIndex, charToNode, subRegexI, nodeToChar, intersection ? intersection->seg.at(i) : NULL);
         }
     } else {
+        bool useNewRegex = false;
         if ((intersection and intersection->isIntersection) or not nodeToChar.count(node)) {
+            useNewRegex = true;
+        } else {
+            NodeAndRepeatType* nodeThatShareRegex = charToNode[nodeToChar[node]];
+            if (nodeThatShareRegex->backwardFaCheck != backwardFaCheck or nodeThatShareRegex->forwardFaCheck != forwardFaCheck) {
+                useNewRegex = true;
+            } else {
+                useNewRegex = false;
+            }
+        }
+        if (useNewRegex) {
             char encodeChar = ALPHABET_FOR_NODE_ENCODING[currentCharIndex];
             charToNode[encodeChar] = this;
             outputRegex->encodeChar = encodeChar;
@@ -2302,6 +2313,15 @@ string SimpleView::RegexTree::getRepeatTypeString() {
         break;
     }
     return repeatString;
+}
+
+void SimpleView::RegexTree::markSplit(bool backward) {
+    isBackward = backward;
+    if (subStructure.size()) {
+        for (auto& regexTree : subStructure) {
+            regexTree->markSplit(backward);
+        }
+    }
 }
 
 int SimpleView::NodeAndRepeatType::countForMin(map<Node*, int>& nodeToRuntimeCount, map<string, string>& paramNameToArgName) {
@@ -2529,6 +2549,20 @@ string SimpleView::LineTemplate::toString(map<int, string>& voc) {
             ret += "[" + nodeAndRepeatTypeI->seg->name + "]";
         } else {
             ret += nodeAndRepeatTypeI->node->displayName;
+            if (nodeAndRepeatTypeI->backwardFaCheck or nodeAndRepeatTypeI->forwardFaCheck) {
+                ret.push_back('{');
+                if (nodeAndRepeatTypeI->backwardFaCheck) {
+                    ret += " " + nodeAndRepeatTypeI->backwardFaCheck->name + " ";
+                } else {
+                    ret += " NULL ";
+                }
+                if (nodeAndRepeatTypeI->forwardFaCheck) {
+                    ret += " " + nodeAndRepeatTypeI->forwardFaCheck->name + " ";
+                } else {
+                    ret += " NULL ";
+                }
+                ret.push_back('}');
+            }
         }
         if (nodeAndRepeatTypeI->nodeStyleSpec != nullptr) {
             ret += "{" + nodeAndRepeatTypeI->nodeStyleSpec->displayName + "}";
@@ -2674,7 +2708,7 @@ bool SimpleView::LineTemplate::checkValidation(vector<const char*>& values, vect
     return foundRepeatTypeOnce;
 }
 
-bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes, bool isAlt) {
+bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<const char*>& values, vector<int>& repeatTypes, vector<const char*>& valuesBackwardCheck, vector<const char*>& valuesForwardCheck, bool isAlt) {
     if (type == LINE_TYPE_DATA_FLOW and not checkValidation(values, repeatTypes)) {
         return false;
     }
@@ -2716,6 +2750,12 @@ bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<con
         nodeAndRepeatTypeI->repeatType = repeatTypes[i];
         if (SimpleView::SimpleViewToGraphConverter::valNameToNode.count(values[i])) {
             nodeAndRepeatTypeI->node = SimpleView::SimpleViewToGraphConverter::valNameToNode[values[i]];
+            if (valuesBackwardCheck[i]) {
+                nodeAndRepeatTypeI->backwardFaCheck = SimpleView::SimpleViewToGraphConverter::valNameToLine[valuesBackwardCheck[i]];
+            }
+            if (valuesForwardCheck[i]) {
+                nodeAndRepeatTypeI->forwardFaCheck = SimpleView::SimpleViewToGraphConverter::valNameToLine[valuesForwardCheck[i]];
+            }
         } else {
             nodeAndRepeatTypeI->seg = SimpleView::SimpleViewToGraphConverter::valNameToLine[values[i]];
         }
@@ -2745,14 +2785,18 @@ bool SimpleView::LineTemplate::resetValue(const char* name, int type, vector<con
     return true;
 }
 
-void SimpleView::LineTemplate::loadValueToUI(vector<const char*>& values, vector<int>& repeatTypes) {
+void SimpleView::LineTemplate::loadValueToUI(vector<const char*>& values, vector<int>& repeatTypes, vector<const char*>& valuesBackwardCheck, vector<const char*>& valuesForwardCheck) {
     for (auto& nodeAndRepeatTypeI : nodeAndRepeatType) {
         if (nodeAndRepeatTypeI->node != NULL) {
             values.push_back(nodeAndRepeatTypeI->node->displayName.data());
             repeatTypes.push_back(nodeAndRepeatTypeI->repeatType);
+            valuesBackwardCheck.push_back(nodeAndRepeatTypeI->backwardFaCheck ? nodeAndRepeatTypeI->backwardFaCheck->name.data() : NULL);
+            valuesForwardCheck.push_back(nodeAndRepeatTypeI->forwardFaCheck ? nodeAndRepeatTypeI->forwardFaCheck->name.data() : NULL);
         } else {
             values.push_back(nodeAndRepeatTypeI->seg->displayName.data());
             repeatTypes.push_back(nodeAndRepeatTypeI->repeatType);
+            valuesBackwardCheck.push_back(NULL);
+            valuesForwardCheck.push_back(NULL);
         }
     }
 }
@@ -2946,6 +2990,7 @@ void SimpleView::LineInstance::resetEncodeIfFromGraph() {
 // only execute once for each LineInstance obj
 void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, SimpleView::ClassScope* classScope) {
     resolve(updateAddressable);
+    lineTemplate->prepareFaCheck(updateAddressable, updateUnaddressable, classScope);
     encodeWithIntersectionIfFromGraph();
     // declare fa rule for forward and backward line
     findSplitPoint();
@@ -2981,6 +3026,38 @@ void SimpleView::LineInstance::prepareQuery(std::function<void(int, int, const c
     forwardLine->printGraphvizStr();
     backwardLine->printGraphvizStr();
     resetEncodeIfFromGraph();
+}
+
+void SimpleView::LineInstance::prepareQueryBackwardAndForward(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope, bool backward) {
+    resolve(updateAddressable);
+    lineTemplate->prepareFaCheck(updateAddressable, updateUnaddressable, classScope);
+    splitPoint = lineTemplate->regexTree->copy();
+    splitPoint->isSplitPosition = true;
+    splitPoint->markSplit(backward);
+    if (backward) {
+        splitPoint->subStructure.back()->isSplitPosition = true;
+    } else {
+        splitPoint->subStructure.front()->isSplitPosition = true;
+    }
+    forwardLine = new HalfLineTheFA(this, HalfLineTheFA::HALF_LINE_TYPE_FORWARD);
+    backwardLine = new HalfLineTheFA(this, HalfLineTheFA::HALF_LINE_TYPE_BACKWARD);
+    forwardLine->declareHalfLineAndFaRules();
+    backwardLine->declareHalfLineAndFaRules();
+}
+
+void SimpleView::LineTemplate::prepareFaCheck(std::function<void(int, int, const char*)>* updateAddressable, std::function<void(int, int, const char*)>* updateUnaddressable, ClassScope* classScope) {
+    for (auto& nodeAndRepeatType : nodeAndRepeatType) {
+        if (nodeAndRepeatType->seg) {
+            nodeAndRepeatType->seg->prepareFaCheck(updateAddressable, updateUnaddressable, classScope);
+        } else {
+            if (nodeAndRepeatType->backwardFaCheck) {
+                nodeAndRepeatType->backwardFaCheck->getNoneParamInstance()->prepareQueryBackwardAndForward(updateAddressable, updateUnaddressable, classScope, true);
+            }
+            if (nodeAndRepeatType->forwardFaCheck) {
+                nodeAndRepeatType->forwardFaCheck->getNoneParamInstance()->prepareQueryBackwardAndForward(updateAddressable, updateUnaddressable, classScope, false);
+            }
+        }
+    }
 }
 
 void SimpleView::LineInstance::onQueryFinished() {
@@ -3572,7 +3649,8 @@ void SimpleView::HalfLineTheFA::declareStartingTransitionRuleI(int currentState,
 }
 
 void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nextState, string& regexChar, bool lastTransition) {
-    Node* node = lineInstance->turnParamNodeToArgNode(lineTemplate->charToNodeTemplate[regexChar[0]]->node);
+    NodeAndRepeatType* nodeAndRepeatType = lineTemplate->charToNodeTemplate[regexChar[0]];
+    Node* node = lineInstance->turnParamNodeToArgNode(nodeAndRepeatType->node);
     int intersectionIndex = lineInstance->findIntersectionIndexByChar(regexChar[0]);
     bool isIntersection = intersectionIndex > -1;
     auto classScopeTerm = Term::getVar("ClassScope");
@@ -3795,6 +3873,40 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     if (isIntersection) {
         // output to intersection or checked by intersection
         ruleBody.push_back(Unification::getUnificationInstance(lineInstance->intersectionTerms[intersectionIndex], nextPoint));
+    }
+    if (nodeAndRepeatType->backwardFaCheck) {
+        ruleBody.push_back(
+            NegationTerm::getNegInstance(NegationTerm::getNegInstance(
+                CompoundTerm::getFaTerm(
+                    Term::getStr(nodeAndRepeatType->backwardFaCheck->getNoneParamInstance()->innerValName),
+                    classScopeTerm,
+                    Term::getInt(1),
+                    nextPoint,
+                    Tail::getInstanceByElements({}),
+                    {},
+                    Term::getIgnoredVar(),
+                    Tail::getInstanceByElements({ nextPoint }),
+                    true
+                )
+            ))
+        );
+    }
+    if (nodeAndRepeatType->forwardFaCheck) {
+        ruleBody.push_back(
+            NegationTerm::getNegInstance(NegationTerm::getNegInstance(
+                CompoundTerm::getFaTerm(
+                    Term::getStr(nodeAndRepeatType->forwardFaCheck->getNoneParamInstance()->innerValName),
+                    classScopeTerm,
+                    Term::getInt(1),
+                    nextPoint,
+                    Tail::getInstanceByElements({}),
+                    {},
+                    Term::getIgnoredVar(),
+                    Tail::getInstanceByElements({ nextPoint }),
+                    false
+                )
+            ))
+        );
     }
     Term* depth = Term::getVar("Depth");
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));

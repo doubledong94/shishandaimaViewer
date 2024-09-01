@@ -35,6 +35,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitIdOrNull(SimpleViewParser::IdOrNullContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitLineSegOrNodeExp(SimpleViewParser::LineSegOrNodeExpContext *ctx) override {
     return visitChildren(ctx);
   }

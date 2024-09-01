@@ -68,6 +68,7 @@ LINE_INSTANCE: 'LineInstance';
 GRAPH : 'Graph';
 GRAPH_INSTANCE : 'GraphInstance';
 CODE_ORDER : 'CodeOrder';
+NULL: 'NULL';
 
 SHOW : 'show';
 
@@ -151,8 +152,10 @@ lineExp
     | lineSegOrNodeExp (alt='||' lineSegOrNodeExp)+
     ;
 
+idOrNull: NULL | IDENTIFIER;
+
 lineSegOrNodeExp
-    : (('[' segName=IDENTIFIER ']')| nodeExp ) wildcard=('?'|'*'|'+')?
+    : (('[' segName=IDENTIFIER ']')| (nodeExp ('{' backward=idOrNull forward=idOrNull '}')?) ) wildcard=('?'|'*'|'+')?
     ;
 
 // graph

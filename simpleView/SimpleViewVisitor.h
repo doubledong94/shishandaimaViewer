@@ -29,6 +29,8 @@ public:
 
     virtual std::any visitLineExp(SimpleViewParser::LineExpContext *context) = 0;
 
+    virtual std::any visitIdOrNull(SimpleViewParser::IdOrNullContext *context) = 0;
+
     virtual std::any visitLineSegOrNodeExp(SimpleViewParser::LineSegOrNodeExpContext *context) = 0;
 
     virtual std::any visitLineArgumentList(SimpleViewParser::LineArgumentListContext *context) = 0;

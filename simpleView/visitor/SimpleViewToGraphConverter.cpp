@@ -293,6 +293,12 @@ any SimpleView::SimpleViewToGraphConverter::visitLineSegOrNodeExp(SimpleViewPars
         nodeAndRepeatType->seg = valNameToLine[ctx->segName->getText()];
     } else if (ctx->nodeExp() != nullptr) {
         nodeAndRepeatType->node = any_cast<Node*>(visitNodeExp(ctx->nodeExp()));
+        if (ctx->backward and ctx->backward->IDENTIFIER()) {
+            nodeAndRepeatType->backwardFaCheck = valNameToLine[ctx->backward->IDENTIFIER()->getText()];
+        }
+        if (ctx->forward and ctx->forward->IDENTIFIER()) {
+            nodeAndRepeatType->forwardFaCheck = valNameToLine[ctx->forward->IDENTIFIER()->getText()];
+        }
     }
     return nodeAndRepeatType;
 }
