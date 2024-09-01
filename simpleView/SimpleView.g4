@@ -65,12 +65,6 @@ FIELD_CONNECTION: 'FieldConnection';
 SEGMENT : 'Seg';
 LINE : 'Line';
 LINE_INSTANCE: 'LineInstance';
-GLUE: 'Glue';
-GLUE_RUNTIME :'GlueRuntime';
-GLULE_MEMBER_OF : 'GlueMemberOf';
-GLUE_INSTANCE_OF : 'GlueInstanceOf';
-GLUE_OVERRIDE : 'GlueOverride';
-GLUE_HIERARCHY : 'GlueHierarchy';
 GRAPH : 'Graph';
 GRAPH_INSTANCE : 'GraphInstance';
 CODE_ORDER : 'CodeOrder';
@@ -79,14 +73,6 @@ SHOW : 'show';
 
 compilationUnit
     : (declaration ';')+ (showCommand ';')*
-    ;
-
-glueAttr
-    : GLUE_RUNTIME      ':' nodeExp ';'
-    | GLULE_MEMBER_OF   ':' classScopeExp ';'
-    | GLUE_INSTANCE_OF  ':' classScopeExp ';'
-    | GLUE_OVERRIDE     ':' nodeExp ';'
-    | GLUE_HIERARCHY    ':' classScopeExp ';'
     ;
 
 classScopeExp
@@ -195,7 +181,6 @@ declaration
     : CLASS_SCOPE               IDENTIFIER '=' classScopeExp                                #classScopeDeclaration
     | NODE                      IDENTIFIER '=' nodeExp                                      #nodeDeclaration
     | (LINE|CODE_ORDER|SEGMENT) IDENTIFIER paramList? '=' lineExp                           #lineDeclaration
-    | GLUE                      IDENTIFIER '=' '{' glueAttr* '}'                            #glueDeclaration
     | GRAPH           graphName=IDENTIFIER paramList? '=' graphBody  intersectionPoint+     #graphDeclaration
     | (LINE_INSTANCE|GRAPH_INSTANCE)    IDENTIFIER '=' IDENTIFIER lineArgumentList          #lineAndGraphInstance
     ;

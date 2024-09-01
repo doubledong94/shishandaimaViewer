@@ -21,8 +21,6 @@ public:
    */
     virtual std::any visitCompilationUnit(SimpleViewParser::CompilationUnitContext *context) = 0;
 
-    virtual std::any visitGlueAttr(SimpleViewParser::GlueAttrContext *context) = 0;
-
     virtual std::any visitClassScopeExp(SimpleViewParser::ClassScopeExpContext *context) = 0;
 
     virtual std::any visitNodeExp(SimpleViewParser::NodeExpContext *context) = 0;
@@ -48,8 +46,6 @@ public:
     virtual std::any visitNodeDeclaration(SimpleViewParser::NodeDeclarationContext *context) = 0;
 
     virtual std::any visitLineDeclaration(SimpleViewParser::LineDeclarationContext *context) = 0;
-
-    virtual std::any visitGlueDeclaration(SimpleViewParser::GlueDeclarationContext *context) = 0;
 
     virtual std::any visitGraphDeclaration(SimpleViewParser::GraphDeclarationContext *context) = 0;
 

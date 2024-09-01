@@ -19,10 +19,6 @@ public:
     return visitChildren(ctx);
   }
 
-  virtual std::any visitGlueAttr(SimpleViewParser::GlueAttrContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
   virtual std::any visitClassScopeExp(SimpleViewParser::ClassScopeExpContext *ctx) override {
     return visitChildren(ctx);
   }
@@ -72,10 +68,6 @@ public:
   }
 
   virtual std::any visitLineDeclaration(SimpleViewParser::LineDeclarationContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual std::any visitGlueDeclaration(SimpleViewParser::GlueDeclarationContext *ctx) override {
     return visitChildren(ctx);
   }
 

@@ -104,13 +104,6 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::LINE);
     saveVocabulary(lexer, SimpleViewLexer::CODE_ORDER);
     saveVocabulary(lexer, SimpleViewLexer::SEGMENT);
-    // glue
-    saveVocabulary(lexer, SimpleViewLexer::GLUE);
-    saveVocabulary(lexer, SimpleViewLexer::GLUE_RUNTIME);
-    saveVocabulary(lexer, SimpleViewLexer::GLULE_MEMBER_OF);
-    saveVocabulary(lexer, SimpleViewLexer::GLUE_INSTANCE_OF);
-    saveVocabulary(lexer, SimpleViewLexer::GLUE_OVERRIDE);
-    saveVocabulary(lexer, SimpleViewLexer::GLUE_HIERARCHY);
     // graph
     saveVocabulary(lexer, SimpleViewLexer::GRAPH);
     saveVocabulary(lexer, SimpleViewLexer::LINE_INSTANCE);
