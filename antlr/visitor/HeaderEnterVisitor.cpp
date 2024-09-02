@@ -122,7 +122,7 @@ void Header::EnterClassPhase::visitType(Type* type) {
         superRelationUnresolved->typeInfo = pTypeInfo;
         superRelationUnresolved->superTypeName = AddressableInfo::enumTypeName;
         Header::HierarchyPhase::superRelationUnresolved.insert(superRelationUnresolved);
-    } else if (type->extendsTypeNames.empty() and pTypeInfo->typeKey != "java.lang.Object") {
+    } else if (type->extendsTypeNames.empty() and type->implementsTypeNames.empty() and pTypeInfo->typeKey != "java.lang.Object") {
         SuperRelationUnresolved* superRelationUnresolved = new SuperRelationUnresolved();
         superRelationUnresolved->type = 1;
         superRelationUnresolved->typeInfo = pTypeInfo;

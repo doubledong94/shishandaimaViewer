@@ -17,6 +17,9 @@ std::any AIDLParseTreeToHeaderObjVisitor::visitCompilationUnit(AIDLParser::Compi
             importI->accept(this);
         }
     }
+    header->importedTypes.push_back("android.os.IBinder");
+    header->importedTypes.push_back("android.os.IInterface");
+    header->importedTypes.push_back("android.os.Binder");
     typeStack.push_back(&(header->types));
     for (auto& decl : ctx->decls()->decl()) {
         if (decl->unannotated_decl()->interface_decl()) {
