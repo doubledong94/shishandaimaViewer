@@ -590,7 +590,10 @@ namespace shishan {
                 if (ImGui::Selectable(classScopeEditValues[i], classScopeEditValueSelectedIndex == i)) {
                     classScopeEditValueSelectedIndex = i;
                 }
-                if (classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_LIST) {
+                if (classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_LIST or
+                    classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_UNION or
+                    classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_INTERSECTION or
+                    classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE) {
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                         classScopeEditValues.erase(classScopeEditValues.begin() + classScopeEditValueSelectedIndex);
                         ImGui::ClearActiveID();
@@ -715,10 +718,15 @@ namespace shishan {
                 if (ImGui::Selectable(nodeEditValues[i], nodeEditValueSelectedIndex == i)) {
                     nodeEditValueSelectedIndex = i;
                 }
-                if (nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_LIST) {
+                if (nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_LIST or
+                    nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_UNION or
+                    nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_INTERSECTION or
+                    nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_DIFFERENCE) {
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
                         nodeEditValues.erase(nodeEditValues.begin() + nodeEditValueSelectedIndex);
-                        typeKeyForNodeKey.erase(typeKeyForNodeKey.begin() + nodeEditValueSelectedIndex);
+                        if (nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_LIST) {
+                            typeKeyForNodeKey.erase(typeKeyForNodeKey.begin() + nodeEditValueSelectedIndex);
+                        }
                         ImGui::ClearActiveID();
                     }
                 }
