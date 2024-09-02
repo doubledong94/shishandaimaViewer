@@ -1004,16 +1004,17 @@ std::any StatementVisitor::visitExpressionNew(JavaParser::ExpressionNewContext* 
                 anonymousVisitor->positionKey = methodScopeAndEnv->methodKey + codeBlock->structure_key + ";" + to_string(sentenceIndex) + ";" + getIncreasedIndexInsideExp();
                 anonymousVisitor->makeTypeInfo();
                 anonymousVisitor->makeClassScopeEnv();
-                anonymousVisitor->visitForMembers(ctx->creator()->classCreatorRest()->classBody());
-                anonymousVisitor->visitClassBody(ctx->creator()->classCreatorRest()->classBody());
-                auto calledReturnItem = resolveMethod(methodCall, classScopeAndEnv, true);
-                auto anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
+                anonymousVisitor->anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
                     codeBlock->structure_key, getSentence()->sentenceIndexStr,
                     getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
                 );
-                new Relation(getSentence(), calledReturnItem, anonymousItem);
+                anonymousVisitor->sentence = getSentence();
+                new Relation(getSentence(), codeBlock->conditionItem, anonymousVisitor->anonymousItem);
+                anonymousVisitor->visitForMembers(ctx->creator()->classCreatorRest()->classBody());
+                anonymousVisitor->visitClassBody(ctx->creator()->classCreatorRest()->classBody());
+                auto calledReturnItem = resolveMethod(methodCall, classScopeAndEnv, true);
                 AnonymousVisitor::returnToPool(anonymousVisitor);
-                return anonymousItem;
+                return calledReturnItem;
             } else {
                 return getErrorItem(ctx->creator(), this);
             }
@@ -1256,19 +1257,20 @@ any StatementVisitor::visitExpressionLambda(JavaParser::ExpressionLambdaContext*
                 anonymousVisitor->positionKey = methodScopeAndEnv->methodKey + codeBlock->structure_key + ";" + to_string(sentenceIndex) + ";" + getIncreasedIndexInsideExp();
                 anonymousVisitor->makeTypeInfo();
                 anonymousVisitor->makeClassScopeEnv();
+                anonymousVisitor->anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
+                    codeBlock->structure_key, getSentence()->sentenceIndexStr,
+                    getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
+                );
+                anonymousVisitor->sentence = getSentence();
+                new Relation(getSentence(), codeBlock->conditionItem, anonymousVisitor->anonymousItem);
                 anonymousVisitor->visitLambda(ctx->lambdaExpression(), m, paramNames);
 
                 ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance2();
                 ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
                 handleMethodInfo(constructor, {}, calledReturnResolvingItem, calledMethodResolvingItem);
 
-                auto anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
-                    codeBlock->structure_key, getSentence()->sentenceIndexStr,
-                    getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
-                );
-                new Relation(getSentence(), calledReturnResolvingItem, anonymousItem);
                 AnonymousVisitor::returnToPool(anonymousVisitor);
-                return anonymousItem;
+                return calledReturnResolvingItem;
             }
         }
     }
@@ -1347,19 +1349,20 @@ any StatementVisitor::visitExpressionMethodReference(JavaParser::ExpressionMetho
                     anonymousVisitor->superTypeInfo = interfaceI;
                     anonymousVisitor->positionKey = methodScopeAndEnv->methodKey + codeBlock->structure_key + ";" + to_string(sentenceIndex) + ";" + getIncreasedIndexInsideExp();
                     anonymousVisitor->makeTypeInfo();
+                    anonymousVisitor->anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
+                        codeBlock->structure_key, getSentence()->sentenceIndexStr,
+                        getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
+                    );
+                    anonymousVisitor->sentence = getSentence();
+                    new Relation(getSentence(), codeBlock->conditionItem, anonymousVisitor->anonymousItem);
                     anonymousVisitor->visitMethodReference(expectedMethod, methods.front());
 
                     ResolvingItem* calledReturnResolvingItem = ResolvingItem::getInstance2();
                     ResolvingItem* calledMethodResolvingItem = ResolvingItem::getInstance2();
                     handleMethodInfo(constructors.front(), {}, calledReturnResolvingItem, calledMethodResolvingItem);
 
-                    auto anonymousItem = ResolvingItem::getInstance2(anonymousVisitor->typeInfo->typeKey, anonymousVisitor->typeInfo,
-                        codeBlock->structure_key, getSentence()->sentenceIndexStr,
-                        getIncreasedIndexInsideExp(), GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS
-                    );
-                    new Relation(getSentence(), calledReturnResolvingItem, anonymousItem);
                     AnonymousVisitor::returnToPool(anonymousVisitor);
-                    return anonymousItem;
+                    return calledReturnResolvingItem;
                 }
             }
         }
@@ -1940,6 +1943,7 @@ std::any AnonymousVisitor::visitLambda(JavaParser::LambdaExpressionContext* ctx,
         }
     }
     Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo, superMethodInfo);
+    new Relation(sentence, anonymousItem, pStatementVisitor->codeBlock->conditionItem);
     CodeBlock::classKey2methodKey2codeBlock[typeInfo->typeKey][pStatementVisitor->methodScopeAndEnv->methodKey] = pStatementVisitor->codeBlock;
     StatementVisitor::returnToPool(pStatementVisitor);
 
@@ -1981,6 +1985,7 @@ std::any AnonymousVisitor::visitMethodReference(MethodInfo* superMethodInfo, Met
     GlobalInfo::addUsageLock.unlock();
 
     Header::HierarchyPhase::addOverMethod2TypeKey(typeInfo, methodInfo, superMethodInfo);
+    new Relation(sentence, anonymousItem, codeBlock->conditionItem);
     CodeBlock::classKey2methodKey2codeBlock[typeInfo->typeKey][methodInfo->methodKey] = codeBlock;
     return NULL;
 }
@@ -1992,6 +1997,7 @@ std::any AnonymousVisitor::visitMethodDeclaration(JavaParser::MethodDeclarationC
         pStatementVisitor->codeBlock = new CodeBlock(nullptr, MethodScopeAndEnv::rootStructureKey, false);
         pStatementVisitor->codeBlock->conditionItem = ResolvingItem::getInstance2(pStatementVisitor->methodScopeAndEnv->methodKey, NULL, MethodScopeAndEnv::rootStructureKey, "-1", "-1", GlobalInfo::KEY_TYPE_METHOD);
         pStatementVisitor->visitBlock(ctx->methodBody()->block());
+        new Relation(sentence, anonymousItem, pStatementVisitor->codeBlock->conditionItem);
         CodeBlock::classKey2methodKey2codeBlock[classScopeAndEnv->typeInfo->typeKey][pStatementVisitor->methodScopeAndEnv->methodKey] = pStatementVisitor->codeBlock;
         StatementVisitor::returnToPool(pStatementVisitor);
     }
@@ -2000,6 +2006,8 @@ std::any AnonymousVisitor::visitMethodDeclaration(JavaParser::MethodDeclarationC
 
 void AnonymousVisitor::reset() {
     clearScopeAndEnv();
+    anonymousItem = NULL;
+    sentence = NULL;
     outerMethodScopeAndEnv = NULL;
     superTypeInfo = NULL;
     typeInfo = NULL;

@@ -31,6 +31,7 @@ FIELD_USED_BY :'fieldUsedBy';
 METHOD_USE :'methodUse';
 READ : 'read';
 WRITE : 'write';
+ANONYMOUS: 'Anonymous';
 
 IN_PACKAGE :'inPackage';
 CLASS_OF: 'classOf';
@@ -135,6 +136,7 @@ nodeExp
     | RETURN
     | CALLED_RETURN
     | INDEX
+    | ANONYMOUS
     | ERROR
     | FIELD_CONNECTION
     | '(' bracket=nodeExp ')'

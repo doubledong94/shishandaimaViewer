@@ -1489,7 +1489,8 @@ void BoundedIncrementalGraph::resetStyledNodes() {
             nodeInfo->keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE) {
             nodesObj->styled7.insert(nodeInfo->nodeId);
         }
-        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
+        if (nodeInfo->keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION or
+            nodeInfo->keyType == GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS) {
             nodesObj->styled8.insert(nodeInfo->nodeId);
         }
     }

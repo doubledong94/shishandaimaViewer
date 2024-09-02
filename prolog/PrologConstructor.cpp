@@ -558,7 +558,13 @@ Term* CompoundTerm::getIsFinalTerm(Term* key) {
 }
 
 string CompoundTerm::getRuntimeFact(const string& methodKey, const string& key, const string& runtimeKey, int keyType) {
-    string ret = getRuntimeTerm(Term::getStr(methodKey), Term::getStr(key), Term::getStr(runtimeKey), Term::getInt(keyType))->toString(true);
+    Term* methodTerm = NULL;
+    if (methodKey.empty()) {
+        methodTerm = Term::getIgnoredVar();
+    } else {
+        methodTerm = Term::getStr(methodKey);
+    }
+    string ret = getRuntimeTerm(methodTerm, Term::getStr(key), Term::getStr(runtimeKey), Term::getInt(keyType))->toString(true);
     ret.push_back('.');
     return ret;
 }

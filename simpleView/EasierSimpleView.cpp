@@ -66,6 +66,7 @@ void EasierSimpleView::saveVocabulary(SimpleViewLexer& lexer) {
     saveVocabulary(lexer, SimpleViewLexer::ANY);
     saveVocabulary(lexer, SimpleViewLexer::FINAL);
     saveVocabulary(lexer, SimpleViewLexer::CLASS);
+    saveVocabulary(lexer, SimpleViewLexer::ANONYMOUS);
     saveVocabulary(lexer, SimpleViewLexer::FIELD_OF);
     saveVocabulary(lexer, SimpleViewLexer::INSTANCE_OF);
     saveVocabulary(lexer, SimpleViewLexer::CREATOR);
@@ -153,6 +154,7 @@ void EasierSimpleView::init() {
                 {SimpleView::Node::NODE_TYPE_ANY,Images::anyIconId},
                 {SimpleView::Node::NODE_TYPE_FINAL,Images::finalIconId},
                 {SimpleView::Node::NODE_TYPE_CLASS,Images::classScopeIconId},
+                {SimpleView::Node::NODE_TYPE_ANONYMOUS,Images::classScopeIconId},
                 {SimpleView::Node::NODE_TYPE_REFERENCE,Images::referenceIconId},
                 {SimpleView::Node::NODE_TYPE_VOID_REF,Images::varIconId},
                 {SimpleView::Node::NODE_TYPE_CONDITION,Images::conditionIconId},
@@ -221,6 +223,7 @@ void EasierSimpleView::init() {
     SimpleView::Node::NODE_ANY = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ANY);
     SimpleView::Node::NODE_FINAL = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_FINAL);
     SimpleView::Node::NODE_CLASS = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CLASS);
+    SimpleView::Node::NODE_ANONYMOUS = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_ANONYMOUS);
     SimpleView::Node::NODE_REFERENCE = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_REFERENCE);
     SimpleView::Node::NODE_VOID_REF = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_VOID_REF);
     SimpleView::Node::NODE_CONDITION = SimpleView::Node::getSpecialNode(SimpleView::Node::NODE_TYPE_CONDITION);
@@ -1583,6 +1586,7 @@ void SimpleView::ClassScope::loadRuntime(std::function<void(int, int, const char
 
 SimpleView::Node* SimpleView::Node::NODE_ANY = NULL;
 SimpleView::Node* SimpleView::Node::NODE_FINAL = NULL;
+SimpleView::Node* SimpleView::Node::NODE_ANONYMOUS = NULL;
 SimpleView::Node* SimpleView::Node::NODE_CLASS = NULL;
 SimpleView::Node* SimpleView::Node::NODE_REFERENCE = NULL;
 SimpleView::Node* SimpleView::Node::NODE_VOID_REF = NULL;
@@ -1621,6 +1625,10 @@ SimpleView::Node* SimpleView::Node::getSpecialNode(int nodeType) {
         break;
     case Node::NODE_TYPE_CLASS:
         node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::CLASS];
+        node->iconId = Images::classScopeIconId;
+        break;
+    case Node::NODE_TYPE_ANONYMOUS:
+        node->displayName = EasierSimpleView::vocabularySymbolToLiteral[SimpleViewLexer::ANONYMOUS];
         node->iconId = Images::classScopeIconId;
         break;
     case Node::NODE_TYPE_REFERENCE:
@@ -1973,6 +1981,8 @@ string SimpleView::Node::toString(map<int, string>& voc) {
         return voc[SimpleViewLexer::FINAL];
     case NODE_TYPE_CLASS:
         return voc[SimpleViewLexer::CLASS];
+    case NODE_TYPE_ANONYMOUS:
+        return voc[SimpleViewLexer::ANONYMOUS];
     case NODE_TYPE_FIELD_OF:
         return voc[SimpleViewLexer::FIELD_OF] + " ( " + classScope->displayName + " )";
     case NODE_TYPE_INSTANCE_OF:
@@ -2063,6 +2073,7 @@ bool SimpleView::Node::isLimitedCount() {
     return nodeType != NODE_TYPE_ANY
         and nodeType != NODE_TYPE_FINAL
         and nodeType != NODE_TYPE_CLASS
+        and nodeType != NODE_TYPE_ANONYMOUS
         and nodeType != NODE_TYPE_REFERENCE
         and nodeType != NODE_TYPE_VOID_REF
         and nodeType != NODE_TYPE_CONDITION
@@ -3753,6 +3764,8 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_CLASS:
         specialKeyType = GlobalInfo::KEY_TYPE_CLASS;
         break;
+    case Node::NODE_TYPE_ANONYMOUS:
+        specialKeyType = GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS;
     }
     // generate nextKeyTerm by dataflow term
     if (isStep) {
@@ -3820,6 +3833,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_DEFAULT_VALUE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_KEY_WORD_VALUE))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_CLASS))));
+        ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS))));
         ruleBody.push_back(NegationTerm::getNegInstance(Unification::getUnificationInstance(outputKeyType, Term::getInt(GlobalInfo::KEY_TYPE_ERROR))));
         break;
     case Node::NODE_TYPE_REFERENCE:
@@ -3841,6 +3855,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     case Node::NODE_TYPE_INDEX:
     case Node::NODE_TYPE_ERROR:
     case Node::NODE_TYPE_CLASS:
+    case Node::NODE_TYPE_ANONYMOUS:
         // check by node type
         ruleBody.push_back(CompoundTerm::getRuntimeTerm(nextMethodKeyTerm, outputAddressableKey, nextKeyTerm, Term::getInt(specialKeyType)));
         ruleBody.push_back(Unification::getUnificationInstance(outputKeyType, Term::getInt(specialKeyType)));

@@ -125,6 +125,11 @@ void ResolvingItem::addRuntimeProlog(string(*act)(const string& methodKey, const
     if (runtimeAdded) {
         return;
     }
+    if (keyType == GlobalInfo::KEY_TYPE_ANONYMOUS_CLASS) {
+        prologLines.emplace_back(act("", variableKey, runtimeKey, keyType));
+        runtimeAdded = true;
+        return;
+    }
     if (GlobalInfo::isOptrKeyType(keyType)) {
         prologLines.emplace_back(act(methodKey, extraInfoForOptr, runtimeKey, keyType));
     } else {

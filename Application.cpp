@@ -226,6 +226,7 @@ int app::Application::ApplicationMain() {
     "Literal Value",
     "Default Value",
     "null/true/false",
+    "Anonymous",
     };
     static int64_t startSearchTime = 0;
     static int searchTime = 0;
@@ -1046,7 +1047,7 @@ int app::Application::ApplicationMain() {
         }
         if (ImGui::BeginPopup("selectByKeyTypePopupOpen")) {
             ImGui::SeparatorText("select by key type");
-            for (int i = 0;i < 21;i++) {
+            for (int i = 0;i < 22;i++) {
                 if (ImGui::Selectable(nodeType[i])) {
                     boundedGraph->selectByKeyType(i);
                 }

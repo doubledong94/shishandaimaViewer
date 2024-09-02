@@ -948,6 +948,9 @@ namespace shishan {
             ImGui::SameLine();
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             addSpecialKeyButton("FieldConnection##specialFieldConnection", SimpleView::Node::NODE_FIELD_CONNECTION);
+            ImGui::SameLine();
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+            addSpecialKeyButton("Anonymous##specialAnonymous", SimpleView::Node::NODE_ANONYMOUS);
 
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
             bool oldEditBackwardCheck = editBackwardCheck;

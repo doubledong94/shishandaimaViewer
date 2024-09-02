@@ -115,6 +115,7 @@ namespace SimpleView {
 
             NODE_TYPE_ANY,
             NODE_TYPE_FINAL,
+            NODE_TYPE_ANONYMOUS,
             NODE_TYPE_CLASS,
             NODE_TYPE_REFERENCE,
             NODE_TYPE_VOID_REF,
@@ -148,6 +149,7 @@ namespace SimpleView {
 
         static Node* NODE_ANY;
         static Node* NODE_FINAL;
+        static Node* NODE_ANONYMOUS;
         static Node* NODE_CLASS;
         static Node* NODE_REFERENCE;
         static Node* NODE_VOID_REF;
