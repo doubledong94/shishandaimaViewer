@@ -83,9 +83,9 @@ classScopeExp
     | IN_PACKAGE '(' packageStr=STRING ')'
     | SUPER '(' classScopeExp ')'
     | SUB '(' classScopeExp ')'
-    | classScopeExp union='|' classScopeExp
-    | classScopeExp intersection='&' classScopeExp
-    | classScopeExp difference='-' classScopeExp
+    | IDENTIFIER (union='|' IDENTIFIER)+
+    | IDENTIFIER (intersection='&' IDENTIFIER)+
+    | IDENTIFIER (difference='-' IDENTIFIER)+
     | '(' bracket=classScopeExp ')'
     | refOtherScope=IDENTIFIER
     | varClass='{' IDENTIFIER '}'
@@ -109,9 +109,9 @@ nodeExp
     | METHOD_USED_BY '(' node=nodeExp ')'
     | FIELD_USED_BY '(' node=nodeExp ')'
     | METHOD_USE '(' node=nodeExp ')'
-    | nodeExp intersection='&' nodeExp
-    | nodeExp union='|' nodeExp
-    | nodeExp difference='-' nodeExp
+    | IDENTIFIER (intersection='&' IDENTIFIER)+
+    | IDENTIFIER (union='|' IDENTIFIER)+
+    | IDENTIFIER (difference='-' IDENTIFIER)+
     // read and write key word can only be the outermost layer
     | READ '(' read=nodeExp ')'
     | WRITE '(' write=nodeExp ')'

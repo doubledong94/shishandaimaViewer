@@ -84,6 +84,8 @@ namespace SimpleView {
         void updateDisplayText();
 
         void loadRuntime(std::function<void(int, int, const char*)>* loadRuntimeUpdate);
+
+        bool use(ClassScope* classScope);
     };
 
     class Node : public ToBeResolved {
@@ -206,6 +208,8 @@ namespace SimpleView {
         void updateDisplayText();
 
         ClassScope* runtimeScopeThatUseIt();
+
+        bool use(Node* node);
     };
 
     class RegexTree {

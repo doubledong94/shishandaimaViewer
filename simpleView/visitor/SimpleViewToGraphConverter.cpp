@@ -66,7 +66,7 @@ map<string, SimpleView::GraphInstance*> SimpleView::SimpleViewToGraphConverter::
 
 any SimpleView::SimpleViewToGraphConverter::visitClassScopeExp(SimpleViewParser::ClassScopeExpContext* ctx) {
     if (ctx->refOtherScope != nullptr) {
-        return valNameToClassScope[ctx->IDENTIFIER()->getText()];
+        return valNameToClassScope[ctx->IDENTIFIER(0)->getText()];
     } else if (ctx->bracket != nullptr) {
         return visitClassScopeExp(ctx->bracket);
     } else {
@@ -87,33 +87,48 @@ any SimpleView::SimpleViewToGraphConverter::visitClassScopeExp(SimpleViewParser:
         }
         if (ctx->SUPER() != nullptr) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_SUPER;
-            classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0)));
+            classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp()));
         }
         if (ctx->SUB() != nullptr) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_SUB;
-            classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0)));
+            classScope->referenceClassScope = any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp()));
         }
         if (ctx->intersection != nullptr) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_INTERSECTION;
             classScope->operandForSetOperation =
-            { any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0))),
-             any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(1))) };
+            { valNameToClassScope[ctx->IDENTIFIER(0)->getText()],valNameToClassScope[ctx->IDENTIFIER(1)->getText()] };
+            for (int i = 2;i < ctx->IDENTIFIER().size();i++) {
+                auto* newClassScope = new ClassScope();
+                newClassScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_INTERSECTION;
+                newClassScope->operandForSetOperation = { classScope,valNameToClassScope[ctx->IDENTIFIER(i)->getText()] };
+                classScope = newClassScope;
+            }
         }
         if (ctx->union_ != nullptr) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_UNION;
             classScope->operandForSetOperation =
-            { any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0))),
-             any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(1))) };
+            { valNameToClassScope[ctx->IDENTIFIER(0)->getText()],valNameToClassScope[ctx->IDENTIFIER(1)->getText()] };
+            for (int i = 2;i < ctx->IDENTIFIER().size();i++) {
+                auto* newClassScope = new ClassScope();
+                newClassScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_UNION;
+                newClassScope->operandForSetOperation = { classScope,valNameToClassScope[ctx->IDENTIFIER(i)->getText()] };
+                classScope = newClassScope;
+            }
         }
         if (ctx->difference != nullptr) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE;
             classScope->operandForSetOperation =
-            { any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(0))),
-             any_cast<ClassScope*>(visitClassScopeExp(ctx->classScopeExp(1))) };
+            { valNameToClassScope[ctx->IDENTIFIER(0)->getText()],valNameToClassScope[ctx->IDENTIFIER(1)->getText()] };
+            for (int i = 2;i < ctx->IDENTIFIER().size();i++) {
+                auto* newClassScope = new ClassScope();
+                newClassScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE;
+                newClassScope->operandForSetOperation = { classScope,valNameToClassScope[ctx->IDENTIFIER(i)->getText()] };
+                classScope = newClassScope;
+            }
         }
         if (ctx->varClass) {
             classScope->classScopeType = ClassScope::CLASS_SCOPE_TYPE_VAR;
-            classScope->referenceClassScope = valNameToClassScope[ctx->IDENTIFIER()->getText()];
+            classScope->referenceClassScope = valNameToClassScope[ctx->IDENTIFIER(0)->getText()];
         }
         classScope->iconId = SimpleView::ClassScope::classTypeToIconId[classScope->classScopeType];
         return classScope;
@@ -140,7 +155,7 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeDeclaration(SimpleViewParse
 
 any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeExpContext* ctx) {
     if (ctx->refOtherNode != nullptr) {
-        return valNameToNode[ctx->IDENTIFIER()->getText()];
+        return valNameToNode[ctx->IDENTIFIER(0)->getText()];
     } else if (ctx->bracket != nullptr) {
         return visitNodeExp(ctx->bracket);
     } else {
@@ -200,18 +215,34 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->node));
         } else if (ctx->union_ != nullptr) {
             ret->nodeType = Node::NODE_TYPE_UNION;
-            ret->operandForSetOperation = {
-                    any_cast<Node*>(visitNodeExp(ctx->nodeExp(0))),
-                    any_cast<Node*>(visitNodeExp(ctx->nodeExp(1)))
-            };
+            ret->operandForSetOperation =
+            { valNameToNode[ctx->IDENTIFIER(0)->getText()],valNameToNode[ctx->IDENTIFIER(1)->getText()] };
+            for (int i = 2;i < ctx->IDENTIFIER().size();i++) {
+                Node* newRet = new Node();
+                newRet->nodeType = Node::NODE_TYPE_UNION;
+                newRet->operandForSetOperation = { ret,valNameToNode[ctx->IDENTIFIER(i)->getText()] };
+                ret = newRet;
+            }
         } else if (ctx->intersection != nullptr) {
             ret->nodeType = Node::NODE_TYPE_INTERSECTION;
-            ret->operandForSetOperation = { any_cast<Node*>(visitNodeExp(ctx->nodeExp(0))),
-                                           any_cast<Node*>(visitNodeExp(ctx->nodeExp(1))) };
+            ret->operandForSetOperation =
+            { valNameToNode[ctx->IDENTIFIER(0)->getText()],valNameToNode[ctx->IDENTIFIER(1)->getText()] };
+            for (int i = 2;i < ctx->IDENTIFIER().size();i++) {
+                Node* newRet = new Node();
+                newRet->nodeType = Node::NODE_TYPE_INTERSECTION;
+                newRet->operandForSetOperation = { ret,valNameToNode[ctx->IDENTIFIER(i)->getText()] };
+                ret = newRet;
+            }
         } else if (ctx->difference != nullptr) {
             ret->nodeType = Node::NODE_TYPE_DIFFERENCE;
-            ret->operandForSetOperation = { any_cast<Node*>(visitNodeExp(ctx->nodeExp(0))),
-                                           any_cast<Node*>(visitNodeExp(ctx->nodeExp(1))) };
+            ret->operandForSetOperation =
+            { valNameToNode[ctx->IDENTIFIER(0)->getText()],valNameToNode[ctx->IDENTIFIER(1)->getText()] };
+            for (int i = 2;i < ctx->IDENTIFIER().size();i++) {
+                Node* newRet = new Node();
+                newRet->nodeType = Node::NODE_TYPE_DIFFERENCE;
+                newRet->operandForSetOperation = { ret,valNameToNode[ctx->IDENTIFIER(i)->getText()] };
+                ret = newRet;
+            }
         } else if (ctx->READ() != nullptr) {
             ret->nodeType = Node::NODE_TYPE_READ;
             ret->referenceNode = any_cast<Node*>(visitNodeExp(ctx->read));
@@ -268,7 +299,7 @@ any SimpleView::SimpleViewToGraphConverter::visitNodeExp(SimpleViewParser::NodeE
             ret = Node::NODE_ERROR;
         } else if (ctx->varNode) {
             ret->nodeType = Node::NODE_TYPE_VAR;
-            ret->referenceNode = valNameToNode[ctx->IDENTIFIER()->getText()];
+            ret->referenceNode = valNameToNode[ctx->IDENTIFIER(0)->getText()];
         }
         ret->iconId = SimpleView::Node::nodeTypeToIconId[ret->nodeType];
         return ret;

@@ -1007,18 +1007,14 @@ void EasierSimpleView::getDependencyBoundsForClassScope(int classScopeIndex,
     for (int i = 0;i < classScopeIndex;i++) {
         string& classScopeName = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[i];
         auto* classScopeI = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeName];
-        if (classScope->referenceClassScope == classScopeI or
-            classScope->operandForSetOperation.first == classScopeI or
-            classScope->operandForSetOperation.second == classScopeI) {
+        if (classScope->use(classScopeI)) {
             classScopeDependencyLower.push_back(i);
         }
     }
     for (int i = classScopeIndex + 1;i < SimpleView::SimpleViewToGraphConverter::classScopeNameOrder.size();i++) {
         string& classScopeName = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[i];
         auto* classScopeI = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[classScopeName];
-        if (classScope == classScopeI->referenceClassScope or
-            classScope == classScopeI->operandForSetOperation.first or
-            classScope == classScopeI->operandForSetOperation.second) {
+        if (classScopeI->use(classScope)) {
             classScopeDependencyHigher.push_back(i);
         }
     }
@@ -1055,18 +1051,14 @@ void EasierSimpleView::getDependencyBoundsForNode(int nodeIndex,
     for (int i = 0;i < nodeIndex;i++) {
         string& nodeName = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[i];
         auto* nodeI = SimpleView::SimpleViewToGraphConverter::valNameToNode[nodeName];
-        if (node->referenceNode == nodeI or
-            node->operandForSetOperation.first == nodeI or
-            node->operandForSetOperation.second == nodeI) {
+        if (node->use(nodeI)) {
             nodeDependencyLower.push_back(i);
         }
     }
     for (int i = nodeIndex + 1;i < SimpleView::SimpleViewToGraphConverter::nodeNameOrder.size();i++) {
         string& nodeName = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[i];
         auto* nodeI = SimpleView::SimpleViewToGraphConverter::valNameToNode[nodeName];
-        if (node == nodeI->referenceNode or
-            node == nodeI->operandForSetOperation.first or
-            node == nodeI->operandForSetOperation.second) {
+        if (nodeI->use(node)) {
             nodeDependencyHigher.push_back(i);
         }
     }
@@ -1514,7 +1506,11 @@ void SimpleView::ClassScope::loadValueToUI(vector<const char*>& values) {
     case CLASS_SCOPE_TYPE_INTERSECTION:
     case CLASS_SCOPE_TYPE_UNION:
     case CLASS_SCOPE_TYPE_DIFFERENCE:
-        values.push_back(operandForSetOperation.first->displayName.data());
+        if (operandForSetOperation.first->displayName.empty()) {
+            operandForSetOperation.first->loadValueToUI(values);
+        } else {
+            values.push_back(operandForSetOperation.first->displayName.data());
+        }
         values.push_back(operandForSetOperation.second->displayName.data());
         break;
     case CLASS_SCOPE_TYPE_VAR:
@@ -1550,6 +1546,12 @@ void SimpleView::ClassScope::resetValue(const char* name, int type, vector<const
             SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[0]],
             SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[1]]
         };
+        for (int i = 2;i < values.size();i++) {
+            auto* newClassScope = new ClassScope();
+            newClassScope->classScopeType = type;
+            newClassScope->operandForSetOperation = operandForSetOperation;
+            operandForSetOperation = { newClassScope, SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[i]] };
+        }
         break;
     case CLASS_SCOPE_TYPE_VAR:
         referenceClassScope = SimpleView::SimpleViewToGraphConverter::valNameToClassScope[values[0]];
@@ -1582,6 +1584,21 @@ void SimpleView::ClassScope::loadRuntime(std::function<void(int, int, const char
     int c = 0;
     FOR_EACH_ITEM(resolvedList, c++;if (loadRuntimeUpdate) (*loadRuntimeUpdate)(c, resolvedList.size(), item.data());PrologWrapper::loadTypeKeyUnaddressable(item););
     if (loadRuntimeUpdate) (*loadRuntimeUpdate)(resolvedList.size() + 1, resolvedList.size(), "");
+}
+
+bool SimpleView::ClassScope::use(ClassScope* classScope) {
+    if (referenceClassScope == classScope or
+        operandForSetOperation.first == classScope or
+        operandForSetOperation.second == classScope) {
+        return true;
+    }
+    if (operandForSetOperation.first and operandForSetOperation.first->displayName.empty()) {
+        return operandForSetOperation.first->use(classScope);
+    }
+    if (operandForSetOperation.second and operandForSetOperation.second->displayName.empty()) {
+        return operandForSetOperation.second->use(classScope);
+    }
+    return false;
 }
 
 SimpleView::Node* SimpleView::Node::NODE_ANY = NULL;
@@ -1935,6 +1952,21 @@ SimpleView::ClassScope* SimpleView::Node::runtimeScopeThatUseIt() {
     return ret;
 }
 
+bool SimpleView::Node::use(Node* node) {
+    if (referenceNode == node or
+        operandForSetOperation.first == node or
+        operandForSetOperation.second == node) {
+        return true;
+    }
+    if (operandForSetOperation.first and operandForSetOperation.first->displayName.empty()) {
+        return operandForSetOperation.first->use(node);
+    }
+    if (operandForSetOperation.second and operandForSetOperation.second->displayName.empty()) {
+        return operandForSetOperation.second->use(node);
+    }
+    return false;
+}
+
 void SimpleView::Node::unResolve(bool retract) {
     spdlog::get(ErrorManager::DebugTag)->info("unresolve node: {}; {}", displayName.data(), innerValName.data());
     if (classScope) {
@@ -2056,11 +2088,29 @@ string SimpleView::Node::toString(map<int, string>& voc) {
     case NODE_TYPE_ERROR:
         return voc[SimpleViewLexer::ERROR];
     case NODE_TYPE_INTERSECTION:
-        return operandForSetOperation.first->displayName + " & " + operandForSetOperation.second->displayName;
+    {
+        string firstText = operandForSetOperation.first->displayName.empty() ?
+            operandForSetOperation.first->toString(voc) : operandForSetOperation.first->displayName;
+        string secondText = operandForSetOperation.second->displayName.empty() ?
+            operandForSetOperation.second->toString(voc) : operandForSetOperation.second->displayName;
+        return firstText + " & " + secondText;
+    }
     case NODE_TYPE_UNION:
-        return operandForSetOperation.first->displayName + " | " + operandForSetOperation.second->displayName;
+    {
+        string firstText = operandForSetOperation.first->displayName.empty() ?
+            operandForSetOperation.first->toString(voc) : operandForSetOperation.first->displayName;
+        string secondText = operandForSetOperation.second->displayName.empty() ?
+            operandForSetOperation.second->toString(voc) : operandForSetOperation.second->displayName;
+        return firstText + " | " + secondText;
+    }
     case NODE_TYPE_DIFFERENCE:
-        return operandForSetOperation.first->displayName + " - " + operandForSetOperation.second->displayName;
+    {
+        string firstText = operandForSetOperation.first->displayName.empty() ?
+            operandForSetOperation.first->toString(voc) : operandForSetOperation.first->displayName;
+        string secondText = operandForSetOperation.second->displayName.empty() ?
+            operandForSetOperation.second->toString(voc) : operandForSetOperation.second->displayName;
+        return firstText + " - " + secondText;
+    }
     case NODE_TYPE_PARAM_OF_LINE_AND_GRAPH:
         return "NODE_TYPE_PARAM_OF_LINE_AND_GRAPH";
     case NODE_TYPE_VAR:
@@ -2145,7 +2195,11 @@ void SimpleView::Node::loadValueToUI(vector<const char*>& values, vector<const c
     case NODE_TYPE_INTERSECTION:
     case NODE_TYPE_UNION:
     case NODE_TYPE_DIFFERENCE:
-        values.push_back(operandForSetOperation.first->displayName.data());
+        if (operandForSetOperation.first->displayName.empty()) {
+            operandForSetOperation.first->loadValueToUI(values, typeKeyForNodeKey);
+        } else {
+            values.push_back(operandForSetOperation.first->displayName.data());
+        }
         values.push_back(operandForSetOperation.second->displayName.data());
         break;
     case NODE_TYPE_VAR:
@@ -2200,6 +2254,12 @@ void SimpleView::Node::resetValue(const char* name, int type, vector<const char*
             SimpleView::SimpleViewToGraphConverter::valNameToNode[values[0]],
             SimpleView::SimpleViewToGraphConverter::valNameToNode[values[1]]
         };
+        for (int i = 2;i < values.size();i++) {
+            auto* newNode = new Node();
+            newNode->nodeType = type;
+            newNode->operandForSetOperation = operandForSetOperation;
+            operandForSetOperation = { newNode, SimpleView::SimpleViewToGraphConverter::valNameToNode[values[i]] };
+        }
         break;
     case NODE_TYPE_VAR:
         referenceNode = SimpleViewToGraphConverter::valNameToNode[values[0]];

@@ -534,7 +534,6 @@ namespace shishan {
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_INTERSECTION:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_UNION:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE:
-                classScopeEditValues.push_back("Click me first, then click class you created above to replace,");
                 classScopeEditValues.push_back("Click me first, then click class you created above to replace.");
                 break;
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_VAR:
@@ -550,6 +549,11 @@ namespace shishan {
         if (ImGui::Button("OK##classScopeEditOK", { fontSize * 3,searchBarHeight })) {
             classScopeNameIsWrong = not checkValName(classScopeEditingName, classScopeEditingIndex, 1);
             if (isEditValueIsActuallyHint(classScopeEditValues)) {
+                classScopeValueIsWrong = true;
+            }
+            if ((classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_UNION or
+                classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_INTERSECTION or
+                classScopeEditingTypeIndex == SimpleView::ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE) and classScopeEditValues.size() < 2) {
                 classScopeValueIsWrong = true;
             }
             if (not classScopeNameIsWrong and not classScopeValueIsWrong) {
@@ -656,7 +660,6 @@ namespace shishan {
             case SimpleView::Node::NODE_TYPE_UNION:
             case SimpleView::Node::NODE_TYPE_DIFFERENCE:
                 nodeEditValues.push_back("Click me first, then click field/method/param/return you created above");
-                nodeEditValues.push_back("Click me first, then click field/method/param/return you created above");
                 break;
             case SimpleView::Node::NODE_TYPE_VAR:
                 nodeEditValues.push_back("Click node you created above");
@@ -670,6 +673,11 @@ namespace shishan {
         if (ImGui::Button("OK##nodeEditOK", { fontSize * 3,searchBarHeight })) {
             nodeNameIsWrong = not checkValName(nodeEditingName, nodeEditingIndex, 2);
             if (isEditValueIsActuallyHint(nodeEditValues)) {
+                nodeValueIsWrong = true;
+            }
+            if ((nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_UNION or
+                nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_INTERSECTION or
+                nodeEditingTypeIndex == SimpleView::Node::NODE_TYPE_DIFFERENCE) and nodeEditValues.size() < 2) {
                 nodeValueIsWrong = true;
             }
             if (not nodeNameIsWrong and not nodeValueIsWrong) {
@@ -1371,7 +1379,17 @@ namespace shishan {
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_UNION:
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_DIFFERENCE:
                 if (type == 2) {
-                    classScopeEditValues[classScopeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[index].data();
+                    if (isEditValueIsActuallyHint(classScopeEditValues)) {
+                        classScopeEditValues.clear();
+                    }
+                    if (classScopeEditValueSelectedIndex >= classScopeEditValues.size()) {
+                        classScopeEditValueSelectedIndex = classScopeEditValues.size() - 1;
+                    }
+                    char* clickedClassName = SimpleView::SimpleViewToGraphConverter::classScopeNameOrder[index].data();
+                    if (std::find(classScopeEditValues.begin(), classScopeEditValues.end(), clickedClassName) == classScopeEditValues.end()) {
+                        classScopeEditValues.insert(classScopeEditValues.begin() + classScopeEditValueSelectedIndex + 1, clickedClassName);
+                        classScopeEditValueSelectedIndex++;
+                    }
                 }
                 break;
             case SimpleView::ClassScope::CLASS_SCOPE_TYPE_VAR:
@@ -1453,7 +1471,17 @@ namespace shishan {
             case SimpleView::Node::NODE_TYPE_UNION:
             case SimpleView::Node::NODE_TYPE_DIFFERENCE:
                 if (type == 3) {
-                    nodeEditValues[nodeEditValueSelectedIndex] = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data();
+                    if (isEditValueIsActuallyHint(nodeEditValues)) {
+                        nodeEditValues.clear();
+                    }
+                    if (nodeEditValueSelectedIndex >= nodeEditValues.size()) {
+                        nodeEditValueSelectedIndex = nodeEditValues.size() - 1;
+                    }
+                    char* clickedNodeName = SimpleView::SimpleViewToGraphConverter::nodeNameOrder[index].data();
+                    if (std::find(nodeEditValues.begin(), nodeEditValues.end(), clickedNodeName) == nodeEditValues.end()) {
+                        nodeEditValues.insert(nodeEditValues.begin() + nodeEditValueSelectedIndex + 1, clickedNodeName);
+                        nodeEditValueSelectedIndex++;
+                    }
                 }
                 break;
             case SimpleView::Node::NODE_TYPE_VAR:

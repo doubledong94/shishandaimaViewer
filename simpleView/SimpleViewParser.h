@@ -93,22 +93,22 @@ public:
     antlr4::Token *classKey = nullptr;
     antlr4::Token *classKeyList = nullptr;
     antlr4::Token *packageStr = nullptr;
-    SimpleViewParser::ClassScopeExpContext *bracket = nullptr;
-    antlr4::Token *refOtherScope = nullptr;
-    antlr4::Token *varClass = nullptr;
     antlr4::Token *union_ = nullptr;
     antlr4::Token *intersection = nullptr;
     antlr4::Token *difference = nullptr;
+    SimpleViewParser::ClassScopeExpContext *bracket = nullptr;
+    antlr4::Token *refOtherScope = nullptr;
+    antlr4::Token *varClass = nullptr;
     ClassScopeExpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> STRING();
     antlr4::tree::TerminalNode* STRING(size_t i);
     antlr4::tree::TerminalNode *IN_PACKAGE();
     antlr4::tree::TerminalNode *SUPER();
-    std::vector<ClassScopeExpContext *> classScopeExp();
-    ClassScopeExpContext* classScopeExp(size_t i);
+    ClassScopeExpContext *classScopeExp();
     antlr4::tree::TerminalNode *SUB();
-    antlr4::tree::TerminalNode *IDENTIFIER();
+    std::vector<antlr4::tree::TerminalNode *> IDENTIFIER();
+    antlr4::tree::TerminalNode* IDENTIFIER(size_t i);
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
@@ -116,7 +116,7 @@ public:
   };
 
   ClassScopeExpContext* classScopeExp();
-  ClassScopeExpContext* classScopeExp(int precedence);
+
   class  NodeExpContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *nodeKey = nullptr;
@@ -126,14 +126,14 @@ public:
     SimpleViewParser::NodeExpContext *node = nullptr;
     SimpleViewParser::NodeExpContext *paramNode = nullptr;
     SimpleViewParser::NodeExpContext *returnNode = nullptr;
+    antlr4::Token *intersection = nullptr;
+    antlr4::Token *union_ = nullptr;
+    antlr4::Token *difference = nullptr;
     SimpleViewParser::NodeExpContext *read = nullptr;
     SimpleViewParser::NodeExpContext *write = nullptr;
     SimpleViewParser::NodeExpContext *bracket = nullptr;
     antlr4::Token *refOtherNode = nullptr;
     antlr4::Token *varNode = nullptr;
-    antlr4::Token *intersection = nullptr;
-    antlr4::Token *union_ = nullptr;
-    antlr4::Token *difference = nullptr;
     NodeExpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<antlr4::tree::TerminalNode *> STRING();
@@ -143,8 +143,7 @@ public:
     ClassScopeExpContext* classScopeExp(size_t i);
     antlr4::tree::TerminalNode *METHOD_OF();
     antlr4::tree::TerminalNode *PARAMETER_OF();
-    std::vector<NodeExpContext *> nodeExp();
-    NodeExpContext* nodeExp(size_t i);
+    NodeExpContext *nodeExp();
     antlr4::tree::TerminalNode *RETURN_OF();
     antlr4::tree::TerminalNode *INSTANCE_OF();
     antlr4::tree::TerminalNode *CREATOR();
@@ -156,6 +155,8 @@ public:
     antlr4::tree::TerminalNode *METHOD_USED_BY();
     antlr4::tree::TerminalNode *FIELD_USED_BY();
     antlr4::tree::TerminalNode *METHOD_USE();
+    std::vector<antlr4::tree::TerminalNode *> IDENTIFIER();
+    antlr4::tree::TerminalNode* IDENTIFIER(size_t i);
     antlr4::tree::TerminalNode *READ();
     antlr4::tree::TerminalNode *WRITE();
     antlr4::tree::TerminalNode *ANY();
@@ -182,7 +183,6 @@ public:
     antlr4::tree::TerminalNode *ANONYMOUS();
     antlr4::tree::TerminalNode *ERROR();
     antlr4::tree::TerminalNode *FIELD_CONNECTION();
-    antlr4::tree::TerminalNode *IDENTIFIER();
 
 
     virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
@@ -190,7 +190,7 @@ public:
   };
 
   NodeExpContext* nodeExp();
-  NodeExpContext* nodeExp(int precedence);
+
   class  ParamListContext : public antlr4::ParserRuleContext {
   public:
     ParamListContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -424,11 +424,6 @@ public:
 
   ShowCommandContext* showCommand();
 
-
-  bool sempred(antlr4::RuleContext *_localctx, size_t ruleIndex, size_t predicateIndex) override;
-
-  bool classScopeExpSempred(ClassScopeExpContext *_localctx, size_t predicateIndex);
-  bool nodeExpSempred(NodeExpContext *_localctx, size_t predicateIndex);
 
   // By default the static state used to implement the parser is lazily initialized during the first
   // call to the constructor. You can call this function if you wish to initialize the static state
