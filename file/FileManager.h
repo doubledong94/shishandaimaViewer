@@ -67,6 +67,7 @@ public:
     static string simpleViewConfig;
     static string dimControlConfig;
     static string excludePackageConfig;
+    static string excludeClassConfig;
     static string srcPathConfig;
     static string srcPath;
     static string resourceBaseDir;

@@ -206,6 +206,7 @@ void EasierSimpleView::init() {
     PrologWrapper::declareFun(HEAD_FORWARD_FA_DONE->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_BACKWARD_FA_DONE->atomOrVar, 4);
     PrologWrapper::declareFun(HEAD_EXCLUDE_PACKAGE->atomOrVar, 1);
+    PrologWrapper::declareFun(HEAD_EXCLUDE_CLASS->atomOrVar, 1);
     PrologWrapper::declareFun(HEAD_EXCLUDE_METHOD->atomOrVar, 1);
     declareKeyConvertion();
     declareClassResolveRules();
@@ -910,6 +911,9 @@ void EasierSimpleView::declareExcludeMethod() {
     Term* method = Term::getVar("Method");
     Term* claz = Term::getVar("Class");
     Term* pkg = Term::getVar("Package");
+    rules.push_back(Rule::getRuleInstance(CompoundTerm::getExcludeMethodTerm(method), {
+        CompoundTerm::getMethodTerm(claz,method),CompoundTerm::getExcludeClassTerm(claz)
+        }));
     rules.push_back(Rule::getRuleInstance(CompoundTerm::getExcludeMethodTerm(method), {
         CompoundTerm::getMethodTerm(claz,method),CompoundTerm::getPackageTerm(pkg,claz),CompoundTerm::getExcludePackageTerm(pkg)
         }));
@@ -4588,12 +4592,19 @@ void SimpleView::Searcher::endSearching(ClassScope* classScope) {
 }
 
 std::function<void(set<string>&)> SimpleView::Searcher::getExcludePkg;
+std::function<void(set<string>&)> SimpleView::Searcher::getExcludeClass;
 
 void SimpleView::Searcher::onStart() {
     PrologWrapper::retractAllFact(HEAD_EXCLUDE_PACKAGE->toString(), 1);
+    PrologWrapper::retractAllFact(HEAD_EXCLUDE_CLASS->toString(), 1);
     set<string> excludePkg;
     getExcludePkg(excludePkg);
+    set<string> excludeClass;
+    getExcludeClass(excludeClass);
     for (auto& p : excludePkg) {
         PrologWrapper::addFact(CompoundTerm::getExcludePackageTerm(Term::getStr(p))->toString(true));
+    }
+    for (auto& c : excludeClass) {
+        PrologWrapper::addFact(CompoundTerm::getExcludeClassTerm(Term::getStr(c))->toString(true));
     }
 }

@@ -1920,7 +1920,7 @@ namespace shishan {
         graphInstanceKeyDownIndex = -1;
     }
 
-    static void onSearchClass() {
+    static void onSearchClass(vector<const char*>& searchResults) {
         openedTypeKey = NULL;
         EasierSimpleView::searchClass(searchedStr, searchResults);
     }
@@ -2898,7 +2898,7 @@ namespace shishan {
             searchedStr, 1024, { searchBarWidth,searchBarHeight }, ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_EnterReturnsTrue)) {
             ImGui::SetKeyboardFocusHere(-1);
             if (searchResults.empty()) {
-                onSearchClass();
+                onSearchClass(searchResults);
             } else {
                 filterSearchResults(searchResults);
             }

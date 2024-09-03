@@ -350,6 +350,7 @@ namespace SimpleView {
     class Searcher {
     public:
         static std::function<void(set<string>&)> getExcludePkg;
+        static std::function<void(set<string>&)> getExcludeClass;
         PlQuery* plQuerie;
         PlTermv* result = NULL;
         int outputIndex = -1;

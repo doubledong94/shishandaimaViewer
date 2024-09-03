@@ -26,6 +26,7 @@ public:
     virtual char* getHotKeyTitle_chooseLine() { return NULL; };
     virtual char* getHotKeyTitle_chooseGraph() { return NULL; };
     virtual char* getHotKeyTitle_excludePackage() { return NULL; };
+    virtual char* getHotKeyTitle_excludeClass() { return NULL; };
     virtual char* getHotKeyTitle_unchooseClass() { return NULL; };
     virtual char* getHotKeyTitle_unchooseLine() { return NULL; };
     virtual char* getHotKeyTitle_unchooseGraph() { return NULL; };
@@ -143,7 +144,8 @@ private:
     string hotKeyTitle_chooseClass = "选择class";
     string hotKeyTitle_chooseLine = "选择line";
     string hotKeyTitle_chooseGraph = "选择graph";
-    string hotKeyTitle_excludePackage = "选择不搜索的类";
+    string hotKeyTitle_excludePackage = "选择不搜索的包";
+    string hotKeyTitle_excludeClass = "选择不搜索的类";
     string hotKeyTitle_unchooseClass = "取消选择class";
     string hotKeyTitle_unchooseLine = "取消选择line";
     string hotKeyTitle_unchooseGraph = "取消选择graph";
@@ -260,6 +262,7 @@ public:
     char* getHotKeyTitle_chooseLine() override;
     char* getHotKeyTitle_chooseGraph() override;
     char* getHotKeyTitle_excludePackage() override;
+    char* getHotKeyTitle_excludeClass() override;
     char* getHotKeyTitle_unchooseClass() override;
     char* getHotKeyTitle_unchooseLine() override;
     char* getHotKeyTitle_unchooseGraph() override;
@@ -377,7 +380,8 @@ private:
     string hotKeyTitle_chooseClass = "选择class";
     string hotKeyTitle_chooseLine = "选择line";
     string hotKeyTitle_chooseGraph = "选择graph";
-    string hotKeyTitle_excludePackage = "选择不搜索的类";
+    string hotKeyTitle_excludePackage = "选择不搜索的包";
+    string hotKeyTitle_excludeClass = "选择不搜索的类";
     string hotKeyTitle_unchooseClass = "取消选择class";
     string hotKeyTitle_unchooseLine = "取消选择line";
     string hotKeyTitle_unchooseGraph = "取消选择graph";
@@ -494,6 +498,7 @@ public:
     char* getHotKeyTitle_chooseLine() override;
     char* getHotKeyTitle_chooseGraph() override;
     char* getHotKeyTitle_excludePackage() override;
+    char* getHotKeyTitle_excludeClass() override;
     char* getHotKeyTitle_unchooseClass() override;
     char* getHotKeyTitle_unchooseLine() override;
     char* getHotKeyTitle_unchooseGraph() override;

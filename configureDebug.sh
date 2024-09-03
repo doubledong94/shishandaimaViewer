@@ -13,6 +13,7 @@ cp -n resource/* build/resource/
 cp -n simpleView.config build/config/
 cp -n dimControl.config build/config/
 cp -n excludePackage.config build/config/
+cp -n excludeClass.config build/config/
 cd external/imgui/
 git checkout origin/features/shadows
 cd ../..

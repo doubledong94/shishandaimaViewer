@@ -279,6 +279,10 @@ CompoundTerm* CompoundTerm::getExcludePackageTerm(Term* pkg) {
     return makeTerm(HEAD_EXCLUDE_PACKAGE, pkg);
 }
 
+CompoundTerm* CompoundTerm::getExcludeClassTerm(Term* clz) {
+    return makeTerm(HEAD_EXCLUDE_CLASS, clz);
+}
+
 CompoundTerm* CompoundTerm::getExcludeMethodTerm(Term* method) {
     return makeTerm(HEAD_EXCLUDE_METHOD, method);
 }

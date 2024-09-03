@@ -64,7 +64,8 @@
 #include "gui/imEditLineAndGraph.h"
 #include "gui/imGraphSelector.h"
 #include "gui/imDimControl.h"
-#include "gui/imExcludeClassScope.h"
+#include "gui/imExcludePackage.h"
+#include "gui/imExcludeClass.h"
 #include "gui/imSelectedNodeTextWindow.h"
 #include "file/FileManager.h"
 #include "threepp/helpers/AxesHelper.hpp"
@@ -164,6 +165,7 @@ int app::Application::ApplicationMain() {
     static bool editLineAndGraphOpen = false;
     static bool editDimControlOpen = false;
     static bool excludePackageOpen = false;
+    static bool excludeClassOpen = false;
     static bool showSelectedNodeText = false;
     static bool searchedLineAndGraphOpen = false;
     static bool chooseClassScopePopupOpen = false;
@@ -284,10 +286,15 @@ int app::Application::ApplicationMain() {
     HotkeyConfig::functionEnumToFunction[UNCHOOSE_GRAPH_INSTANCE_TO_SEARCH] = [&]() {
         selected_graph_instance = -1;
         };
-    HotkeyConfig::functionEnumToFunction[EXCLUDE_CLASS_SCOPE] = [&]() {
+    HotkeyConfig::functionEnumToFunction[EXCLUDE_PACKAGE] = [&]() {
         showTooltip = false;
         shishan::dimControlLastWindowSize = { 0,0 };
         excludePackageOpen = !excludePackageOpen;
+        };
+    HotkeyConfig::functionEnumToFunction[EXCLUDE_CLASS] = [&]() {
+        showTooltip = false;
+        shishan::dimControlLastWindowSize = { 0,0 };
+        excludeClassOpen = !excludeClassOpen;
         };
     PL_engine_t pl_engine_for_earching = PL_create_engine(NULL);
     HotkeyConfig::functionEnumToFunction[START_SEARCHING] = [&]() {
@@ -788,6 +795,7 @@ int app::Application::ApplicationMain() {
             !editLineAndGraphOpen and
             !editDimControlOpen and
             !excludePackageOpen and
+            !excludeClassOpen and
             !showSelectedNodeText and
             !searchedLineAndGraphOpen and
             !aboutToParseFile and
@@ -871,10 +879,17 @@ int app::Application::ApplicationMain() {
                 shishan::chosenPackageToFile(f);
                 f.close();
             }
+            if (excludeClassOpen) {
+                ofstream f;
+                f.open(FileManager::excludeClassConfig);
+                shishan::chosenClassToFile(f);
+                f.close();
+            }
             hotkeyPopupOpen = false;
             editLineAndGraphOpen = false;
             editDimControlOpen = false;
             excludePackageOpen = false;
+            excludeClassOpen = false;
             showSelectedNodeText = false;
             searchedLineAndGraphOpen = false;
             showColorSelectorWindow = false;
@@ -903,6 +918,7 @@ int app::Application::ApplicationMain() {
         shishan::showGraphSelectorWindow(searchedLineAndGraphOpen, methodOfRuntimeForNodeSelection, graphNameToLineNameToRegex);
         shishan::showDimControlWindow(editDimControlOpen);
         shishan::showChooseExcludePackageWindow(excludePackageOpen);
+        shishan::showChooseExcludeClassWindow(excludeClassOpen);
         shishan::showSelectedNodeTextWindow(showSelectedNodeText);
 
         if (selectByInDegreePopupOpen) {
@@ -1469,9 +1485,13 @@ int main(int argc, char** argv) {
     ifs.open(FileManager::excludePackageConfig);
     shishan::chosenPackageFromFile(ifs);
     ifs.close();
+    ifs.open(FileManager::excludeClassConfig);
+    shishan::chosenClassFromFile(ifs);
+    ifs.close();
     BoundedIncrementalGraph::getDimControl = shishan::getDimControl;
     BoundedIncrementalGraph::deserializeFilePath();
     SimpleView::Searcher::getExcludePkg = shishan::getExcludePkg;
+    SimpleView::Searcher::getExcludeClass = shishan::getExcludeClass;
     app::Application app(&parser);
     app::appPtr = &app;
     app.ApplicationMain();
@@ -1484,6 +1504,9 @@ int main(int argc, char** argv) {
     ofs.close();
     ofs.open(FileManager::excludePackageConfig);
     shishan::chosenPackageToFile(ofs);
+    ofs.close();
+    ofs.open(FileManager::excludeClassConfig);
+    shishan::chosenClassToFile(ofs);
     ofs.close();
     HotkeyConfig::saveHotkeyConfig(FileManager::hotkeyConfig);
 }

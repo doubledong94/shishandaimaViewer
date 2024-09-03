@@ -106,6 +106,7 @@ string FileManager::hotkeyConfig = "";
 string FileManager::simpleViewConfig = "";
 string FileManager::dimControlConfig = "";
 string FileManager::excludePackageConfig = "";
+string FileManager::excludeClassConfig = "";
 string FileManager::srcPathConfig = "";
 string FileManager::srcPath = "";
 string FileManager::resourceBaseDir = "";
@@ -173,6 +174,7 @@ void FileManager::initCurrentDir() {
     simpleViewConfig = configBaseDir + "simpleView.config";
     dimControlConfig = configBaseDir + "dimControl.config";
     excludePackageConfig = configBaseDir + "excludePackage.config";
+    excludeClassConfig = configBaseDir + "excludeClass.config";
     srcPathConfig = configBaseDir + "srcPath.txt";
     resourceBaseDir = baseFolder + "resource/";
     graphSaveAndRestorePath = baseFolder + "graph/";
