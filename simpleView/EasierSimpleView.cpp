@@ -495,6 +495,7 @@ void EasierSimpleView::declareStepRules() {
         // get addressable key and restore called key to normal key
         CompoundTerm::getRuntimeTerm(outerMethod,calledMethod,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_METHOD)),
         CompoundTerm::getCalledKeyTerm(innerMethod,calledMethod),
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(innerMethod)),
         // load
         CompoundTerm::getLoadStepInRuntimeTerm(innerMethod),
         // normal key to its step key and to its runtime key
@@ -512,6 +513,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getCalledKeyTerm(param,calledParam),
         // load
         CompoundTerm::getParameterTerm(innerMethod,param),
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(innerMethod)),
         CompoundTerm::getLoadStepInRuntimeTerm(innerMethod),
         // normal key to its step key and to its runtime key
         CompoundTerm::getStepKeyTerm(param,step),
@@ -535,6 +537,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepKeyTerm(calledReturn,step),
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         // load
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(outerMethod)),
         CompoundTerm::getLoadMethodUseAddressableTerm(outerMethod),
         }));
     // backward -----------------------------------------------------------------------------------------------------------------------------------------------
@@ -558,6 +561,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepKeyTerm(calledMethod,step),
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_TIMING_STEP)),
         // load
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(outerMethod)),
         CompoundTerm::getLoadMethodUseAddressableTerm(outerMethod),
         }));
     // param -> step -> step -> called param (current steps != [])
@@ -584,6 +588,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getStepKeyTerm(calledParam,step),
         CompoundTerm::getRuntimeTerm(outerMethod,step,nextStepKey,Term::getInt(GlobalInfo::KEY_TYPE_DATA_STEP)),
         // load
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(outerMethod)),
         CompoundTerm::getLoadMethodUseAddressableTerm(outerMethod),
         }));
     // called return -> step -> step -> return (increase steps)
@@ -592,6 +597,7 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getRuntimeTerm(outerMethod,calledReturn,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
         CompoundTerm::getCalledKeyTerm(returnKey,calledReturn),
         // load
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(innerMethod)),
         CompoundTerm::getReturnTerm(innerMethod,returnKey),
         CompoundTerm::getLoadStepInRuntimeTerm(innerMethod),
         // normal key to its step key and to its runtime key
@@ -3155,6 +3161,8 @@ void SimpleView::LineInstance::retractAllLineInstanceRule(int intersectionCount)
     CompoundTerm::retractAllFaDoneTerm(true);
     CompoundTerm::retractAllTransitionTerm(false, intersectionCount);
     CompoundTerm::retractAllTransitionTerm(true, intersectionCount);
+    PrologWrapper::retractAllFact(HEAD_EXCLUDE_PACKAGE->toString(), 1);
+    PrologWrapper::retractAllFact(HEAD_EXCLUDE_CLASS->toString(), 1);
 }
 
 CompoundTerm* SimpleView::LineInstance::getQueryTerm(ClassScope* classScope) {
@@ -3991,7 +3999,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     ruleBody.push_back(CompoundTerm::getLengthTerm(currentStepsTerm, depth));
     // debug purpose
 #ifdef DEBUG_PROLOG
-    ruleBody.push_back(CompoundTerm::getToFileTerm(Tail::getInstanceByElements({ regexCharTerm,nextMethodKeyTerm, nextKeyTerm, outputKeyType, Term::getStr(lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName) , depth }), Term::getStr("a.txt")));
+    ruleBody.push_back(CompoundTerm::getToFileTerm(Tail::getInstanceByElements({ regexCharTerm,nextMethodKeyTerm, nextKeyTerm, outputKeyType, Term::getStr(lineTemplate->charToNodeTemplate[regexCharTerm->atomOrVar[0]]->node->displayName), depth, nextStateTerm }), Term::getStr("a.txt")));
 #endif
     PrologWrapper::addRule((Rule::getRuleInstance(CompoundTerm::getTransitionTerm(
         lineInstanceValNameTerm, classScopeTerm,
@@ -4595,8 +4603,6 @@ std::function<void(set<string>&)> SimpleView::Searcher::getExcludePkg;
 std::function<void(set<string>&)> SimpleView::Searcher::getExcludeClass;
 
 void SimpleView::Searcher::onStart() {
-    PrologWrapper::retractAllFact(HEAD_EXCLUDE_PACKAGE->toString(), 1);
-    PrologWrapper::retractAllFact(HEAD_EXCLUDE_CLASS->toString(), 1);
     set<string> excludePkg;
     getExcludePkg(excludePkg);
     set<string> excludeClass;

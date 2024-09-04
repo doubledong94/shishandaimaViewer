@@ -153,6 +153,8 @@ string PrologWrapper::makeUnderScoreArguments(int arity) {
 
 void PrologWrapper::retractAllFact(const string& functorName, int arity) {
     if (arity > 0) {
+        // debug_prolog_file << ("retractall(" + functorName + "(" + makeUnderScoreArguments(arity) + ")).") << "\n";
+        // debug_prolog_file.flush();
         PlCall("retractall(" + functorName + "(" + makeUnderScoreArguments(arity) + ")).");
     }
 }
