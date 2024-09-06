@@ -291,7 +291,6 @@ class AnonymousVisitor : public RuntimeVisitor, public PooledItem<AnonymousVisit
 public:
 
     ResolvingItem* anonymousItem = NULL;
-    Sentence* sentence = NULL;
     MethodScopeAndEnv* outerMethodScopeAndEnv = NULL;
     TypeInfo* superTypeInfo = NULL;
     string positionKey;

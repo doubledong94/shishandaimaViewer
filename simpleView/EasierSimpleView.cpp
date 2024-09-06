@@ -3758,6 +3758,7 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
     int nodeType = node->nodeType;
     bool isStep = nodeType == Node::NODE_TYPE_DATA_STEP or nodeType == Node::NODE_TYPE_TIMING_STEP
         or nodeType == Node::NODE_TYPE_DATA_OVERRIDE or nodeType == Node::NODE_TYPE_TIMING_OVERRIDE;
+    bool isAnonymous = nodeType == Node::NODE_TYPE_ANONYMOUS;
     int specialKeyType = -1;
     if (nodeType == Node::NODE_TYPE_FIELD_CONNECTION) {
         PrologWrapper::addFact(CompoundTerm::getTransitionTerm(
@@ -3873,6 +3874,15 @@ void SimpleView::HalfLineTheFA::declareTransitionRuleI(int currentState, int nex
             }
         }
 
+    } else  if (isAnonymous) {
+        ruleBody.push_back(Unification::getUnificationInstance(nextKeyTerm, expectingNextKeyTerm));
+        // generate the next method key and next steps
+        if (isBackward) {
+            ruleBody.push_back(CompoundTerm::getFlowTerm(nextMethodKeyTerm, Term::getIgnoredVar(), nextKeyTerm));
+        } else {
+            ruleBody.push_back(CompoundTerm::getFlowTerm(nextMethodKeyTerm, nextKeyTerm, Term::getIgnoredVar()));
+        }
+        ruleBody.push_back(Unification::getUnificationInstance(currentStepsTerm, nextStepsTerm));
     } else {
         ruleBody.push_back(Unification::getUnificationInstance(nextKeyTerm, expectingNextKeyTerm));
         // generate the next method key and next steps
