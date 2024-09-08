@@ -22,7 +22,10 @@ void AIDLAntlrNodeToSyntaxObjectConverter::convertTypeName(AIDLParser::TypeConte
     if (ctx->VOID()) {
         typeName->typeName.push_back("void");
     } else {
-        typeName->typeName.push_back(ctx->non_array_type()->qualified_name()->getText());
+        for (auto& idContext : ctx->non_array_type()->qualified_name()->identifier()) {
+            typeName->typeName.push_back(idContext->getText());
+        }
+        typeName->dim = ctx->LBRACK().size();
     }
 }
 

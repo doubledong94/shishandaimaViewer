@@ -243,7 +243,8 @@ MethodInfo* ClassScopeAndEnv::findOverrideMethod(MethodInfo* methodInfo) {
         if (not methodInfo->isVariableParameter ^ superMethodInfo->isVariableParameter and methodInfo->parameterInfos.size() == superMethodInfo->parameterInfos.size()) {
             bool found = true;
             for (int paramIndex = 0;paramIndex < methodInfo->parameterInfos.size();paramIndex++) {
-                if (methodInfo->parameterInfos[paramIndex]->typeInfo != superMethodInfo->parameterInfos[paramIndex]->typeInfo) {
+                if (methodInfo->parameterInfos[paramIndex]->typeInfo != superMethodInfo->parameterInfos[paramIndex]->typeInfo or
+                    methodInfo->parameterInfos[paramIndex]->dim != superMethodInfo->parameterInfos[paramIndex]->dim) {
                     found = false;
                     break;
                 }
