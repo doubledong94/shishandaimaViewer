@@ -3405,13 +3405,7 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
             CompoundTerm::getRuntimeTerm(currentMethodKeyTerm,fieldConnection,currentKeyTerm,Term::getInt(GlobalInfo::KEY_TYPE_FIELD)),
             CompoundTerm::getLoadUseMethodRuntimeTerm(fieldConnection),
             CompoundTerm::getRuntimeTerm(nextMethodKeyTerm,fieldConnection,nextKeyTerm,Term::getInt(GlobalInfo::KEY_TYPE_FIELD)),
-                // debug purpose
-                #ifdef DEBUG_PROLOG
-                CompoundTerm::getToFileTerm(nextPoint, Term::getStr("a.txt")),
-                CompoundTerm::getLengthTerm(history,Term::getVar("L")),
-                CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
-                #endif
-                NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
+            NegationTerm::getNegInstance(CompoundTerm::getLoopMoreThanOnceTerm(history,nextPoint)),
             CompoundTerm::getTransitionTerm(
                 lineInstanceValNameTerm, classScopeTerm,
                 nextStateTerm,
@@ -3424,6 +3418,11 @@ void SimpleView::HalfLineTheFA::declareFaRules() {
                 Term::getIgnoredVar(),
                 intersection,
                 Term::getIgnoredVar(), isBackward),
+                // debug purpose
+                #ifdef DEBUG_PROLOG
+                CompoundTerm::getLengthTerm(history,Term::getVar("L")),
+                CompoundTerm::getToFileTerm(Term::getVar("L"), Term::getStr("a.txt")),
+                #endif
                 CompoundTerm::getFaTerm(
                     lineInstanceValNameTerm, classScopeTerm,
                     nextNextStateTerm,
