@@ -597,8 +597,8 @@ void EasierSimpleView::declareStepRules() {
         CompoundTerm::getRuntimeTerm(outerMethod,calledReturn,point,Term::getInt(GlobalInfo::KEY_TYPE_CALLED_RETURN)),
         CompoundTerm::getCalledKeyTerm(returnKey,calledReturn),
         // load
-        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(innerMethod)),
         CompoundTerm::getReturnTerm(innerMethod,returnKey),
+        NegationTerm::getNegInstance(CompoundTerm::getExcludeMethodTerm(innerMethod)),
         CompoundTerm::getLoadStepInRuntimeTerm(innerMethod),
         // normal key to its step key and to its runtime key
         CompoundTerm::getStepKeyTerm(returnKey,step),
