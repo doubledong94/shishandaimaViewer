@@ -362,7 +362,8 @@ PositionInRegex* NodeInfo::getExistingPositionInRegex(const string& graphName, c
 
 string NodeInfo::makeUniKey(int keyType, string& methodOfRuntime, string& runtimeKey) {
     if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
-        keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE) {
+        keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE or
+        keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
         return runtimeKey;
     } else {
         return runtimeKey + " <---> " + methodOfRuntime;
@@ -599,7 +600,8 @@ NodeInfo* BoundedIncrementalGraph::convertTailToNodeInfo(Tail* tail) {
     string& key = tail->headElements[4]->atomOrVar;
     int keyType = tail->headElements[5]->integer;
     if (keyType == GlobalInfo::KEY_TYPE_DATA_STEP or keyType == GlobalInfo::KEY_TYPE_TIMING_STEP or
-        keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE) {
+        keyType == GlobalInfo::KEY_TYPE_DATA_OVERRIDE or keyType == GlobalInfo::KEY_TYPE_TIMING_OVERRIDE or
+        keyType == GlobalInfo::KEY_TYPE_FIELD_CONNECTION) {
         runtimeKey = key;
     }
     string uniKey = NodeInfo::makeUniKey(keyType, methodOfRuntime, runtimeKey);
