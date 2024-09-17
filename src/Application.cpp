@@ -41,7 +41,7 @@
 #include "antlr/aidlParser/AIDLParserBaseVisitor.h"
 #include "antlr/visitor/AIDLParseTreeToHeaderObjVisitor.h"
 #include "antlr/visitor/JavaParseTreeToHeaderObjVisitor.h"
-#include "Parser.h"
+#include "CodeParser.h"
 #include "glad/glad.h"
 #include "error/ErrorManager.h"
 #include "simpleView/SimpleViewLexer.h"

@@ -29,7 +29,7 @@
 #include "error/ErrorManager.h"
 #include "prolog/PrologDataBaseGen.h"
 #include "absl/time/clock.h"
-#include "Parser.h"
+#include "CodeParser.h"
 
 static bool debug_parser = false;
 
