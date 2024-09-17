@@ -1,11 +1,11 @@
-#include "../../util/util.h"
-#include "../syntaxObject/Modifier.h"
-#include "../../antlr/syntaxObject/JavaHeaderFile.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "../../addressableInfo/GlobalInfo.h"
-#include "../../runtime/ScopeAndEnv.h"
-#include "HeaderEnterVisitor.h"
-#include "../../error/ErrorManager.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "addressableInfo/GlobalInfo.h"
+#include "runtime/ScopeAndEnv.h"
+#include "antlr/visitor/HeaderEnterVisitor.h"
+#include "error/ErrorManager.h"
 
 void Header::PhaseBaseClass::visitCompilationUnit(CompilationUnit* compilationUnit) {
     package = compilationUnit->package;

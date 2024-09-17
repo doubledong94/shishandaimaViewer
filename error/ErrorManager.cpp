@@ -1,5 +1,5 @@
-#include "../util/util.h"
-#include "ErrorManager.h"
+#include "util/util.h"
+#include "error/ErrorManager.h"
 
 const string ErrorManager::FileManagerTag = "FileManager";
 const string ErrorManager::TimerTag = "Timer";

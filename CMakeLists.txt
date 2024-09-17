@@ -9,6 +9,7 @@ find_package(PCL 1.8 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(external/imgui)
 include_directories(external/imgui/backends)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 file(GLOB util "util/*.h" "util/*.cpp")
 file(GLOB antlr "antlr/*.h" "antlr/*.cpp" "antlr/*/*.h" "antlr/*/*.cpp")

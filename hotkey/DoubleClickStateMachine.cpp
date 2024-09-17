@@ -1,7 +1,7 @@
-#include "../util/util.h"
-#include "../util/timer.h"
-#include "../error/ErrorManager.h"
-#include "DoubleClickStateMachine.h"
+#include "util/util.h"
+#include "util/timer.h"
+#include "error/ErrorManager.h"
+#include "hotkey/DoubleClickStateMachine.h"
 
 DoubleClickStateMachine::DoubleClickStateMachine(const long& timeoutMilli) {
     this->timeoutMilli = timeoutMilli;

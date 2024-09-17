@@ -1,8 +1,8 @@
-#include "../../util/util.h"
-#include "../javaParser/JavaParser.h"
-#include "Modifier.h"
-#include "JavaHeaderFile.h"
-#include "AntlrNodeToSyntaxObjectConverter.h"
+#include "util/util.h"
+#include "antlr/javaParser/JavaParser.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "antlr/syntaxObject/AntlrNodeToSyntaxObjectConverter.h"
 
 void AntlrNodeToSyntaxObjectConverter::convertTypeTypeOrVoid(JavaParser::TypeTypeOrVoidContext* ctx, TypeName* typeName) {
     if (ctx->VOID()) {

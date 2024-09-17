@@ -1,6 +1,6 @@
-#include "../util/util.h"
-#include "AnimationUtil.h"
+#include "util/util.h"
 #include "math.h"
+#include "animation/AnimationUtil.h"
 
 float lerp(float a, float b, float t) {
     return a + t * (b - a);

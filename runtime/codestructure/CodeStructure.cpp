@@ -1,5 +1,5 @@
-#include "../../util/util.h"
-#include "CodeStructure.h"
+#include "util/util.h"
+#include "runtime/codestructure/CodeStructure.h"
 
 const int CodeStructure::STRUCTURE_TYPE_RELATION = 1;
 const int CodeStructure::STRUCTURE_TYPE_SENTENCE = 2;

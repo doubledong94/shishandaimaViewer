@@ -1,13 +1,13 @@
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "../util/util.h"
-#include "../error/ErrorManager.h"
-#include "../util/timer.h"
-#include "LongPressStateMachine.h"
-#include "DoubleClickStateMachine.h"
-#include "HotkeyConfig.h"
-#include "../file/FileManager.h"
-#include "../res/StringRes.h"
+#include "util/util.h"
+#include "util/timer.h"
+#include "hotkey/LongPressStateMachine.h"
+#include "hotkey/DoubleClickStateMachine.h"
+#include "hotkey/HotkeyConfig.h"
+#include "file/FileManager.h"
+#include "res/StringRes.h"
+#include "error/ErrorManager.h"
 
 unsigned int HotkeyConfig::GetOrderedScanCodes(unsigned char order[4]) {
     for (int pass = 0; pass < 2; pass++) {

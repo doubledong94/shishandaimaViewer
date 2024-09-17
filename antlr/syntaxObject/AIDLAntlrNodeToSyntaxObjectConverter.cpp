@@ -1,8 +1,8 @@
-#include "../../util/util.h"
-#include "../aidlParser/AIDLParser.h"
-#include "Modifier.h"
-#include "JavaHeaderFile.h"
-#include "AIDLAntlrNodeToSyntaxObjectConverter.h"
+#include "util/util.h"
+#include "antlr/aidlParser/AIDLParser.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "antlr/syntaxObject/AIDLAntlrNodeToSyntaxObjectConverter.h"
 
 void AIDLAntlrNodeToSyntaxObjectConverter::convertInterfaceDeclaration(AIDLParser::Interface_declContext* ctx, Type* type) {
     type->flag |= Modifier::INTERFACE;

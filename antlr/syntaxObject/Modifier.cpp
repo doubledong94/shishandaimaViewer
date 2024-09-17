@@ -1,4 +1,4 @@
-#include "Modifier.h"
+#include "antlr/syntaxObject/Modifier.h"
 
 
 const int Modifier::PUBLIC = 0x00000001;

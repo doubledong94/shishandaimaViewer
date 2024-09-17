@@ -1,5 +1,5 @@
 #include <unistd.h>
-#include "util.h"
+#include "util/util.h"
 
 int getInt(ifstream& f) {
     string countStr;

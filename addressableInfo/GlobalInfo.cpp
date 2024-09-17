@@ -1,10 +1,10 @@
-#include "../util/util.h"
-#include "GlobalInfo.h"
-#include "../file/FileManager.h"
-#include "../antlr/syntaxObject/JavaHeaderFile.h"
-#include "AddressableInfo.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/GlobalInfo.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "file/FileManager.h"
 #include "SWI-cpp2.h"
-#include "../prolog/PrologConstructor.h"
+#include "prolog/PrologConstructor.h"
 
 map<string, list<TypeInfo*>> GlobalInfo::filePath2typeInfos;
 

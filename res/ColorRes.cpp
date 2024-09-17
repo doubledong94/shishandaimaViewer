@@ -1,7 +1,7 @@
-#include "../util/util.h"
+#include "util/util.h"
 #include "imgui.h"
 #include "threepp/threepp.hpp"
-#include "ColorRes.h"
+#include "res/ColorRes.h"
 
 threepp::Color ColorRes::mainWindowBgColor = threepp::Color(0.1f, 0.1f, 0.12f);
 

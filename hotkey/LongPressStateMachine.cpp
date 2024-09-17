@@ -1,6 +1,6 @@
-#include "../util/util.h"
-#include "../util/timer.h"
-#include "LongPressStateMachine.h"
+#include "util/util.h"
+#include "util/timer.h"
+#include "hotkey/LongPressStateMachine.h"
 
 LongPressStateMachine::LongPressStateMachine(const long& timeoutMilli) {
     this->timeoutMilli = timeoutMilli;

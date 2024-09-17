@@ -1,10 +1,10 @@
-#include "../../util/util.h"
-#include "../syntaxObject/Modifier.h"
-#include "../javaParser/JavaParser.h"
-#include "../syntaxObject/JavaHeaderFile.h"
-#include "../javaParser/JavaParserBaseVisitor.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "ParseTreeToHeaderObjVisitor.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "antlr/javaParser/JavaParser.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "antlr/javaParser/JavaParserBaseVisitor.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "antlr/visitor/ParseTreeToHeaderObjVisitor.h"
 
 
 void ParseTreeToHeaderObjVisitor::setSrcFilePath(const string& filePath) {

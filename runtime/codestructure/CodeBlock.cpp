@@ -1,11 +1,11 @@
-#include "../../util/util.h"
-#include "CodeStructure.h"
-#include "../../antlr/syntaxObject/JavaHeaderFile.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "Relation.h"
-#include "Sentence.h"
-#include "CodeBlock.h"
-#include "SplitCodeBlocks.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "runtime/codestructure/CodeStructure.h"
+#include "runtime/codestructure/Relation.h"
+#include "runtime/codestructure/Sentence.h"
+#include "runtime/codestructure/CodeBlock.h"
+#include "runtime/codestructure/SplitCodeBlocks.h"
 
 
 thread_local map<string, map<string, CodeBlock*>> CodeBlock::classKey2methodKey2codeBlock;

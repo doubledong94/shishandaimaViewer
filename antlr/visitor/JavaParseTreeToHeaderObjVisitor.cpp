@@ -1,12 +1,12 @@
-#include "../../util/util.h"
-#include "../syntaxObject/Modifier.h"
-#include "../javaParser/JavaParser.h"
-#include "../syntaxObject/JavaHeaderFile.h"
-#include "../syntaxObject/AntlrNodeToSyntaxObjectConverter.h"
-#include "../javaParser/JavaParserBaseVisitor.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "ParseTreeToHeaderObjVisitor.h"
-#include "JavaParseTreeToHeaderObjVisitor.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "antlr/javaParser/JavaParser.h"
+#include "antlr/javaParser/JavaParserBaseVisitor.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "antlr/syntaxObject/AntlrNodeToSyntaxObjectConverter.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "antlr/visitor/ParseTreeToHeaderObjVisitor.h"
+#include "antlr/visitor/JavaParseTreeToHeaderObjVisitor.h"
 
 
 any JavaParseTreeToHeaderObjVisitor::visitCompilationUnit(JavaParser::CompilationUnitContext* ctx) {

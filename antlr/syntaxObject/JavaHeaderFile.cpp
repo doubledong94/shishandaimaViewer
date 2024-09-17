@@ -1,5 +1,5 @@
-#include "../../util/util.h"
-#include "JavaHeaderFile.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
 
 void TypeName::toFile(ofstream& f) {
     f << dim << "\n";

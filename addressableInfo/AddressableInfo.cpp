@@ -1,11 +1,11 @@
-#include "../util/util.h"
-#include "GlobalInfo.h"
-#include "../antlr/syntaxObject/JavaHeaderFile.h"
-#include "AddressableInfo.h"
-#include "../file/FileManager.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "addressableInfo/GlobalInfo.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "file/FileManager.h"
 #include "SWI-cpp2.h"
-#include "../prolog/PrologConstructor.h"
-#include "../antlr/syntaxObject/Modifier.h"
+#include "prolog/PrologConstructor.h"
 
 unordered_map<string, TypeInfo*> AddressableInfo::typeKey2typeInfo;
 

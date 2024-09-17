@@ -4,10 +4,10 @@
 #include "threepp/objects/LineSegments.hpp"
 #include "threepp/materials/LineBasicMaterial.hpp"
 #include "threepp/loaders/TextureLoader.hpp"
-#include "../../util/util.h"
+#include "util/util.h"
 #include "igraph.h"
-#include "BoundFrame.h"
-#include "../../file/FileManager.h"
+#include "threepp/custom/BoundFrame.h"
+#include "file/FileManager.h"
 
 using namespace threepp;
 

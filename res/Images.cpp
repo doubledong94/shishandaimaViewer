@@ -1,10 +1,9 @@
-#include "../util/util.h"
-
+#include "util/util.h"
 #include "glad/glad.h"
 #include "stb_image.h"
-#include "../file/FileManager.h"
-#include "../error/ErrorManager.h"
-#include "Images.h"
+#include "file/FileManager.h"
+#include "error/ErrorManager.h"
+#include "res/Images.h"
 
 
 // Simple helper function to load an image into a OpenGL texture with common settings

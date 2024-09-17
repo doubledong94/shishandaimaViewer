@@ -1,11 +1,11 @@
 
-#include "../../util/util.h"
+#include "util/util.h"
 #include "threepp/math/MathUtils.hpp"
 #include "threepp/materials/RawShaderMaterial.hpp"
 #include "threepp/core/BufferGeometry.hpp"
 #include "threepp/objects/Mesh.hpp"
-#include "../../error/ErrorManager.h"
-#include "FlowLine.h"
+#include "error/ErrorManager.h"
+#include "threepp/custom/FlowLine.h"
 
 void FlowLine::createGeometry() {
     spdlog::get(ErrorManager::DebugTag)->warn("create edge geo for edge capacity : {}", edgeCapacity);

@@ -1,11 +1,11 @@
-#include "../../util/util.h"
-#include "../../addressableInfo/GlobalInfo.h"
-#include "../../antlr/syntaxObject/JavaHeaderFile.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "CodeStructure.h"
-#include "Relation.h"
-#include "Sentence.h"
-#include "CodeBlock.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/GlobalInfo.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "runtime/codestructure/CodeStructure.h"
+#include "runtime/codestructure/Relation.h"
+#include "runtime/codestructure/Sentence.h"
+#include "runtime/codestructure/CodeBlock.h"
 
 bool ResolvingItem::happenLaterThan(ResolvingItem* item) {
     vector<int> sentenceIndex1 = extractStenceIndex();

@@ -1,9 +1,9 @@
-#include "../../util/util.h"
-#include "CodeStructure.h"
-#include "../../antlr/syntaxObject/JavaHeaderFile.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "Relation.h"
-#include "Sentence.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "runtime/codestructure/CodeStructure.h"
+#include "runtime/codestructure/Relation.h"
+#include "runtime/codestructure/Sentence.h"
 
 int Sentence::FOR_INIT_SENT_INDEX = -1000000;
 string Sentence::FOR_INIT_SENT_INDEX_STR = "-1000000";

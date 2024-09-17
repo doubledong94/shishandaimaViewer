@@ -1,10 +1,10 @@
-#include "../../util/util.h"
-#include "../../antlr/syntaxObject/JavaHeaderFile.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "../../runtime/codestructure/CodeStructure.h"
-#include "../../runtime/codestructure/Relation.h"
-#include "TypeCheckAndInference.h"
-#include "../../error/ErrorManager.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "runtime/codestructure/CodeStructure.h"
+#include "runtime/codestructure/Relation.h"
+#include "runtime/type/TypeCheckAndInference.h"
+#include "error/ErrorManager.h"
 
 bool TypeCheckAndInference::isAssignable(TypeInfo* typeInfo, TypeInfo* superTypeInfo) {
     if (not typeInfo or not superTypeInfo) {

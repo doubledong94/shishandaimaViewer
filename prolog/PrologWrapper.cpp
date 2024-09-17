@@ -1,11 +1,11 @@
-#include "../util/util.h"
-#include "../antlr/syntaxObject/JavaHeaderFile.h"
-#include "../addressableInfo/AddressableInfo.h"
-#include "../file/FileManager.h"
+#include "util/util.h"
 #include "SWI-cpp2.h"
-#include "PrologConstructor.h"
-#include "PrologWrapper.h"
-#include "../error/ErrorManager.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "file/FileManager.h"
+#include "prolog/PrologConstructor.h"
+#include "prolog/PrologWrapper.h"
+#include "error/ErrorManager.h"
 
 PlEngine* PrologWrapper::e = NULL;
 

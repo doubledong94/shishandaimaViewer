@@ -1,12 +1,12 @@
 
-#include "../../util/util.h"
+#include "igraph.h"
 #include "threepp/math/MathUtils.hpp"
 #include "threepp/materials/RawShaderMaterial.hpp"
 #include "threepp/core/BufferGeometry.hpp"
 #include "threepp/objects/InstancedMesh.hpp"
-#include "../../error/ErrorManager.h"
-#include "igraph.h"
-#include "Nodes.h"
+#include "util/util.h"
+#include "error/ErrorManager.h"
+#include "threepp/custom/Nodes.h"
 
 Nodes::Nodes(int capacity, float initNodeSize) :threepp::InstancedMesh(NULL, NULL, capacity) {
     nodeCapacity = capacity;

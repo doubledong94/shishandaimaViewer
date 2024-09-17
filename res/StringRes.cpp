@@ -1,5 +1,5 @@
-#include "../util/util.h"
-#include "StringRes.h"
+#include "util/util.h"
+#include "res/StringRes.h"
 
 char* StringRes::getAppName() { return NULL; };
 char* StringRes::getString_close() { return NULL; };

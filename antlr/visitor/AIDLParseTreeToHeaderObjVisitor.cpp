@@ -1,12 +1,12 @@
-#include "../../util/util.h"
-#include "../syntaxObject/Modifier.h"
-#include "../syntaxObject/JavaHeaderFile.h"
-#include "../aidlParser/AIDLParser.h"
-#include "../syntaxObject/AIDLAntlrNodeToSyntaxObjectConverter.h"
-#include "../../addressableInfo/AddressableInfo.h"
-#include "ParseTreeToHeaderObjVisitor.h"
-#include "../aidlParser/AIDLParserBaseVisitor.h"
-#include "AIDLParseTreeToHeaderObjVisitor.h"
+#include "util/util.h"
+#include "antlr/syntaxObject/Modifier.h"
+#include "antlr/syntaxObject/JavaHeaderFile.h"
+#include "antlr/aidlParser/AIDLParser.h"
+#include "antlr/syntaxObject/AIDLAntlrNodeToSyntaxObjectConverter.h"
+#include "antlr/aidlParser/AIDLParserBaseVisitor.h"
+#include "addressableInfo/AddressableInfo.h"
+#include "antlr/visitor/ParseTreeToHeaderObjVisitor.h"
+#include "antlr/visitor/AIDLParseTreeToHeaderObjVisitor.h"
 
 std::any AIDLParseTreeToHeaderObjVisitor::visitCompilationUnit(AIDLParser::CompilationUnitContext* ctx) {
     if (ctx->optional_package()) {
