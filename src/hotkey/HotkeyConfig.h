@@ -162,26 +162,11 @@ enum HotkeyFunction {
     CHANGE_MAX_SEARCH_DEPTH,
 };
 
-enum ClickStyle {
-    SINGLE_CLICK,
-    DOUBLE_CLICK,
-    LONG_PRESS
-};
-
 struct HotKey {
     int hotkeyFunction;
     const char* functionName;
     unsigned int functionKeys;
-    int clickStyle;
-};
-
-class ClickStyleHandler {
-public:
-    LongPressStateMachine* longPressStateMachine = NULL;
-    DoubleClickStateMachine* doubleClickStateMachine = NULL;
-    ClickStyleHandler();
-    void donw(HotKey& hotkey);
-    void up(HotKey& hotkey);
+    bool canLasting = false;
 };
 
 class HotkeyConfig {
@@ -189,17 +174,13 @@ public:
     static vector<HotKey> hotkeys;
     static map<int, HotKey*> hotkeyMap;
 
-    static map<int, ClickStyleHandler> keyToClickHandler;
-
     static map<int, function<void(void)>> functionEnumToFunction;
 
     static unsigned int GetOrderedScanCodes(unsigned char order[4]);
 
-    static void onFrame();
-
     static void loadHotkeyConfig(const string& filePath);
 
-    static void init();
-
     static void saveHotkeyConfig(const string& filePath);
+
+    static void init();
 };

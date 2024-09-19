@@ -53,7 +53,6 @@
 #include "gui/imfilebrowser.h"
 #include "hotkey/LongPressStateMachine.h"
 #include "hotkey/HotkeyConfig.h"
-#include "gui/imHotKey.h"
 #include "Application.h"
 #include <thread>
 #include <regex>
@@ -71,11 +70,18 @@
 #include "threepp/helpers/AxesHelper.hpp"
 #include "absl/time/clock.h"
 #include "animation/AnimationUtil.h"
+#include "hotkey/KeyEvent.h"
+#include "gui/Showable.h"
+#include "gui/HotkeyWindow.h"
+#include "gui/Window.h"
+#include "gui/EditLineAndGraphWindow.h"
+#include "gui/ShowableCoordinator.h"
+#include "hotkey/KeyToEvent.h"
 
 using namespace threepp;
 
-app::Application::Application(app::Parser* parser1) {
-    parser = parser1;
+app::Application::Application() {
+    parser = new app::Parser();
     textLoaderThreadPool = new ThreadPool(1);
 }
 
@@ -161,7 +167,6 @@ static bool searchingInProgress = false;
 
 int app::Application::ApplicationMain() {
 
-    static bool hotkeyPopupOpen = false;
     static bool editLineAndGraphOpen = false;
     static bool editDimControlOpen = false;
     static bool excludePackageOpen = false;
@@ -236,10 +241,16 @@ int app::Application::ApplicationMain() {
     static list<string> graphsTeBeRestored;
     static string graphToBeDeleted;
 
+    ShowableCoordinator::staticInit();
+    ShowableCoordinator guiCoordinator;
+    std::function<void(const shishan::KeyEvent&)> keyEventReceiver = [&](const shishan::KeyEvent& event) {
+        guiCoordinator.onKeyEvent(event);
+        };
+    KeyToEvent keyToEvent(keyEventReceiver);
     // all hotkey functions
     HotkeyConfig::functionEnumToFunction[SHOW_EDIT_HOTKEY] = [&]() {
         showTooltip = false;
-        hotkeyPopupOpen = !hotkeyPopupOpen;
+        guiCoordinator.toState(ShowableCoordinator::editHotkeyState);
         };
     HotkeyConfig::functionEnumToFunction[CHOOOSE_CLASS_SCOPE] = [&]() {
         showTooltip = false;
@@ -419,7 +430,9 @@ int app::Application::ApplicationMain() {
         showTooltip = false;
         shishan::showGraphList = false;
         shishan::forceRelayout();
-        editLineAndGraphOpen = !editLineAndGraphOpen;};
+        editLineAndGraphOpen = !editLineAndGraphOpen;
+        guiCoordinator.toState(ShowableCoordinator::editLineAndGraphState);
+        };
     HotkeyConfig::functionEnumToFunction[CHANGE_MAX_SEARCH_DEPTH] = [&]() {
         SimpleView::RegexTree::changeMaxRecurDepth();
         };
@@ -750,6 +763,7 @@ int app::Application::ApplicationMain() {
         camera->updateProjectionMatrix();
         renderer.setSize(size);
         colorWidgetWidth = size.width / 5;
+        guiCoordinator.onWindowResize(size.width, size.height);
         });
     colorWidgetWidth = canvas.size().width / 5;
 
@@ -791,21 +805,7 @@ int app::Application::ApplicationMain() {
         }
         ImGuiIO& io = ImGui::GetIO();
 
-        if (!hotkeyPopupOpen and
-            !editLineAndGraphOpen and
-            !editDimControlOpen and
-            !excludePackageOpen and
-            !excludeClassOpen and
-            !showSelectedNodeText and
-            !searchedLineAndGraphOpen and
-            !aboutToParseFile and
-            !aboutToDeleteGraph and
-            !parser->parsing and
-            !openPopupForSaveNodes and
-            !openPopupForSaveGraph) {
-            HotkeyConfig::onFrame();
-        }
-
+        keyToEvent.update();
         if (showTooltip) {
             showTooltip = not (
                 ImGui::IsPopupOpen("selectByInDegreePopupOpen") or
@@ -885,7 +885,6 @@ int app::Application::ApplicationMain() {
                 shishan::chosenClassToFile(f);
                 f.close();
             }
-            hotkeyPopupOpen = false;
             editLineAndGraphOpen = false;
             editDimControlOpen = false;
             excludePackageOpen = false;
@@ -897,6 +896,7 @@ int app::Application::ApplicationMain() {
             aboutToDeleteGraph = false;
             openPopupForSaveNodes = false;
             openPopupForSaveGraph = false;
+            guiCoordinator.stateBack();
         }
 
         if (aboutToParseFile) {
@@ -914,7 +914,6 @@ int app::Application::ApplicationMain() {
                 });
         }
 
-        shishan::editLineAndGraph(editLineAndGraphOpen);
         shishan::showGraphSelectorWindow(searchedLineAndGraphOpen, methodOfRuntimeForNodeSelection, graphNameToLineNameToRegex);
         shishan::showDimControlWindow(editDimControlOpen);
         shishan::showChooseExcludePackageWindow(excludePackageOpen);
@@ -1189,9 +1188,9 @@ int app::Application::ApplicationMain() {
             ImGui::EndPopup();
         }
 
-        ImHotKey::Edit(HotkeyConfig::hotkeys.data(), HotkeyConfig::hotkeys.size(), StringRes::singleton->getHotkeyEditor(), hotkeyPopupOpen);
+        guiCoordinator.render();
 
-        bool showStatusBar = not hotkeyPopupOpen and not searchedLineAndGraphOpen;
+        bool showStatusBar = not searchedLineAndGraphOpen;
 
         if (showStatusBar) {
             ImGui::SetNextWindowBgAlpha(0.3f);
@@ -1432,6 +1431,9 @@ int app::Application::ApplicationMain() {
         glClear(GL_COLOR_BUFFER_BIT);
         renderer.render(*scene, *camera);
         ui.render();
+        if (threeDControls.enableDamping and threeDControls.enabled) {
+            threeDControls.update();
+        }
         };
 
     searchNodeInGraph = [&](char* searchStr, vector<const char*>& searchResult) {
@@ -1446,23 +1448,11 @@ int app::Application::ApplicationMain() {
     searchNodeByPositionInRegex = [&](map<string, map<string, set<string>>>& positionInRegex, vector<const char*>& searchResult) {
         boundedGraph->searchNodeByPositionInRegex(positionInRegex, searchResult);
         };
-
+    WindowSize size = canvas.size();
+    guiCoordinator.onWindowResize(size.width, size.height);
     // const auto axes = AxesHelper::create(10);
     // scene->add(axes);
-
-    bool continueAnim = true;
-    while (continueAnim) {
-        try {
-            continueAnim = canvas.animateOnce(f);
-            if (threeDControls.enableDamping and threeDControls.enabled) {
-                threeDControls.update();
-            }
-        } catch (const std::bad_function_call& e) {
-            std::cout << e.what() << '\n';
-            continueAnim = true;
-        }
-    }
-
+    canvas.animate(f);
     PL_destroy_engine(pl_engine_for_earching);
     boundedGraph->dispose();
     return 0;
@@ -1476,7 +1466,6 @@ int main(int argc, char** argv) {
     ErrorManager::init();
     prologLoaded = PrologWrapper::init();
     PrologConstructor::init();
-    app::Parser parser;
     HotkeyConfig::loadHotkeyConfig(FileManager::hotkeyConfig);
     ifstream ifs;
     ifs.open(FileManager::dimControlConfig);
@@ -1492,7 +1481,7 @@ int main(int argc, char** argv) {
     BoundedIncrementalGraph::deserializeFilePath();
     SimpleView::Searcher::getExcludePkg = shishan::getExcludePkg;
     SimpleView::Searcher::getExcludeClass = shishan::getExcludeClass;
-    app::Application app(&parser);
+    app::Application app = app::Application();
     app::appPtr = &app;
     app.ApplicationMain();
     if (prologLoaded) {

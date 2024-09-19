@@ -16,6 +16,7 @@ file(GLOB animation "src/animation/*.h" "src/animation/*.cpp")
 file(GLOB antlr "src/antlr/*.h" "src/antlr/*.cpp" "src/antlr/*/*.h" "src/antlr/*/*.cpp")
 file(GLOB error "src/error/*.cpp" "src/error/*.h")
 file(GLOB fileManager "src/file/*.cpp" "src/file/*.h")
+file(GLOB customGui "src/gui/*.cpp" "src/gui/*.h")
 file(GLOB hotkey "src/hotkey/*.cpp" "src/hotkey/*.h")
 file(GLOB ikdtree "src/ikdTree/*.h" "src/ikdTree/*.cpp")
 file(GLOB prologUtil "src/prolog/*.cpp" "src/prolog/*.h")
@@ -40,6 +41,7 @@ add_executable(${PROJECT_NAME}
     ${prologUtil}
     ${util}
     ${imgui}
+    ${customGui}
     ${runtime}
     ${antlr}
     ${customThree}

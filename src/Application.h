@@ -34,7 +34,7 @@ namespace app {
         threepp::Raycaster raycaster;
     public:
         std::shared_ptr<BoundedIncrementalGraph> boundedGraph;
-        Application(Parser* parser1);
+        Application();
 
         int ApplicationMain();
 

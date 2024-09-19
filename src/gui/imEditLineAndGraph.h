@@ -296,7 +296,7 @@ namespace shishan {
         }
     }
 
-    void onExitEditMode() {
+    static void onExitEditMode() {
         classScopeEditValueSelectedIndex = 0;
         nodeEditValueSelectedIndex = 0;
         lineEditValueSelectedIndex = 0;
@@ -1644,7 +1644,7 @@ namespace shishan {
         void onShowList(SimpleView::ClassScope* classScope) {
             std::thread worker([&](SimpleView::ClassScope* classScope) {
                 PL_thread_attach_engine(NULL);
-                classScope->resolve(&loadingAddressableProgress);
+                classScope->resolve(NULL);
                 classScope->listTerm(searchResults);
                 PL_thread_destroy_engine();
                 }, classScope);
@@ -1698,7 +1698,7 @@ namespace shishan {
         void onShowList(SimpleView::Node* node) {
             std::thread worker([&](SimpleView::Node* node) {
                 PL_thread_attach_engine(NULL);
-                node->resolve(&loadingAddressableProgress);
+                node->resolve(NULL);
                 node->listTerm(searchResults);
                 PL_thread_destroy_engine();
                 }, node);
@@ -1936,7 +1936,7 @@ namespace shishan {
         EasierSimpleView::filterSearchResults(searchedStr, searchResult);
     }
 
-    void showDialogForDeletion() {
+    static void showDialogForDeletion() {
         if (showRejectDeleteClassScopeBecauseEmpty) {
             showRejectDialog("class list cannot be empty", &showRejectDeleteClassScopeBecauseEmpty);
         }
@@ -2108,15 +2108,11 @@ namespace shishan {
         }
     }
 
-    static void editLineAndGraph(bool open) {
-        if (not open) {
-            return;
-        }
+    static void editLineAndGraph() {
         updateLayoutSpec(ImGui::GetIO().DisplaySize);
         float fontSize = ImGui::GetFontSize();
         ImGui::GetStyle().WindowShadowSize = 0;
         ImGui::GetStyle().WindowBorderSize = 0;
-        ImVec4 panelBgColor = ColorRes::controlPanelBgColor;
 
         // style start
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ColorRes::noBgColor);
@@ -2134,7 +2130,7 @@ namespace shishan {
         // edit window start
         ImGui::SetCursorPos({ mainWindowPadding,mainWindowPadding });
         ImGui::BeginChild("editWindow", ImVec2(editWindowWidth, childWindowHeight), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, panelBgColor);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::controlPanelBgColor);
 
         // class window start
         if (not showGraphList) {
@@ -2532,7 +2528,7 @@ namespace shishan {
             shadow(classWindowWidth, graphWindowHeight);
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::noBgColor);
             ImGui::BeginChild("graphWindow", ImVec2(classWindowWidth, graphWindowHeight), ImGuiChildFlags_None, ImGuiWindowFlags_None);
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, panelBgColor);
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::controlPanelBgColor);
             // graph list start
             ImGui::SetCursorPos({ 0, 0 });
             ImGui::BeginChild("graphList", ImVec2(graphItem1Width, graphWindowHeight), ImGuiChildFlags_None, ImGuiWindowFlags_None);
@@ -2869,7 +2865,7 @@ namespace shishan {
         // dispaly window start
         ImGui::SetCursorPos({ editWindowWidth + mainWindowPadding + spacingHor,mainWindowPadding });
         ImGui::BeginChild("displayWindow", ImVec2(displayWindowWidth, childWindowHeight), ImGuiChildFlags_AlwaysUseWindowPadding, ImGuiWindowFlags_None);
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, panelBgColor);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ColorRes::controlPanelBgColor);
 
         // adjust window start
         ImGui::SetCursorPos({ searchBarLeft - childWindowPadding,childWindowPadding });

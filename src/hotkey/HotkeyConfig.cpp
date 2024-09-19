@@ -1,11 +1,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "util/util.h"
-#include "util/timer.h"
-#include "hotkey/LongPressStateMachine.h"
-#include "hotkey/DoubleClickStateMachine.h"
 #include "hotkey/HotkeyConfig.h"
-#include "file/FileManager.h"
 #include "res/StringRes.h"
 #include "error/ErrorManager.h"
 
@@ -20,196 +16,116 @@ unsigned int HotkeyConfig::GetOrderedScanCodes(unsigned char order[4]) {
     return (order[3] << 24) + (order[2] << 16) + (order[1] << 8) + order[0];
 }
 
-static bool isKeyAlphabetDown(Key& k) {
-    bool rightShiftDown = k.imkey == ImGuiKey_LeftShift and ImGui::IsKeyDown(ImGuiKey_RightShift);
-    bool rightCtrlDown = k.imkey == ImGuiKey_LeftCtrl and ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-    bool rightAltDown = k.imkey == ImGuiKey_LeftAlt and ImGui::IsKeyDown(ImGuiKey_RightAlt);
-    return rightShiftDown or rightCtrlDown or rightAltDown or ImGui::IsKeyDown(k.imkey);
-}
-
-static int GetHotKeyDown(HotKey* hotkey, size_t hotkeyCount) {
-    static unsigned int lastHotKey = 0xFFFFFFFF;
-    unsigned char order[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    int scanCodeCount = 0;
-    for (auto orderAndKey : orderToKeyAlphabet) {
-        if (isKeyAlphabetDown(orderAndKey.second)) {
-            order[scanCodeCount] = orderAndKey.first;
-            scanCodeCount++;
-            if (scanCodeCount == 4)
-                break;
-        }
-    }
-
-    unsigned int newHotKey = HotkeyConfig::GetOrderedScanCodes(order);
-
-    if (scanCodeCount) {
-        if (newHotKey != lastHotKey) {
-            for (size_t i = 0; i < hotkeyCount; i++) {
-                if (hotkey[i].functionKeys == newHotKey) {
-                    lastHotKey = newHotKey;
-                    return int(i);
-                }
-            }
-            lastHotKey = 0xFFFFFFFF;
-        }
-        return -1;
-    }
-    lastHotKey = 0xFFFFFFFF;
-    return -1;
-}
-
-static bool isKeyStillPressed(HotKey& hotkey) {
-    unsigned char order[4] = { 0xFF, 0xFF, 0xFF, 0xFF };
-    int scanCodeCount = 0;
-    for (auto orderAndKey : orderToKeyAlphabet) {
-        if (isKeyAlphabetDown(orderAndKey.second)) {
-            order[scanCodeCount] = orderAndKey.first;
-            scanCodeCount++;
-            if (scanCodeCount == 4) {
-                break;
-            }
-        }
-    }
-    unsigned int newHotKey = HotkeyConfig::GetOrderedScanCodes(order);
-    return hotkey.functionKeys == newHotKey;
-}
-
 vector<HotKey> HotkeyConfig::hotkeys = {
-    {SHOW_EDIT_HOTKEY,"show/edit hotkey",0xffffff51, SINGLE_CLICK},
+    {SHOW_EDIT_HOTKEY,"show/edit hotkey",0xffffff51},
     // prepare 1
-    {PARSE_FILE,"parse files",0xff320501, SINGLE_CLICK},
+    {PARSE_FILE,"parse files",0xff320501},
     // prepare 2
-    {SHOW_EDIT_LINE_AND_GRAPH,"edit line and graph",0xffffff2b, SINGLE_CLICK},
-    {CHANGE_MAX_SEARCH_DEPTH,"change max search depth",0xffffff37,SINGLE_CLICK},
-    {CHOOOSE_CLASS_SCOPE,"choose class scope",0xffffff33,SINGLE_CLICK},
-    {UNCHOOOSE_CLASS_SCOPE,"unchoose class scope",0xffff3303,SINGLE_CLICK},
-    {CHOOSE_LINE_INSTANCE_TO_SEARCH,"search line instance",0xffffff34,SINGLE_CLICK},
-    {UNCHOOSE_LINE_INSTANCE_TO_SEARCH,"unsearch line instance",0xffff3403,SINGLE_CLICK},
-    {CHOOSE_GRAPH_INSTANCE_TO_SEARCH,"search graph instance",0xffffff35,SINGLE_CLICK},
-    {UNCHOOSE_GRAPH_INSTANCE_TO_SEARCH,"unsearch graph instance",0xffff3503,SINGLE_CLICK},
-    {EXCLUDE_PACKAGE,"exclude package",0xffff6e32,SINGLE_CLICK},
-    {EXCLUDE_CLASS,"exclude class",0xffff6e3e,SINGLE_CLICK},
+    {SHOW_EDIT_LINE_AND_GRAPH,"edit line and graph",0xffffff2b},
+    {CHANGE_MAX_SEARCH_DEPTH,"change max search depth",0xffffff37},
+    {CHOOOSE_CLASS_SCOPE,"choose class scope",0xffffff33},
+    {UNCHOOOSE_CLASS_SCOPE,"unchoose class scope",0xffff3303},
+    {CHOOSE_LINE_INSTANCE_TO_SEARCH,"search line instance",0xffffff34},
+    {UNCHOOSE_LINE_INSTANCE_TO_SEARCH,"unsearch line instance",0xffff3403},
+    {CHOOSE_GRAPH_INSTANCE_TO_SEARCH,"search graph instance",0xffffff35},
+    {UNCHOOSE_GRAPH_INSTANCE_TO_SEARCH,"unsearch graph instance",0xffff3503},
+    {EXCLUDE_PACKAGE,"exclude package",0xffff6e32},
+    {EXCLUDE_CLASS,"exclude class",0xffff6e3e},
     // add and remove node
-    {START_SEARCHING,"start searching",0xffff3601,SINGLE_CLICK},
-    {REMOVE_SELECTED_NODES, "remove selected node", 0xffff6e01,SINGLE_CLICK},
-    {REMOVE_ALL_NODES, "remove all node", 0xff6e0501,SINGLE_CLICK},
-    {TRANSITIVE_REDUCTION, "transitive reduction", 0xffff2c01,SINGLE_CLICK},
+    {START_SEARCHING,"start searching",0xffff3601},
+    {REMOVE_SELECTED_NODES, "remove selected node", 0xffff6e01},
+    {REMOVE_ALL_NODES, "remove all node", 0xff6e0501},
+    {TRANSITIVE_REDUCTION, "transitive reduction", 0xffff2c01},
     // select node
-    {SELECT_ALL_NODE, "select all node", 0xffff3301,SINGLE_CLICK},
-    {UNSELECT_ALL, "unselect all node", 0xffffff3e,SINGLE_CLICK},
-    {REVERSE_SELECT, "reverse selection", 0xffff6e03,SINGLE_CLICK},
-    {SELECT_LOOP, "select loop", 0xffff3b01,SINGLE_CLICK},
-    {SELECT_UPWARD, "select upward", 0xffffff6c,SINGLE_CLICK},
-    {SELECT_UPWARD_TO_THE_TOP, "select upward", 0xffff6c03,SINGLE_CLICK},
-    {SELECT_DOWNWARD, "select downward", 0xffffff6d,SINGLE_CLICK},
-    {SELECT_DOWNWARD_TO_THE_BOTTOM, "select downward", 0xffff6d03,SINGLE_CLICK},
-    {SELECT_PATH_IN_BETWEEN, "select path in between", 0xffff403b,SINGLE_CLICK},
-    {SELECT_SHORTEST_PATH_IN_BETWEEN, "select shortest path in between", 0xffff3b34,SINGLE_CLICK},
-    {SELECT_PATH_UPWARD, "select path upward", 0xffff3b2f,SINGLE_CLICK},
-    {SELECT_PATH_DOWNWARD, "select path downward", 0xffff3b35,SINGLE_CLICK},
-    {SHOW_SEARCHED_LINE_AND_GRAPH,"show searched line and graph",0xffffff2c,SINGLE_CLICK},
-    {SELECT_BY_KEY_TYPE,"select by key type",0xffff3a01,SINGLE_CLICK},
-    {SELECT_BY_DEGREE, "select by degree", 0xffff6a01,SINGLE_CLICK},
-    {SELECT_BY_IN_DEGREE, "select by in degree", 0xffff6c01,SINGLE_CLICK},
-    {SELECT_BY_OUT_DEGREE, "select by out degree", 0xffff6d01,SINGLE_CLICK},
-    {SELECT_BY_METHOD_SATCK_SIZE, "select by method stack size", 0xffff4201,SINGLE_CLICK},
-    {SELECT_BY_COMPONENT, "select by component", 0xffffff32,SINGLE_CLICK},
-    {SELECT_BY_GROUP, "select by group", 0xffff3201,SINGLE_CLICK},
-    {SELECT_FROM_ALL, "select from all or from selected", 0xffffff36,SINGLE_CLICK},
-    {DIM_CONTROL_EDITOR, "dim control editor", 0xffffff2f,SINGLE_CLICK},
-    {SHOW_SELECTED_NODE_TEXT, "show selected node text", 0xffffff6b,SINGLE_CLICK},
+    {SELECT_ALL_NODE, "select all node", 0xffff3301},
+    {UNSELECT_ALL, "unselect all node", 0xffffff3e},
+    {REVERSE_SELECT, "reverse selection", 0xffff6e03},
+    {SELECT_LOOP, "select loop", 0xffff3b01},
+    {SELECT_UPWARD, "select upward", 0xffffff6c},
+    {SELECT_UPWARD_TO_THE_TOP, "select upward", 0xffff6c03},
+    {SELECT_DOWNWARD, "select downward", 0xffffff6d},
+    {SELECT_DOWNWARD_TO_THE_BOTTOM, "select downward", 0xffff6d03},
+    {SELECT_PATH_IN_BETWEEN, "select path in between", 0xffff403b},
+    {SELECT_SHORTEST_PATH_IN_BETWEEN, "select shortest path in between", 0xffff3b34},
+    {SELECT_PATH_UPWARD, "select path upward", 0xffff3b2f},
+    {SELECT_PATH_DOWNWARD, "select path downward", 0xffff3b35},
+    {SHOW_SEARCHED_LINE_AND_GRAPH,"show searched line and graph",0xffffff2c},
+    {SELECT_BY_KEY_TYPE,"select by key type",0xffff3a01},
+    {SELECT_BY_DEGREE, "select by degree", 0xffff6a01},
+    {SELECT_BY_IN_DEGREE, "select by in degree", 0xffff6c01},
+    {SELECT_BY_OUT_DEGREE, "select by out degree", 0xffff6d01},
+    {SELECT_BY_METHOD_SATCK_SIZE, "select by method stack size", 0xffff4201},
+    {SELECT_BY_COMPONENT, "select by component", 0xffffff32},
+    {SELECT_BY_GROUP, "select by group", 0xffff3201},
+    {SELECT_FROM_ALL, "select from all or from selected", 0xffffff36},
+    {DIM_CONTROL_EDITOR, "dim control editor", 0xffffff2f},
+    {SHOW_SELECTED_NODE_TEXT, "show selected node text", 0xffffff6b},
     // layout
-    {START_OR_STOP_LAYOUT_ANIM, "start/stop layout animiation", 0xffffff3c,SINGLE_CLICK},
-    {TO_2D_LAYOUT,"2D layout",0xffffff52, SINGLE_CLICK},
-    {TO_3D_LAYOUT,"3D layout",0xffffff53, SINGLE_CLICK},
-    {INCREASE_TEMPERATURE, "increase temperature", 0xffff662d,SINGLE_CLICK},
-    {DECREASE_TEMPERATURE, "decrease temperature", 0xffff652d,SINGLE_CLICK},
-    {INCREASE_WEIGHT, "increase graph weight", 0xffff662a,SINGLE_CLICK},
-    {DECREASE_WEIGHT, "decrease graph weight", 0xffff652a,SINGLE_CLICK},
-    {RESET_WEIGHT, "reset graph weight", 0xff2a0501,SINGLE_CLICK},
-    {FIX_POSITION, "fix position", 0xffff3f01,SINGLE_CLICK},
-    {RELEASE_POSITION, "unfix position", 0xffff3f03,SINGLE_CLICK},
-    {UNFIX_ALL_NODE, "unfix all position", 0xff3f0501,SINGLE_CLICK},
-    {FIX_X_COORD, "fix x coord", 0xffff3d01,SINGLE_CLICK},
-    {RELEASE_X_COORD, "fix x coord", 0xffff3d03,SINGLE_CLICK},
-    {RELEASE_ALL_X_COORD, "fix x coord", 0xff3d0501,SINGLE_CLICK},
-    {FIX_Y_COORD, "fix y coord", 0xffff2e01,SINGLE_CLICK},
-    {RELEASE_Y_COORD, "fix y coord", 0xffff2e03,SINGLE_CLICK},
-    {RELEASE_ALL_Y_COORD, "fix y coord", 0xff2e0501,SINGLE_CLICK},
-    {BOUND_SELECTED_NODE, "bound selected node", 0xffff4001,SINGLE_CLICK},
-    {UNBOUND_SELECTED_NODE, "unbound selected node", 0xffff4003,SINGLE_CLICK},
-    {UNBOUND_UNSELECTED_NODE, "unbound unselected node", 0xff400501,SINGLE_CLICK},
-    {GROUP, "group selected nodes", 0xffff3901,SINGLE_CLICK},
-    {UNGROUP, "ungroup selected nodes", 0xffff3903,SINGLE_CLICK},
-    {UNGROUP_ALL_NODE, "ungroup all nodes", 0xff390501,SINGLE_CLICK},
-    {AUTO_GROUP_X, "auto group x", 0xffff3d3b,SINGLE_CLICK},
-    {AUTO_GROUP_Y, "auto group y", 0xffff3b2e,SINGLE_CLICK},
-    {AUTO_GROUP_XY, "auto group x and y", 0xffff3b39,SINGLE_CLICK},
-    {BOUND_BY_CLASS, "bound by class", 0xffff403e,SINGLE_CLICK},
-    {BOUND_BY_METHOD, "bound by method", 0xffff4240,SINGLE_CLICK},
-    {TREE_UP, "tree up", 0xffff2f2d,SINGLE_CLICK},
-    {TREE_DOWN, "tree down", 0xffff352d,SINGLE_CLICK},
+    {START_OR_STOP_LAYOUT_ANIM, "start/stop layout animiation", 0xffffff3c},
+    {TO_2D_LAYOUT,"2D layout",0xffffff52},
+    {TO_3D_LAYOUT,"3D layout",0xffffff53},
+    {INCREASE_TEMPERATURE, "increase temperature", 0xffff662d},
+    {DECREASE_TEMPERATURE, "decrease temperature", 0xffff652d},
+    {INCREASE_WEIGHT, "increase graph weight", 0xffff662a},
+    {DECREASE_WEIGHT, "decrease graph weight", 0xffff652a},
+    {RESET_WEIGHT, "reset graph weight", 0xff2a0501},
+    {FIX_POSITION, "fix position", 0xffff3f01},
+    {RELEASE_POSITION, "unfix position", 0xffff3f03},
+    {UNFIX_ALL_NODE, "unfix all position", 0xff3f0501},
+    {FIX_X_COORD, "fix x coord", 0xffff3d01},
+    {RELEASE_X_COORD, "fix x coord", 0xffff3d03},
+    {RELEASE_ALL_X_COORD, "fix x coord", 0xff3d0501},
+    {FIX_Y_COORD, "fix y coord", 0xffff2e01},
+    {RELEASE_Y_COORD, "fix y coord", 0xffff2e03},
+    {RELEASE_ALL_Y_COORD, "fix y coord", 0xff2e0501},
+    {BOUND_SELECTED_NODE, "bound selected node", 0xffff4001},
+    {UNBOUND_SELECTED_NODE, "unbound selected node", 0xffff4003},
+    {UNBOUND_UNSELECTED_NODE, "unbound unselected node", 0xff400501},
+    {GROUP, "group selected nodes", 0xffff3901},
+    {UNGROUP, "ungroup selected nodes", 0xffff3903},
+    {UNGROUP_ALL_NODE, "ungroup all nodes", 0xff390501},
+    {AUTO_GROUP_X, "auto group x", 0xffff3d3b},
+    {AUTO_GROUP_Y, "auto group y", 0xffff3b2e},
+    {AUTO_GROUP_XY, "auto group x and y", 0xffff3b39},
+    {BOUND_BY_CLASS, "bound by class", 0xffff403e},
+    {BOUND_BY_METHOD, "bound by method", 0xffff4240},
+    {TREE_UP, "tree up", 0xffff2f2d},
+    {TREE_DOWN, "tree down", 0xffff352d},
     // style
-    {SHOW_AND_HIDE_TEXT, "show and hide text", 0xffff3a03,SINGLE_CLICK},
-    {SHOW_AND_HIDE_TOOLTIP, "show and hide tooltip", 0xffff2d03,SINGLE_CLICK},
-    {SHOW_AND_HIDE_BOUND_FRAME, "show and hide bound frame", 0xff400301,SINGLE_CLICK},
-    {INCREASE_NODE_TEXT_SIZE, "increase node text size", 0xffff663a,SINGLE_CLICK},
-    {DECREASE_NODE_TEXT_SIZE, "decrease node text size", 0xffff653a,SINGLE_CLICK},
-    {INCREASE_GUI_TEXT_SIZE, "increase GUI text size", 0xffff6601,SINGLE_CLICK},
-    {DECREASE_GUI_TEXT_SIZE, "decrease GUI text size", 0xffff6501,SINGLE_CLICK},
-    {BIGGER_NODE, "bigger node", 0xffff6631,SINGLE_CLICK},
-    {SMALLER_NODE, "smaller node", 0xffff6531,SINGLE_CLICK},
-    {WIDER_LINE, "wider line", 0xffff6630,SINGLE_CLICK},
-    {THINNER_LINE, "thinner line", 0xffff6530,SINGLE_CLICK},
-    {INCREASE_ALPHA_FOR_UNSELECTED, "less transparency for unselected", 0xffff6641,SINGLE_CLICK},
-    {DECREASE_ALPHA_FOR_UNSELECTED, "more transparency for unselected", 0xffff6541,SINGLE_CLICK},
-    {INCREASE_ALPHA_FOR_SELECTED, "less transparency for selected", 0xffff6642,SINGLE_CLICK},
-    {DECREASE_ALPHA_FOR_SELECTED, "more transparency for selected", 0xffff6542,SINGLE_CLICK},
-    {SET_COLOR, "set color", 0xffffff38,SINGLE_CLICK},
-    {FLOW_COLOR_MAP, "color by flow", 0xffff3801,SINGLE_CLICK},
-    {CLEAR_ALL_COLOR, "clear all color", 0xff380501,SINGLE_CLICK},
+    {SHOW_AND_HIDE_TEXT, "show and hide text", 0xffff3a03},
+    {SHOW_AND_HIDE_TOOLTIP, "show and hide tooltip", 0xffff2d03},
+    {SHOW_AND_HIDE_BOUND_FRAME, "show and hide bound frame", 0xff400301},
+    {INCREASE_NODE_TEXT_SIZE, "increase node text size", 0xffff663a},
+    {DECREASE_NODE_TEXT_SIZE, "decrease node text size", 0xffff653a},
+    {INCREASE_GUI_TEXT_SIZE, "increase GUI text size", 0xffff6601},
+    {DECREASE_GUI_TEXT_SIZE, "decrease GUI text size", 0xffff6501},
+    {BIGGER_NODE, "bigger node", 0xffff6631},
+    {SMALLER_NODE, "smaller node", 0xffff6531},
+    {WIDER_LINE, "wider line", 0xffff6630},
+    {THINNER_LINE, "thinner line", 0xffff6530},
+    {INCREASE_ALPHA_FOR_UNSELECTED, "less transparency for unselected", 0xffff6641},
+    {DECREASE_ALPHA_FOR_UNSELECTED, "more transparency for unselected", 0xffff6541},
+    {INCREASE_ALPHA_FOR_SELECTED, "less transparency for selected", 0xffff6642},
+    {DECREASE_ALPHA_FOR_SELECTED, "more transparency for selected", 0xffff6542},
+    {SET_COLOR, "set color", 0xffffff38},
+    {FLOW_COLOR_MAP, "color by flow", 0xffff3801},
+    {CLEAR_ALL_COLOR, "clear all color", 0xff380501},
     // explore mode
-    {SEARCH_DOWNWARD, "search downward", 0xffff6d05,SINGLE_CLICK},
-    {SEARCH_UPWARD, "search upward", 0xffff6c05,SINGLE_CLICK},
+    {SEARCH_DOWNWARD, "search downward", 0xffff6d05},
+    {SEARCH_UPWARD, "search upward", 0xffff6c05},
 
     // for next round
-    {SAVE_SELECTED_NODE, "save selected node", 0xffff3501,SINGLE_CLICK},
+    {SAVE_SELECTED_NODE, "save selected node", 0xffff3501},
 
     // save and restore graph
-    {SAVE_GRAPH, "save graph", 0xffff3401,SINGLE_CLICK},
-    {RESTORE_GRAPH, "restore graph", 0xffff3101,SINGLE_CLICK},
-    {DELETE_SAVED_GRAPH, "delete saved graph", 0xffff3103,SINGLE_CLICK},
+    {SAVE_GRAPH, "save graph", 0xffff3401},
+    {RESTORE_GRAPH, "restore graph", 0xffff3101},
+    {DELETE_SAVED_GRAPH, "delete saved graph", 0xffff3103},
 };
-
-map<int, ClickStyleHandler> HotkeyConfig::keyToClickHandler;
 
 map<int, HotKey*> HotkeyConfig::hotkeyMap;
 
 map<int, function<void(void)>> HotkeyConfig::functionEnumToFunction;
-
-void HotkeyConfig::onFrame() {
-    static int currentDownKeyIndex = -1;
-    int downHotkeyIndex = GetHotKeyDown(hotkeys.data(), hotkeys.size());
-
-    if (downHotkeyIndex != -1) {
-        currentDownKeyIndex = downHotkeyIndex;
-        HotKey& hotkey = hotkeys[downHotkeyIndex];
-        if (keyToClickHandler.count(hotkey.functionKeys) == 0) {
-            keyToClickHandler[hotkey.functionKeys] = ClickStyleHandler();
-        }
-        keyToClickHandler[hotkey.functionKeys].donw(hotkey);
-    }
-    if (currentDownKeyIndex != -1) {
-        if (not isKeyStillPressed(hotkeys[currentDownKeyIndex])) {
-            HotKey& hotkey = hotkeys[currentDownKeyIndex];
-            if (keyToClickHandler.count(hotkey.functionKeys) == 0) {
-                keyToClickHandler[hotkey.functionKeys] = ClickStyleHandler();
-            }
-            keyToClickHandler[hotkey.functionKeys].up(hotkey);
-            currentDownKeyIndex = -1;
-        }
-    }
-}
 
 void HotkeyConfig::loadHotkeyConfig(const string& filePath) {
     std::ifstream file(filePath);
@@ -219,13 +135,25 @@ void HotkeyConfig::loadHotkeyConfig(const string& filePath) {
         while (std::getline(file, line)) {
             if (line.size() > 5 and lineCount < hotkeys.size()) {
                 hotkeys[lineCount].functionKeys = stoul(line.substr(0, 10));
-                hotkeys[lineCount].clickStyle = stoi(line.substr(11));
             }
             lineCount++;
         }
         file.close();
     }
     init();
+}
+
+void HotkeyConfig::saveHotkeyConfig(const string& filePath) {
+    ofstream f;
+    f.open(filePath);
+    if (f.is_open()) {
+        for (auto& hotkey : hotkeys) {
+            f << hotkey.functionKeys << "\n";
+        }
+        f.close();
+    } else {
+        spdlog::get(ErrorManager::FileManagerTag)->critical("save hotkey failed");
+    }
 }
 
 void HotkeyConfig::init() {
@@ -326,50 +254,3 @@ void HotkeyConfig::init() {
     hotkeyMap[TREE_DOWN]->functionName = StringRes::singleton->getHotKeyTitle_treeDown();
 }
 
-void HotkeyConfig::saveHotkeyConfig(const string& filePath) {
-    ofstream f;
-    f.open(filePath);
-    if (f.is_open()) {
-        for (auto& hotkey : hotkeys) {
-            f << hotkey.functionKeys << " " << hotkey.clickStyle << "\n";
-        }
-        f.close();
-    } else {
-        spdlog::get(ErrorManager::FileManagerTag)->critical("save hotkey failed");
-    }
-}
-
-ClickStyleHandler::ClickStyleHandler() {
-    longPressStateMachine = new LongPressStateMachine(500);
-    doubleClickStateMachine = new DoubleClickStateMachine(500);
-}
-
-void ClickStyleHandler::donw(HotKey& hotkey) {
-    switch (hotkey.clickStyle) {
-    case LONG_PRESS:
-        longPressStateMachine->onPress(HotkeyConfig::functionEnumToFunction[hotkey.hotkeyFunction]);
-        break;
-    case DOUBLE_CLICK:
-        break;
-    case SINGLE_CLICK:
-        break;
-    default:
-        break;
-    }
-}
-
-void ClickStyleHandler::up(HotKey& hotkey) {
-    switch (hotkey.clickStyle) {
-    case LONG_PRESS:
-        longPressStateMachine->onRelease();
-        break;
-    case DOUBLE_CLICK:
-        doubleClickStateMachine->onClick(HotkeyConfig::functionEnumToFunction[hotkey.hotkeyFunction]);
-        break;
-    case SINGLE_CLICK:
-        HotkeyConfig::functionEnumToFunction[hotkey.hotkeyFunction]();
-        break;
-    default:
-        break;
-    }
-}
