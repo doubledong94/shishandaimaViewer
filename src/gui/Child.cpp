@@ -9,7 +9,7 @@ Child::Child() {
 }
 
 void Child::begin() {
-    ImGui::BeginChild(showableParam->label, ImVec2(width, height), ImGuiChildFlags_None,ImGuiWindowFlags_None);
+    ImGui::BeginChild(showableParam->label.data(), ImVec2(width, height), ImGuiChildFlags_None,ImGuiWindowFlags_None);
 }
 
 void Child::end() {

@@ -3,8 +3,9 @@ public:
     int flag;
     int windowWidth;
     int windowHeight;
-    float widthRatio = 0.8f;
-    float heightRatio = 0.8f;
+    float widthRatio = 0.99f;
+    float heightRatio = 0.99f;
+    ShowableParam uiStructure;
     Window(int flag);
     virtual void applyPosAndSize() override;
     void onWindowResize() override;

@@ -21,47 +21,116 @@
 #include "gui/imEditLineAndGraph.h"
 #include "gui/Window.h"
 #include "EditLineAndGraphWindow.h"
+#include "gui/Button.h"
+#include "gui/AdjustButton.h"
 #include "gui/Child.h"
 
-
-ShowableParam EditLineAndGraphWindow::uiStructure = {
-        "Window_EditLineAndGraph",
-        false,
-        NULL,
-        new SplitLayoutAlgo(true,{0.5f,0.5f},10,10),
-        NULL,
-        {
-            TransparentWindowStyle::instance,
-            TransparentChildStyle::instance,
-            NormalStyle::instance
-        },
-        {
+EditLineAndGraphWindow::EditLineAndGraphWindow() :Window(ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize) {
+    uiStructure = {
+            "Window_EditLineAndGraph",
+            false,
+            NULL,
+            new SplitLayoutAlgo(true,{0.7f,0.3f},0.005,0.015),
+            new AdjustMediator(),
             {
-                "editWindow",
-                false,
-                new Child(),
-                NULL,
-                NULL,
-                {},
-                {}
+                // TransparentWindowStyle::instance,
+                // TransparentChildStyle::instance,
+                DebugWindowStyle::instance,
+                new DebugChildStyle(ColorRes::colorBlue4),
+                NormalStyle::instance
             },
             {
-                "displayWindow",
-                false,
-                new Child(),
-                NULL,
-                NULL,
-                {},
-                {}
-            }
-        }
-};
 
-EditLineAndGraphWindow::EditLineAndGraphWindow() :Window(ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize) {
+            },
+            {
+                {
+                    "editWindow",
+                    false,
+                    new Child(),
+                    new SplitLayoutAlgo(false,{0.25f,0.25f,0.25f,0.25},0.01,0.02),
+                    new AdjustMediator(),
+                    {},
+                    {
+                        new DebugChildStyle(ColorRes::colorBlue1),
+                    },
+                    {
+                        {
+                            "classWindow",
+                            true,
+                            new Child(),
+                            NULL,
+                            NULL,
+                        },
+                        {
+                            "##heightAdjust1",
+                            false,
+                            new AdjustButton(),
+                            NULL,
+                            NULL,
+                        },
+                        {
+                            "nodeWindow",
+                            true,
+                            new Child(),
+                            NULL,
+                            NULL,
+                            {}
+                        },
+                        {
+                            "##heightAdjust2",
+                            false,
+                            new AdjustButton(),
+                            NULL,
+                            NULL,
+                        },
+                        {
+                            "lineWindow",
+                            true,
+                            new Child(),
+                            NULL,
+                            NULL,
+                            {}
+                        },
+                        {
+                            "##heightAdjust3",
+                            false,
+                            new AdjustButton(),
+                            NULL,
+                            NULL,
+                        },
+                        {
+                            "graphWindow",
+                            true,
+                            new Child(),
+                            NULL,
+                            NULL,
+                            {}
+                        }
+                    }
+                },
+                {
+                    "##widthAdjust",
+                    false,
+                    new AdjustButton(),
+                    NULL,
+                    NULL,
+                    {},
+                    {},
+                    {}
+                },
+                {
+                    "displayWindow",
+                    false,
+                    new Child(),
+                    NULL,
+                    NULL,
+                    {},
+                    {},
+                    {}
+                }
+            }
+    };
     setupParamRecur(&uiStructure);
 }
 
-void EditLineAndGraphWindow::renderContent() {
-    shishan::editLineAndGraph();
-}
 

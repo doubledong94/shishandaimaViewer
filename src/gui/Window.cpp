@@ -6,11 +6,11 @@
 #include "Window.h"
 
 Window::Window(int flag) : flag(flag) {
-    ImGui::GetStyle().WindowShadowSize = 0;
-    ImGui::GetStyle().WindowBorderSize = 0;
 }
 
 void Window::applyPosAndSize() {
+    ImGui::GetStyle().WindowShadowSize = 0;
+    ImGui::GetStyle().WindowBorderSize = 0;
     ImGui::SetNextWindowPos(ImVec2(left, top), ImGuiCond_Always, ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
 }
@@ -24,7 +24,7 @@ void Window::onWindowResize() {
 }
 
 void Window::begin() {
-    ImGui::Begin(showableParam->label, NULL, flag);
+    ImGui::Begin(showableParam->label.data(), NULL, flag);
 }
 
 void Window::end() {
