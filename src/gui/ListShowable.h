@@ -1,3 +1,4 @@
-class ListShowable {
-
-}
+class ListShowable :public Showable {
+public:
+    ListShowable();
+};
